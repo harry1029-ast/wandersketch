@@ -1,13 +1,16 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { AppStage, TravelPlan, ScenicZoneKey, RouteTheme } from '@/types/itinerary';
-import { INITIAL_PLANS, MASTER_ZONES } from '@/lib/mockData';
+import { AppStage, TravelPlan, ScenicZoneKey, RouteTheme, ScenicZone } from '@/types/itinerary';
+import { MASTER_ZONES, INITIAL_PLANS } from '@/lib/mockData';
 import { fetchPedestrianRoute } from '@/lib/routing';
+import { fetchAllPlans, fetchDestinations } from '@/lib/repositories';
+import { supabase } from '@/lib/supabaseClient';
 
 interface ItineraryState {
     currentStage: AppStage;
     activePlanId: string;
     savedPlans: TravelPlan[];
+    zones: Record<string, ScenicZone>;
+    isLoadingDb: boolean;
 
     plannerBuffer: {
         title: string;
@@ -15,6 +18,8 @@ interface ItineraryState {
         spotIds: string[];
     };
 
+    // Actions
+    initializeFromDatabase: () => Promise<void>;
     setStage: (stage: AppStage) => void;
     setActivePlanId: (id: string) => void;
     updatePlannerZone: (zoneKey: ScenicZoneKey) => void;
@@ -23,161 +28,225 @@ interface ItineraryState {
     addPlannerCustomStop: (name: string) => void;
     savePlannerAsNewPlan: () => Promise<string>;
     updateActivePlanTheme: (theme: RouteTheme) => Promise<void>;
-    updatePlanTitle: (planId: string, title: string) => void;
+    updatePlanTitle: (planId: string, title: string) => Promise<void>;
 }
 
-export const useItineraryStore = create<ItineraryState>()(
-    persist(
-        (set, get) => ({
-            currentStage: 'plans',
-            activePlanId: INITIAL_PLANS[0].id,
-            savedPlans: INITIAL_PLANS,
+export const useItineraryStore = create<ItineraryState>()((set, get) => ({
+    currentStage: 'plans',
+    activePlanId: INITIAL_PLANS[0].id,
+    savedPlans: INITIAL_PLANS,
+    zones: MASTER_ZONES,
+    isLoadingDb: false,
 
+    plannerBuffer: {
+        title: 'Toronto Lakefront & Distillery Autumn Walk',
+        zoneKey: 'toronto_distillery',
+        spotIds: ['td-1', 'td-2', 'td-3', 'td-4', 'td-5'],
+    },
+
+    initializeFromDatabase: async () => {
+        set({ isLoadingDb: true });
+        try {
+            const [dbPlans, dbDestinations] = await Promise.all([
+                fetchAllPlans(),
+                fetchDestinations(),
+            ]);
+
+            set((state) => {
+                const updatedZones = { ...state.zones };
+                dbDestinations.forEach((dest) => {
+                    if (updatedZones[dest.id]) {
+                        updatedZones[dest.id] = {
+                            ...updatedZones[dest.id],
+                            ...dest,
+                            landmarksPool: updatedZones[dest.id].landmarksPool, // Retain local illustrated SVGs
+                        };
+                    }
+                });
+
+                return {
+                    savedPlans: dbPlans.length > 0 ? dbPlans : state.savedPlans,
+                    activePlanId: dbPlans.length > 0 ? dbPlans[0].id : state.activePlanId,
+                    zones: updatedZones,
+                    isLoadingDb: false,
+                };
+            });
+        } catch (err) {
+            console.warn('Could not load from Supabase, falling back to local seed data:', err);
+            set({ isLoadingDb: false });
+        }
+    },
+
+    setStage: (stage) => set({ currentStage: stage }),
+    setActivePlanId: (id) => set({ activePlanId: id }),
+
+    updatePlannerZone: (zoneKey) => {
+        const zone = get().zones[zoneKey] || MASTER_ZONES[zoneKey];
+        if (!zone) return;
+        set({
             plannerBuffer: {
-                title: 'Toronto Lakefront & Distillery Autumn Walk',
-                zoneKey: 'toronto_distillery',
-                spotIds: ['td-1', 'td-2', 'td-3', 'td-4', 'td-5'],
+                title: `Explore ${zone.name}`,
+                zoneKey,
+                spotIds: zone.landmarksPool.slice(0, 4).map((l) => l.id),
             },
+        });
+    },
 
-            setStage: (stage) => set({ currentStage: stage }),
-            setActivePlanId: (id) => set({ activePlanId: id }),
+    reorderPlannerStops: (fromIdx, toIdx) => {
+        const { spotIds } = get().plannerBuffer;
+        if (toIdx < 0 || toIdx >= spotIds.length) return;
+        const updated = [...spotIds];
+        const [moved] = updated.splice(fromIdx, 1);
+        updated.splice(toIdx, 0, moved);
+        set((state) => ({ plannerBuffer: { ...state.plannerBuffer, spotIds: updated } }));
+    },
 
-            updatePlannerZone: (zoneKey) => {
-                const zone = MASTER_ZONES[zoneKey];
-                if (!zone) return;
-                set({
-                    plannerBuffer: {
-                        title: `Explore ${zone.name}`,
-                        zoneKey,
-                        spotIds: zone.landmarksPool.slice(0, 4).map((l) => l.id),
-                    },
-                });
+    removePlannerStop: (idx) => {
+        const { spotIds } = get().plannerBuffer;
+        if (spotIds.length <= 2) return;
+        set((state) => ({
+            plannerBuffer: {
+                ...state.plannerBuffer,
+                spotIds: spotIds.filter((_, i) => i !== idx),
             },
+        }));
+    },
 
-            reorderPlannerStops: (fromIdx, toIdx) => {
-                const { spotIds } = get().plannerBuffer;
-                if (toIdx < 0 || toIdx >= spotIds.length) return;
-                const updated = [...spotIds];
-                const [moved] = updated.splice(fromIdx, 1);
-                updated.splice(toIdx, 0, moved);
-                set((state) => ({ plannerBuffer: { ...state.plannerBuffer, spotIds: updated } }));
+    addPlannerCustomStop: (name) => {
+        const { zoneKey, spotIds } = get().plannerBuffer;
+        const zone = get().zones[zoneKey] || MASTER_ZONES[zoneKey];
+        if (!zone) return;
+
+        const newId = `custom-${Date.now()}`;
+        const newLandmark = {
+            id: newId,
+            name,
+            category: 'craft' as const,
+            color: '#f4c568',
+            coords: [
+                zone.center[0] + (Math.random() - 0.5) * 0.003,
+                zone.center[1] + (Math.random() - 0.5) * 0.003,
+            ] as [number, number],
+            svgSnippet: `
+        <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-md">
+          <circle cx="50" cy="50" r="34" fill="#f4c568" stroke="#2b261b" stroke-width="3"/>
+          <text x="50" y="58" font-size="22" text-anchor="middle">✨</text>
+        </svg>
+      `,
+            tag: 'Personal Spot',
+            desc: `Custom stop added by user: ${name}.`,
+            audioNote: `You have arrived at your custom stop: ${name}.`,
+            panoUrl: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1200&q=80',
+            tips: 'Check out local seasonal recommendations when you arrive.',
+        };
+
+        zone.landmarksPool.push(newLandmark);
+        set((state) => ({
+            plannerBuffer: { ...state.plannerBuffer, spotIds: [...spotIds, newId] },
+        }));
+    },
+
+    savePlannerAsNewPlan: async () => {
+        const { title, zoneKey, spotIds } = get().plannerBuffer;
+        const zone = get().zones[zoneKey] || MASTER_ZONES[zoneKey];
+        const id = `plan_${Date.now()}`;
+
+        const stopCoords = spotIds
+            .map((sid) => zone.landmarksPool.find((l) => l.id === sid)?.coords)
+            .filter(Boolean) as [number, number][];
+
+        const routeData = await fetchPedestrianRoute(stopCoords);
+
+        const newPlan: TravelPlan = {
+            id,
+            title: title.trim() || 'My Custom Travel Plan',
+            zoneKey,
+            createdAt: new Date().toISOString().split('T')[0],
+            tag: 'Custom',
+            estimatedDistance: `${routeData.distanceKm} km`,
+            estimatedDuration: `${routeData.durationMinutes} mins`,
+            activeRouteKey: 'classic',
+            spotIds: [...spotIds],
+            themeRoutes: {
+                classic: [...spotIds],
+                culture: spotIds.slice(0, 3),
+                rain: spotIds.slice(0, 2),
             },
+        };
 
-            removePlannerStop: (idx) => {
-                const { spotIds } = get().plannerBuffer;
-                if (spotIds.length <= 2) return;
-                set((state) => ({
-                    plannerBuffer: {
-                        ...state.plannerBuffer,
-                        spotIds: spotIds.filter((_, i) => i !== idx),
-                    },
-                }));
-            },
+        // Optimistic UI update
+        set((state) => ({
+            savedPlans: [newPlan, ...state.savedPlans],
+            activePlanId: id,
+            currentStage: 'map',
+        }));
 
-            addPlannerCustomStop: (name) => {
-                const { zoneKey, spotIds } = get().plannerBuffer;
-                const zone = MASTER_ZONES[zoneKey];
-                if (!zone) return;
+        // Async persistence to Supabase
+        try {
+            await supabase.from('travel_plans').insert({
+                id: newPlan.id,
+                title: newPlan.title,
+                destination_id: newPlan.zoneKey,
+                tag: newPlan.tag,
+                estimated_distance: newPlan.estimatedDistance,
+                estimated_duration: newPlan.estimatedDuration,
+                active_route_key: newPlan.activeRouteKey,
+                spot_ids: newPlan.spotIds,
+                theme_routes: newPlan.themeRoutes,
+            });
+        } catch (err) {
+            console.error('Failed to sync plan to Supabase:', err);
+        }
 
-                const newId = `custom-${Date.now()}`;
-                const newLandmark = {
-                    id: newId,
-                    name,
-                    category: 'craft' as const,
-                    color: '#f4c568',
-                    coords: [
-                        zone.center[0] + (Math.random() - 0.5) * 0.003,
-                        zone.center[1] + (Math.random() - 0.5) * 0.003,
-                    ] as [number, number],
-                    svgSnippet: `
-            <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-md">
-              <circle cx="50" cy="50" r="34" fill="#f4c568" stroke="#2b261b" stroke-width="3"/>
-              <text x="50" y="58" font-size="22" text-anchor="middle">✨</text>
-            </svg>
-          `,
-                    tag: 'Personal Spot',
-                    desc: `Custom stop added by user: ${name}.`,
-                    audioNote: `You have arrived at your custom stop: ${name}.`,
-                    panoUrl: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1200&q=80',
-                    tips: 'Check out local seasonal recommendations when you arrive.',
-                };
+        return id;
+    },
 
-                zone.landmarksPool.push(newLandmark);
-                set((state) => ({
-                    plannerBuffer: { ...state.plannerBuffer, spotIds: [...spotIds, newId] },
-                }));
-            },
+    updateActivePlanTheme: async (theme) => {
+        const { activePlanId, savedPlans, zones } = get();
+        const plan = savedPlans.find((p) => p.id === activePlanId);
+        if (!plan) return;
 
-            savePlannerAsNewPlan: async () => {
-                const { title, zoneKey, spotIds } = get().plannerBuffer;
-                const zone = MASTER_ZONES[zoneKey];
-                const id = `plan_${Date.now()}`;
+        const zone = zones[plan.zoneKey] || MASTER_ZONES[plan.zoneKey];
+        const newSpotIds = plan.themeRoutes[theme] || plan.spotIds;
+        const stopCoords = newSpotIds
+            .map((sid) => zone.landmarksPool.find((l) => l.id === sid)?.coords)
+            .filter(Boolean) as [number, number][];
 
-                // Get coordinates for metric calculation
-                const stopCoords = spotIds
-                    .map((sid) => zone.landmarksPool.find((l) => l.id === sid)?.coords)
-                    .filter(Boolean) as [number, number][];
+        const routeData = await fetchPedestrianRoute(stopCoords);
 
-                const routeData = await fetchPedestrianRoute(stopCoords);
+        const updated = savedPlans.map((p) => {
+            if (p.id !== activePlanId) return p;
+            return {
+                ...p,
+                activeRouteKey: theme,
+                spotIds: newSpotIds,
+                estimatedDistance: `${routeData.distanceKm} km`,
+                estimatedDuration: `${routeData.durationMinutes} mins`,
+            };
+        });
 
-                const newPlan: TravelPlan = {
-                    id,
-                    title: title.trim() || 'My Custom Travel Plan',
-                    zoneKey,
-                    createdAt: new Date().toISOString().split('T')[0],
-                    tag: 'Custom',
-                    estimatedDistance: `${routeData.distanceKm} km`,
-                    estimatedDuration: `${routeData.durationMinutes} mins`,
-                    activeRouteKey: 'classic',
-                    spotIds: [...spotIds],
-                    themeRoutes: {
-                        classic: [...spotIds],
-                        culture: spotIds.slice(0, 3),
-                        rain: spotIds.slice(0, 2),
-                    },
-                };
+        set({ savedPlans: updated });
 
-                set((state) => ({
-                    savedPlans: [newPlan, ...state.savedPlans],
-                    activePlanId: id,
-                    currentStage: 'map',
-                }));
-                return id;
-            },
+        // Sync theme selection to Supabase
+        try {
+            await supabase
+                .from('travel_plans')
+                .update({ active_route_key: theme })
+                .eq('id', activePlanId);
+        } catch (err) {
+            console.warn('Could not sync theme change to DB:', err);
+        }
+    },
 
-            updateActivePlanTheme: async (theme) => {
-                const { activePlanId, savedPlans } = get();
-                const plan = savedPlans.find((p) => p.id === activePlanId);
-                if (!plan) return;
+    updatePlanTitle: async (planId, title) => {
+        set((state) => ({
+            savedPlans: state.savedPlans.map((p) => (p.id === planId ? { ...p, title } : p)),
+        }));
 
-                const zone = MASTER_ZONES[plan.zoneKey];
-                const newSpotIds = plan.themeRoutes[theme] || plan.spotIds;
-                const stopCoords = newSpotIds
-                    .map((sid) => zone.landmarksPool.find((l) => l.id === sid)?.coords)
-                    .filter(Boolean) as [number, number][];
-
-                const routeData = await fetchPedestrianRoute(stopCoords);
-
-                const updated = savedPlans.map((p) => {
-                    if (p.id !== activePlanId) return p;
-                    return {
-                        ...p,
-                        activeRouteKey: theme,
-                        spotIds: newSpotIds,
-                        estimatedDistance: `${routeData.distanceKm} km`,
-                        estimatedDuration: `${routeData.durationMinutes} mins`,
-                    };
-                });
-
-                set({ savedPlans: updated });
-            },
-
-            updatePlanTitle: (planId, title) => {
-                set((state) => ({
-                    savedPlans: state.savedPlans.map((p) => (p.id === planId ? { ...p, title } : p)),
-                }));
-            },
-        }),
-        { name: 'wandersketch-itinerary-storage' }
-    )
-);
+        try {
+            await supabase.from('travel_plans').update({ title }).eq('id', planId);
+        } catch (err) {
+            console.warn('Could not sync title change to DB:', err);
+        }
+    },
+}));
