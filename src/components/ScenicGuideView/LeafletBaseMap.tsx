@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import rough from 'roughjs';
 import { Landmark, ScenicFacility, ScenicZone } from '@/types/itinerary';
+import { fetchPedestrianRoute } from '@/lib/routing';
 
 interface LeafletBaseMapProps {
     zone: ScenicZone;
@@ -27,25 +28,47 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
     onMapReady,
 }) => {
     const mapContainerRef = useRef<HTMLDivElement | null>(null);
-    const svgOverlayRef = useRef<SVGSVGElement | null>(null);
     const mapInstanceRef = useRef<L.Map | null>(null);
     const landmarksLayerRef = useRef<L.LayerGroup | null>(null);
     const facilitiesLayerRef = useRef<L.LayerGroup | null>(null);
     const userMarkerRef = useRef<L.Marker | null>(null);
+    const svgOverlayRef = useRef<SVGSVGElement | null>(null);
 
-    // Function to redraw hand-sketched connector trails via Rough.js
+    // Mutable refs to prevent React stale closures inside Leaflet map listeners
+    const trajectoryRef = useRef<[number, number][]>([]);
+    const landmarksRef = useRef<Landmark[]>(landmarks);
+    landmarksRef.current = landmarks;
+
+    // 1. Core redraw function using layer points
+    // Inside LeafletBaseMap.tsx: Replace redrawSketchedPaths with this implementation
+
     const redrawSketchedPaths = () => {
         const map = mapInstanceRef.current;
         const svg = svgOverlayRef.current;
-        if (!map || !svg || landmarks.length < 2) return;
+        if (!map || !svg) return;
 
-        while (svg.firstChild) {
-            svg.removeChild(svg.firstChild);
+        const coords = trajectoryRef.current;
+        if (coords.length < 2) {
+            while (svg.firstChild) svg.removeChild(svg.firstChild);
+            return;
         }
 
+        // Clear previous drawings
+        while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+        // Position SVG directly at layer origin (0, 0)
+        const topLeft = map.containerPointToLayerPoint([0, 0]);
+        L.DomUtil.setPosition(svg as unknown as HTMLElement, topLeft);
+
+        const size = map.getSize();
+        svg.setAttribute('width', `${size.x}`);
+        svg.setAttribute('height', `${size.y}`);
+
         const rc = rough.svg(svg);
-        const pixelPoints = landmarks.map((lm) => {
-            const pt = map.latLngToContainerPoint(L.latLng(lm.coords[0], lm.coords[1]));
+
+        // Convert lat/lng to container pixel coordinates relative to the current viewport
+        const pixelPoints = coords.map(([lat, lng]) => {
+            const pt = map.latLngToContainerPoint(L.latLng(lat, lng));
             return [pt.x, pt.y];
         });
 
@@ -53,43 +76,68 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
             const p1 = pixelPoints[i];
             const p2 = pixelPoints[i + 1];
 
-            // Sand cobblestone underlay
+            // Sand foundation underlay
             svg.appendChild(
                 rc.line(p1[0], p1[1], p2[0], p2[1], {
-                    roughness: 2.2,
+                    roughness: 1.5,
                     stroke: 'rgba(232, 220, 186, 0.85)',
-                    strokeWidth: 16,
-                    bowing: 2.2,
+                    strokeWidth: 14,
+                    bowing: 1.2,
                 })
             );
 
-            // Terracotta dashed pencil route
+            // Terracotta sketched route
             svg.appendChild(
                 rc.line(p1[0], p1[1], p2[0], p2[1], {
-                    roughness: 1.8,
+                    roughness: 1.4,
                     stroke: '#c14937',
                     strokeWidth: 3.5,
-                    strokeLineDash: [10, 8],
-                    bowing: 1.8,
+                    strokeLineDash: [8, 6],
+                    bowing: 1.1,
                 })
             );
+        }
 
-            // Milestone circle
-            const midX = (p1[0] + p2[0]) / 2;
-            const midY = (p1[1] + p2[1]) / 2;
+        // Milestone stamps at primary stops
+        landmarksRef.current.forEach((lm) => {
+            const pt = map.latLngToContainerPoint(L.latLng(lm.coords[0], lm.coords[1]));
             svg.appendChild(
-                rc.circle(midX, midY, 9, {
+                rc.circle(pt.x, pt.y, 8, {
                     fill: '#f4c568',
                     fillStyle: 'solid',
-                    roughness: 1.4,
+                    roughness: 1.2,
                     stroke: '#2b261b',
                     strokeWidth: 1.5,
                 })
             );
-        }
+        });
     };
 
-    // Initialize Map
+    // 2. Fetch real street pedestrian routes when landmarks change
+    useEffect(() => {
+        if (landmarks.length < 2) {
+            trajectoryRef.current = landmarks.map((l) => l.coords);
+            redrawSketchedPaths();
+            return;
+        }
+
+        let isMounted = true;
+        const stopCoords = landmarks.map((l) => l.coords);
+
+        fetchPedestrianRoute(stopCoords).then((result) => {
+            if (isMounted) {
+                trajectoryRef.current =
+                    result.coordinates.length > 0 ? result.coordinates : stopCoords;
+                redrawSketchedPaths();
+            }
+        });
+
+        return () => {
+            isMounted = false;
+        };
+    }, [landmarks]);
+
+    // 3. Initialize Leaflet Map Instance
     useEffect(() => {
         if (!mapContainerRef.current || mapInstanceRef.current) return;
 
@@ -102,21 +150,45 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
 
         L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-        // Unblocked ESRI Topo Tiles
-        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
-            maxZoom: 19,
-            crossOrigin: true,
-        }).addTo(map);
+        L.tileLayer(
+            'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+            {
+                maxZoom: 19,
+                crossOrigin: true,
+            }
+        ).addTo(map);
+
+        // Create a dedicated SVG pane between base tiles (z=200) and markers (z=600)
+        const customPane = map.createPane('roughOverlayPane');
+        customPane.style.zIndex = '450';
+        customPane.style.pointerEvents = 'none';
+
+        // Create the SVG container and inject it directly into Leaflet's pane
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.style.position = 'absolute';
+        svg.style.left = '0px';
+        svg.style.top = '0px';
+        svg.style.pointerEvents = 'none';
+        svg.style.overflow = 'visible';
+        customPane.appendChild(svg);
+        svgOverlayRef.current = svg;
 
         landmarksLayerRef.current = L.layerGroup().addTo(map);
         facilitiesLayerRef.current = L.layerGroup().addTo(map);
         mapInstanceRef.current = map;
 
+        // Attach listeners — now pointing to fresh ref values
         map.on('move', redrawSketchedPaths);
+        map.on('zoom', redrawSketchedPaths);
         map.on('zoomend', redrawSketchedPaths);
         map.on('resize', redrawSketchedPaths);
 
         if (onMapReady) onMapReady(map);
+
+        setTimeout(() => {
+            map.invalidateSize();
+            redrawSketchedPaths();
+        }, 200);
 
         return () => {
             map.remove();
@@ -124,7 +196,17 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         };
     }, [zone]);
 
-    // Update Landmark Markers
+    // 4. Safely toggle watercolor filter on map container
+    useEffect(() => {
+        if (!mapContainerRef.current) return;
+        if (isParchmentMode) {
+            mapContainerRef.current.classList.add('hand-drawn-tile-filter');
+        } else {
+            mapContainerRef.current.classList.remove('hand-drawn-tile-filter');
+        }
+    }, [isParchmentMode]);
+
+    // 5. Update Landmark Pins
     useEffect(() => {
         const layer = landmarksLayerRef.current;
         if (!layer) return;
@@ -154,7 +236,7 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
                 iconAnchor: [28, 68],
             });
 
-            const marker = L.marker(lm.coords, { icon });
+            const marker = L.marker(lm.coords, { icon, zIndexOffset: 1000 });
             marker.on('click', () => onSelectLandmark(lm));
             marker.addTo(layer);
         });
@@ -162,7 +244,7 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         redrawSketchedPaths();
     }, [landmarks, activeLandmark]);
 
-    // Update Facility Markers
+    // 6. Update Amenities Pins
     useEffect(() => {
         const layer = facilitiesLayerRef.current;
         if (!layer) return;
@@ -182,7 +264,7 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
                 iconAnchor: [16, 16],
             });
 
-            const marker = L.marker(fac.coords, { icon });
+            const marker = L.marker(fac.coords, { icon, zIndexOffset: 800 });
             marker.bindTooltip(
                 `<div class="text-xs font-bold font-serif text-paper-900">${fac.name}</div>`,
                 { direction: 'top', offset: [0, -12] }
@@ -191,7 +273,7 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         });
     }, [facilities]);
 
-    // Update User GPS Marker
+    // 7. Update User GPS Marker
     useEffect(() => {
         const map = mapInstanceRef.current;
         if (!map) return;
@@ -223,11 +305,7 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         <div className="relative w-full h-full overflow-hidden bg-[#e8dcba]">
             <div
                 ref={mapContainerRef}
-                className={`w-full h-full z-10 ${isParchmentMode ? 'hand-drawn-tile-filter' : ''}`}
-            />
-            <svg
-                ref={svgOverlayRef}
-                className="absolute inset-0 pointer-events-none z-15 w-full h-full"
+                className="w-full h-full relative z-0"
             />
         </div>
     );

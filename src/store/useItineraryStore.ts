@@ -2,28 +2,27 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { AppStage, TravelPlan, ScenicZoneKey, RouteTheme } from '@/types/itinerary';
 import { INITIAL_PLANS, MASTER_ZONES } from '@/lib/mockData';
+import { fetchPedestrianRoute } from '@/lib/routing';
 
 interface ItineraryState {
     currentStage: AppStage;
     activePlanId: string;
     savedPlans: TravelPlan[];
 
-    // Working buffer for the Planner screen
     plannerBuffer: {
         title: string;
         zoneKey: ScenicZoneKey;
         spotIds: string[];
     };
 
-    // Actions
     setStage: (stage: AppStage) => void;
     setActivePlanId: (id: string) => void;
     updatePlannerZone: (zoneKey: ScenicZoneKey) => void;
     reorderPlannerStops: (fromIdx: number, toIdx: number) => void;
     removePlannerStop: (idx: number) => void;
     addPlannerCustomStop: (name: string) => void;
-    savePlannerAsNewPlan: () => string;
-    updateActivePlanTheme: (theme: RouteTheme) => void;
+    savePlannerAsNewPlan: () => Promise<string>;
+    updateActivePlanTheme: (theme: RouteTheme) => Promise<void>;
     updatePlanTitle: (planId: string, title: string) => void;
 }
 
@@ -109,17 +108,26 @@ export const useItineraryStore = create<ItineraryState>()(
                 }));
             },
 
-            savePlannerAsNewPlan: () => {
+            savePlannerAsNewPlan: async () => {
                 const { title, zoneKey, spotIds } = get().plannerBuffer;
+                const zone = MASTER_ZONES[zoneKey];
                 const id = `plan_${Date.now()}`;
+
+                // Get coordinates for metric calculation
+                const stopCoords = spotIds
+                    .map((sid) => zone.landmarksPool.find((l) => l.id === sid)?.coords)
+                    .filter(Boolean) as [number, number][];
+
+                const routeData = await fetchPedestrianRoute(stopCoords);
+
                 const newPlan: TravelPlan = {
                     id,
                     title: title.trim() || 'My Custom Travel Plan',
                     zoneKey,
                     createdAt: new Date().toISOString().split('T')[0],
                     tag: 'Custom',
-                    estimatedDistance: `${(spotIds.length * 0.5).toFixed(1)} km`,
-                    estimatedDuration: `${(spotIds.length * 0.5).toFixed(1)} hrs`,
+                    estimatedDistance: `${routeData.distanceKm} km`,
+                    estimatedDuration: `${routeData.durationMinutes} mins`,
                     activeRouteKey: 'classic',
                     spotIds: [...spotIds],
                     themeRoutes: {
@@ -137,16 +145,30 @@ export const useItineraryStore = create<ItineraryState>()(
                 return id;
             },
 
-            updateActivePlanTheme: (theme) => {
+            updateActivePlanTheme: async (theme) => {
                 const { activePlanId, savedPlans } = get();
+                const plan = savedPlans.find((p) => p.id === activePlanId);
+                if (!plan) return;
+
+                const zone = MASTER_ZONES[plan.zoneKey];
+                const newSpotIds = plan.themeRoutes[theme] || plan.spotIds;
+                const stopCoords = newSpotIds
+                    .map((sid) => zone.landmarksPool.find((l) => l.id === sid)?.coords)
+                    .filter(Boolean) as [number, number][];
+
+                const routeData = await fetchPedestrianRoute(stopCoords);
+
                 const updated = savedPlans.map((p) => {
                     if (p.id !== activePlanId) return p;
                     return {
                         ...p,
                         activeRouteKey: theme,
-                        spotIds: p.themeRoutes[theme] || p.spotIds,
+                        spotIds: newSpotIds,
+                        estimatedDistance: `${routeData.distanceKm} km`,
+                        estimatedDuration: `${routeData.durationMinutes} mins`,
                     };
                 });
+
                 set({ savedPlans: updated });
             },
 
