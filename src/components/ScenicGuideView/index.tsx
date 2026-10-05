@@ -7,14 +7,21 @@ import { useItineraryStore } from '@/store/useItineraryStore';
 import { MASTER_ZONES } from '@/lib/mockData';
 import { Landmark } from '@/types/itinerary';
 import { playChime, playVoiceNarrator } from '@/lib/audio';
+import { useGeolocationTracker } from '@/lib/useGeolocationTracker';
 import { GuideDrawer } from './GuideDrawer';
 import { LandmarkDetailModal } from '@/components/Modals/LandmarkDetailModal';
-import { Palette, ArrowsOut, NavigationArrow } from '@phosphor-icons/react';
+import { Palette, ArrowsOut, NavigationArrow, Crosshair } from '@phosphor-icons/react';
 
-// Dynamic import with SSR disabled to keep Leaflet purely client-side
 const DynamicLeafletMap = dynamic(
     () => import('./LeafletBaseMap').then((mod) => mod.LeafletBaseMap),
-    { ssr: false, loading: () => <div className="w-full h-full bg-[#e8dcba] flex items-center justify-center font-bold text-paper-900">Loading Illustrated Map...</div> }
+    {
+        ssr: false,
+        loading: () => (
+            <div className="w-full h-full bg-[#e8dcba] flex items-center justify-center font-bold text-paper-900">
+                Loading Illustrated Map...
+            </div>
+        ),
+    }
 );
 
 export const ScenicGuideView: React.FC = () => {
@@ -24,6 +31,7 @@ export const ScenicGuideView: React.FC = () => {
 
     const [activeLandmark, setActiveLandmark] = useState<Landmark | null>(null);
     const [userCoords, setUserCoords] = useState<[number, number]>(zone.userOrigin);
+    const [isLiveGpsActive, setIsLiveGpsActive] = useState<boolean>(false);
     const [isParchmentMode, setIsParchmentMode] = useState<boolean>(true);
     const [isCruiseActive, setIsCruiseActive] = useState<boolean>(false);
     const [filterRestrooms, setFilterRestrooms] = useState<boolean>(true);
@@ -36,6 +44,12 @@ export const ScenicGuideView: React.FC = () => {
     const orderedLandmarks = (plan?.spotIds || [])
         .map((id) => zone.landmarksPool.find((l) => l.id === id))
         .filter(Boolean) as Landmark[];
+
+    const { coords: liveGpsCoords, heading: liveHeading, accuracy: liveAccuracy } = useGeolocationTracker({
+        landmarks: orderedLandmarks,
+        fallbackCoords: zone.userOrigin,
+        enabled: isLiveGpsActive,
+    });
 
     const activeFacilities = zone.facilities.filter((f) => {
         if (f.type === 'restroom') return filterRestrooms;
@@ -51,7 +65,17 @@ export const ScenicGuideView: React.FC = () => {
         }
     };
 
+    useEffect(() => {
+        if (isLiveGpsActive) {
+            setUserCoords(liveGpsCoords);
+            if (mapRef.current) {
+                mapRef.current.panTo(liveGpsCoords, { animate: true, duration: 0.6 });
+            }
+        }
+    }, [liveGpsCoords, isLiveGpsActive]);
+
     const handleToggleCruise = () => {
+        if (isLiveGpsActive) setIsLiveGpsActive(false);
         if (isCruiseActive) {
             setIsCruiseActive(false);
             if (cruiseIntervalRef.current) clearInterval(cruiseIntervalRef.current);
@@ -89,6 +113,7 @@ export const ScenicGuideView: React.FC = () => {
 
     const handleResetLocation = () => {
         playChime('tap');
+        if (isLiveGpsActive) setIsLiveGpsActive(false);
         setUserCoords(zone.userOrigin);
         if (mapRef.current) {
             mapRef.current.flyTo(zone.userOrigin, 16);
@@ -122,6 +147,8 @@ export const ScenicGuideView: React.FC = () => {
                     activeLandmark={activeLandmark}
                     onSelectLandmark={handleSelectLandmark}
                     userCoords={userCoords}
+                    userHeading={isLiveGpsActive ? liveHeading : null}
+                    userAccuracy={isLiveGpsActive ? liveAccuracy : null}
                     isParchmentMode={isParchmentMode}
                     onMapReady={(map) => {
                         mapRef.current = map;
@@ -145,11 +172,29 @@ export const ScenicGuideView: React.FC = () => {
                         <ArrowsOut size={20} weight="bold" />
                     </button>
                     <button
+                        onClick={() => {
+                            playChime('tap');
+                            setIsLiveGpsActive(!isLiveGpsActive);
+                            if (!isLiveGpsActive && isCruiseActive) {
+                                setIsCruiseActive(false);
+                            }
+                        }}
+                        title={isLiveGpsActive ? 'Disable Live GPS Tracking' : 'Enable Live GPS Tracking'}
+                        className={`p-2.5 rounded-2xl border-2 border-paper-900 shadow-card transition active:scale-95 ${isLiveGpsActive ? 'bg-watercolor-brick text-white animate-pulse' : 'bg-paper-50 hover:bg-paper-100 text-paper-900'
+                            }`}
+                    >
+                        <NavigationArrow
+                            size={20}
+                            weight={isLiveGpsActive ? 'fill' : 'bold'}
+                            className={isLiveGpsActive ? 'text-white' : 'text-watercolor-brick'}
+                        />
+                    </button>
+                    <button
                         onClick={handleResetLocation}
-                        title="Locate Current Position"
+                        title="Reset to District Entrance"
                         className="p-2.5 rounded-2xl bg-paper-50 hover:bg-paper-100 border-2 border-paper-900 text-paper-900 shadow-card transition active:scale-95"
                     >
-                        <NavigationArrow size={20} weight="bold" className="text-watercolor-brick" />
+                        <Crosshair size={20} weight="bold" />
                     </button>
                 </div>
 

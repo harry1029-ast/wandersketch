@@ -13,6 +13,8 @@ interface LeafletBaseMapProps {
     activeLandmark: Landmark | null;
     onSelectLandmark: (lm: Landmark) => void;
     userCoords: [number, number];
+    userHeading?: number | null;
+    userAccuracy?: number | null;
     isParchmentMode: boolean;
     onMapReady?: (map: L.Map) => void;
 }
@@ -24,6 +26,8 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
     activeLandmark,
     onSelectLandmark,
     userCoords,
+    userHeading,
+    userAccuracy,
     isParchmentMode,
     onMapReady,
 }) => {
@@ -32,14 +36,12 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
     const landmarksLayerRef = useRef<L.LayerGroup | null>(null);
     const facilitiesLayerRef = useRef<L.LayerGroup | null>(null);
     const userMarkerRef = useRef<L.Marker | null>(null);
+    const accuracyCircleRef = useRef<L.Circle | null>(null);
     const svgOverlayRef = useRef<SVGSVGElement | null>(null);
 
-    // Mutable refs to prevent React stale closures inside Leaflet map listeners
     const trajectoryRef = useRef<[number, number][]>([]);
     const landmarksRef = useRef<Landmark[]>(landmarks);
     landmarksRef.current = landmarks;
-
-    // 1. Core redraw function using layer points
 
     const redrawSketchedPaths = () => {
         const map = mapInstanceRef.current;
@@ -52,10 +54,8 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
             return;
         }
 
-        // Clear previous drawings
         while (svg.firstChild) svg.removeChild(svg.firstChild);
 
-        // Position SVG directly at layer origin (0, 0)
         const topLeft = map.containerPointToLayerPoint([0, 0]);
         L.DomUtil.setPosition(svg as unknown as HTMLElement, topLeft);
 
@@ -65,7 +65,6 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
 
         const rc = rough.svg(svg);
 
-        // Convert lat/lng to container pixel coordinates relative to the current viewport
         const pixelPoints = coords.map(([lat, lng]) => {
             const pt = map.latLngToContainerPoint(L.latLng(lat, lng));
             return [pt.x, pt.y];
@@ -75,7 +74,6 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
             const p1 = pixelPoints[i];
             const p2 = pixelPoints[i + 1];
 
-            // Sand foundation underlay
             svg.appendChild(
                 rc.line(p1[0], p1[1], p2[0], p2[1], {
                     roughness: 1.5,
@@ -85,7 +83,6 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
                 })
             );
 
-            // Terracotta sketched route
             svg.appendChild(
                 rc.line(p1[0], p1[1], p2[0], p2[1], {
                     roughness: 1.4,
@@ -97,7 +94,6 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
             );
         }
 
-        // Milestone stamps at primary stops
         landmarksRef.current.forEach((lm) => {
             const pt = map.latLngToContainerPoint(L.latLng(lm.coords[0], lm.coords[1]));
             svg.appendChild(
@@ -112,7 +108,6 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         });
     };
 
-    // 2. Fetch real street pedestrian routes when landmarks change
     useEffect(() => {
         if (landmarks.length < 2) {
             trajectoryRef.current = landmarks.map((l) => l.coords);
@@ -136,7 +131,6 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         };
     }, [landmarks]);
 
-    // 3. Initialize Leaflet Map Instance
     useEffect(() => {
         if (!mapContainerRef.current || mapInstanceRef.current) return;
 
@@ -157,12 +151,10 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
             }
         ).addTo(map);
 
-        // Create a dedicated SVG pane between base tiles (z=200) and markers (z=600)
         const customPane = map.createPane('roughOverlayPane');
         customPane.style.zIndex = '450';
         customPane.style.pointerEvents = 'none';
 
-        // Create the SVG container and inject it directly into Leaflet's pane
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.style.position = 'absolute';
         svg.style.left = '0px';
@@ -176,7 +168,6 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         facilitiesLayerRef.current = L.layerGroup().addTo(map);
         mapInstanceRef.current = map;
 
-        // Attach listeners — now pointing to fresh ref values
         map.on('move', redrawSketchedPaths);
         map.on('zoom', redrawSketchedPaths);
         map.on('zoomend', redrawSketchedPaths);
@@ -195,7 +186,6 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         };
     }, [zone]);
 
-    // 4. Safely toggle watercolor filter on map container
     useEffect(() => {
         if (!mapContainerRef.current) return;
         if (isParchmentMode) {
@@ -205,7 +195,6 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         }
     }, [isParchmentMode]);
 
-    // 5. Update Landmark Pins
     useEffect(() => {
         const layer = landmarksLayerRef.current;
         if (!layer) return;
@@ -243,7 +232,6 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         redrawSketchedPaths();
     }, [landmarks, activeLandmark]);
 
-    // 6. Update Amenities Pins
     useEffect(() => {
         const layer = facilitiesLayerRef.current;
         if (!layer) return;
@@ -272,40 +260,56 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         });
     }, [facilities]);
 
-    // 7. Update User GPS Marker
     useEffect(() => {
         const map = mapInstanceRef.current;
         if (!map) return;
 
+        const rotateTransform = userHeading != null ? `transform: rotate(${userHeading}deg);` : '';
+        const userHtml = `
+      <div class="relative w-10 h-10 flex items-center justify-center select-none">
+        <div class="gps-pulse-beacon"></div>
+        <div class="w-7 h-7 bg-watercolor-brick border-2 border-white rounded-full shadow-stamp z-10 flex items-center justify-center text-[10px] text-white font-black" style="${rotateTransform}">
+          ${userHeading != null ? '▲' : 'Me'}
+        </div>
+      </div>
+    `;
+
+        const icon = L.divIcon({
+            className: 'custom-user-gps-marker',
+            html: userHtml,
+            iconSize: [40, 40],
+            iconAnchor: [20, 20],
+        });
+
         if (userMarkerRef.current) {
             userMarkerRef.current.setLatLng(userCoords);
+            userMarkerRef.current.setIcon(icon);
         } else {
-            const userHtml = `
-        <div class="relative w-10 h-10 flex items-center justify-center select-none">
-          <div class="gps-pulse-beacon"></div>
-          <div class="w-6 h-6 bg-watercolor-brick border-2 border-white rounded-full shadow-stamp z-10 flex items-center justify-center text-[10px] text-white font-black">
-            Me
-          </div>
-        </div>
-      `;
-
-            const icon = L.divIcon({
-                className: 'custom-user-gps-marker',
-                html: userHtml,
-                iconSize: [40, 40],
-                iconAnchor: [20, 20],
-            });
-
             userMarkerRef.current = L.marker(userCoords, { icon, zIndexOffset: 3000 }).addTo(map);
         }
-    }, [userCoords]);
+
+        if (userAccuracy && userAccuracy > 0) {
+            if (accuracyCircleRef.current) {
+                accuracyCircleRef.current.setLatLng(userCoords);
+                accuracyCircleRef.current.setRadius(userAccuracy);
+            } else {
+                accuracyCircleRef.current = L.circle(userCoords, {
+                    radius: userAccuracy,
+                    color: '#c14937',
+                    weight: 1,
+                    fillColor: '#c14937',
+                    fillOpacity: 0.1,
+                }).addTo(map);
+            }
+        } else if (accuracyCircleRef.current) {
+            accuracyCircleRef.current.remove();
+            accuracyCircleRef.current = null;
+        }
+    }, [userCoords, userHeading, userAccuracy]);
 
     return (
         <div className="relative w-full h-full overflow-hidden bg-[#e8dcba]">
-            <div
-                ref={mapContainerRef}
-                className="w-full h-full relative z-0"
-            />
+            <div ref={mapContainerRef} className="w-full h-full relative z-0" />
         </div>
     );
 };
