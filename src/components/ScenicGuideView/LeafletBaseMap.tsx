@@ -40,7 +40,6 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
     landmarksRef.current = landmarks;
 
     // 1. Core redraw function using layer points
-    // Inside LeafletBaseMap.tsx: Replace redrawSketchedPaths with this implementation
 
     const redrawSketchedPaths = () => {
         const map = mapInstanceRef.current;

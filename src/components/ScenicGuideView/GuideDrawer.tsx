@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useItineraryStore } from '@/store/useItineraryStore';
 import { MASTER_ZONES } from '@/lib/mockData';
 import { Landmark, RouteTheme } from '@/types/itinerary';
 import { playChime, playVoiceNarrator } from '@/lib/audio';
+import { ScrapbookPostcardModal } from '@/components/Modals/ScrapbookPostcardModal';
 import {
     ArrowLeft,
     Play,
@@ -13,6 +14,7 @@ import {
     PencilSimple,
     Faders,
     Crosshair,
+    Stamp,
 } from '@phosphor-icons/react';
 
 interface GuideDrawerProps {
@@ -37,6 +39,7 @@ export const GuideDrawer: React.FC<GuideDrawerProps> = ({
     setFilterCafes,
 }) => {
     const { activePlanId, savedPlans, setStage, updateActivePlanTheme } = useItineraryStore();
+    const [isPostcardOpen, setIsPostcardOpen] = useState(false);
 
     const plan = savedPlans.find((p) => p.id === activePlanId) || savedPlans[0];
     const zone = MASTER_ZONES[plan?.zoneKey] || MASTER_ZONES.toronto_distillery;
@@ -61,13 +64,13 @@ export const GuideDrawer: React.FC<GuideDrawerProps> = ({
                         <ArrowLeft size={14} weight="bold" className="group-hover:-translate-x-0.5 transition-transform" />
                         <span>Back to Plans Library</span>
                     </button>
-                    <span className="text-[11px] font-mono text-paper-800">{plan.createdAt}</span>
+                    <span className="text-[11px] font-mono text-paper-800">{plan?.createdAt}</span>
                 </div>
 
                 <div className="flex items-start justify-between gap-2">
                     <div>
                         <h2 className="font-black text-lg text-paper-900 font-serif leading-tight">
-                            {plan.title}
+                            {plan?.title}
                         </h2>
                         <div className="flex items-center gap-2 mt-1">
                             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-watercolor-brick text-white">
@@ -88,7 +91,7 @@ export const GuideDrawer: React.FC<GuideDrawerProps> = ({
                 {/* Theme Route Switcher */}
                 <div className="grid grid-cols-3 gap-1.5 pt-1">
                     {(['classic', 'culture', 'rain'] as RouteTheme[]).map((theme) => {
-                        const isActive = plan.activeRouteKey === theme;
+                        const isActive = plan?.activeRouteKey === theme;
                         const labels: Record<RouteTheme, string> = {
                             classic: '🌟 Classic',
                             culture: '🎨 Cultural',
@@ -135,18 +138,30 @@ export const GuideDrawer: React.FC<GuideDrawerProps> = ({
                         </label>
                     </div>
                 </div>
+
+                {/* Export Postcard Action Button */}
+                <button
+                    onClick={() => {
+                        playChime('tap');
+                        setIsPostcardOpen(true);
+                    }}
+                    className="w-full py-1.5 px-3 bg-paper-100 hover:bg-paper-200 text-paper-900 rounded-xl border-2 border-paper-900 text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm transition active:scale-95"
+                >
+                    <Stamp size={15} weight="bold" className="text-watercolor-brick" />
+                    <span>Export Scrapbook Postcard</span>
+                </button>
             </div>
 
             {/* Metrics Ribbon */}
             <div className="px-4 py-2 bg-paper-200/90 border-b-2 border-paper-300 flex items-center justify-around text-center text-xs">
                 <div>
                     <div className="text-paper-800 text-[10px] font-bold uppercase">Walking Distance</div>
-                    <div className="font-black text-watercolor-brick font-serif text-sm">{plan.estimatedDistance}</div>
+                    <div className="font-black text-watercolor-brick font-serif text-sm">{plan?.estimatedDistance}</div>
                 </div>
                 <div className="w-px h-6 bg-paper-300" />
                 <div>
                     <div className="text-paper-800 text-[10px] font-bold uppercase">Duration</div>
-                    <div className="font-black text-paper-900 font-serif text-sm">{plan.estimatedDuration}</div>
+                    <div className="font-black text-paper-900 font-serif text-sm">{plan?.estimatedDuration}</div>
                 </div>
                 <div className="w-px h-6 bg-paper-300" />
                 <div>
@@ -225,6 +240,14 @@ export const GuideDrawer: React.FC<GuideDrawerProps> = ({
                     </button>
                 </div>
             </div>
+
+            {/* Scrapbook Postcard Modal */}
+            {isPostcardOpen && plan && (
+                <ScrapbookPostcardModal
+                    plan={plan}
+                    onClose={() => setIsPostcardOpen(false)}
+                />
+            )}
         </aside>
     );
 };
