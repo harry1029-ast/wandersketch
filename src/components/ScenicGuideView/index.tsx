@@ -6,6 +6,7 @@ import L from 'leaflet';
 import { useItineraryStore } from '@/store/useItineraryStore';
 import { MASTER_ZONES } from '@/lib/mockData';
 import { Landmark } from '@/types/itinerary';
+import { fetchSpotsInEnvelope, DynamicMapSpot } from '@/lib/repositories';
 import { playChime, playVoiceNarrator } from '@/lib/audio';
 import { useGeolocationTracker } from '@/lib/useGeolocationTracker';
 import { GuideDrawer } from './GuideDrawer';
@@ -45,8 +46,52 @@ export const ScenicGuideView: React.FC = () => {
         .map((id) => zone.landmarksPool.find((l) => l.id === id))
         .filter(Boolean) as Landmark[];
 
+    // Dynamic spots queried from PostGIS ST_MakeEnvelope
+    const [envelopeSpots, setEnvelopeSpots] = useState<DynamicMapSpot[]>([]);
+    const boundsTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const prevSpotIdsRef = useRef<string>('');
+
+    const handleBoundsChange = React.useCallback(
+        (b: { minLat: number; minLng: number; maxLat: number; maxLng: number }) => {
+            if (boundsTimerRef.current) clearTimeout(boundsTimerRef.current);
+            boundsTimerRef.current = setTimeout(async () => {
+                const results = await fetchSpotsInEnvelope(b.minLat, b.minLng, b.maxLat, b.maxLng);
+                if (results) {
+                    const signature = results.map((r) => r.id).sort().join(',');
+                    // Only trigger re-render if the discovered spots actually changed
+                    if (signature !== prevSpotIdsRef.current) {
+                        prevSpotIdsRef.current = signature;
+                        setEnvelopeSpots(results);
+                    }
+                }
+            }, 400);
+        },
+        []
+    );
+
+    // Merge itinerary waypoints with any extra community / custom spots in the current viewport
+    const displayedLandmarks: Landmark[] = React.useMemo(() => {
+        const existingIds = new Set(orderedLandmarks.map((l) => l.id));
+        const extras: Landmark[] = envelopeSpots
+            .filter((s) => !existingIds.has(s.id))
+            .map((s) => ({
+                id: s.id,
+                name: s.name,
+                category: s.category as any,
+                color: s.color,
+                coords: s.coords,
+                svgSnippet: s.svgSnippet,
+                tag: s.tag,
+                desc: s.desc,
+                audioNote: s.audioNote,
+                panoUrl: '',
+                tips: s.isCustom ? 'Discovered Community Spot' : '',
+            }));
+        return [...orderedLandmarks, ...extras];
+    }, [orderedLandmarks, envelopeSpots]);
+
     const { coords: liveGpsCoords, heading: liveHeading, accuracy: liveAccuracy } = useGeolocationTracker({
-        landmarks: orderedLandmarks,
+        landmarks: displayedLandmarks,
         fallbackCoords: zone.userOrigin,
         enabled: isLiveGpsActive,
     });
@@ -142,7 +187,8 @@ export const ScenicGuideView: React.FC = () => {
             <div className="flex-1 h-full relative">
                 <DynamicLeafletMap
                     zone={zone}
-                    landmarks={orderedLandmarks}
+                    landmarks={displayedLandmarks}
+                    itineraryStopIds={plan?.spotIds || []}
                     facilities={activeFacilities}
                     activeLandmark={activeLandmark}
                     onSelectLandmark={handleSelectLandmark}
@@ -150,6 +196,7 @@ export const ScenicGuideView: React.FC = () => {
                     userHeading={isLiveGpsActive ? liveHeading : null}
                     userAccuracy={isLiveGpsActive ? liveAccuracy : null}
                     isParchmentMode={isParchmentMode}
+                    onBoundsChange={handleBoundsChange}
                     onMapReady={(map) => {
                         mapRef.current = map;
                     }}

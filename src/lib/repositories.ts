@@ -108,3 +108,48 @@ export async function saveCustomSpotToDb(spot: {
     }
     return data;
 }
+
+export interface DynamicMapSpot {
+    id: string;
+    name: string;
+    category: string;
+    color: string;
+    coords: [number, number];
+    svgSnippet: string;
+    tag: string;
+    desc: string;
+    audioNote: string;
+    isCustom: boolean;
+}
+
+export async function fetchSpotsInEnvelope(
+    minLat: number,
+    minLng: number,
+    maxLat: number,
+    maxLng: number
+): Promise<DynamicMapSpot[]> {
+    const { data, error } = await supabase.rpc('get_spots_in_envelope', {
+        min_lat: minLat,
+        min_lng: minLng,
+        max_lat: maxLat,
+        max_lng: maxLng,
+    });
+
+    if (error || !data) {
+        console.warn('Envelope bounding lookup failed:', error);
+        return [];
+    }
+
+    return data.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        category: item.category,
+        color: item.color,
+        coords: [item.lat, item.lng] as [number, number],
+        svgSnippet: item.svg_snippet,
+        tag: item.tag,
+        desc: item.description,
+        audioNote: item.audio_note,
+        isCustom: Boolean(item.is_custom),
+    }));
+}

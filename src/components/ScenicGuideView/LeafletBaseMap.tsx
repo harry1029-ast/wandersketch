@@ -9,6 +9,7 @@ import { fetchPedestrianRoute } from '@/lib/routing';
 interface LeafletBaseMapProps {
     zone: ScenicZone;
     landmarks: Landmark[];
+    itineraryStopIds?: string[];
     facilities: ScenicFacility[];
     activeLandmark: Landmark | null;
     onSelectLandmark: (lm: Landmark) => void;
@@ -17,11 +18,13 @@ interface LeafletBaseMapProps {
     userAccuracy?: number | null;
     isParchmentMode: boolean;
     onMapReady?: (map: L.Map) => void;
+    onBoundsChange?: (bounds: { minLat: number; minLng: number; maxLat: number; maxLng: number }) => void;
 }
 
 export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
     zone,
     landmarks,
+    itineraryStopIds = [],
     facilities,
     activeLandmark,
     onSelectLandmark,
@@ -30,6 +33,7 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
     userAccuracy,
     isParchmentMode,
     onMapReady,
+    onBoundsChange,
 }) => {
     const mapContainerRef = useRef<HTMLDivElement | null>(null);
     const mapInstanceRef = useRef<L.Map | null>(null);
@@ -42,6 +46,9 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
     const trajectoryRef = useRef<[number, number][]>([]);
     const landmarksRef = useRef<Landmark[]>(landmarks);
     landmarksRef.current = landmarks;
+
+    const onBoundsChangeRef = useRef(onBoundsChange);
+    onBoundsChangeRef.current = onBoundsChange;
 
     const redrawSketchedPaths = () => {
         const map = mapInstanceRef.current;
@@ -109,14 +116,19 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
     };
 
     useEffect(() => {
-        if (landmarks.length < 2) {
-            trajectoryRef.current = landmarks.map((l) => l.coords);
+        // ONLY route through landmarks that belong to the active itinerary
+        const itineraryLandmarks = itineraryStopIds.length > 0
+            ? itineraryStopIds.map((id) => landmarks.find((l) => l.id === id)).filter(Boolean) as Landmark[]
+            : landmarks;
+
+        if (itineraryLandmarks.length < 2) {
+            trajectoryRef.current = itineraryLandmarks.map((l) => l.coords);
             redrawSketchedPaths();
             return;
         }
 
         let isMounted = true;
-        const stopCoords = landmarks.map((l) => l.coords);
+        const stopCoords = itineraryLandmarks.map((l) => l.coords);
 
         fetchPedestrianRoute(stopCoords).then((result) => {
             if (isMounted) {
@@ -129,7 +141,7 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         return () => {
             isMounted = false;
         };
-    }, [landmarks]);
+    }, [landmarks, itineraryStopIds]);
 
     useEffect(() => {
         if (!mapContainerRef.current || mapInstanceRef.current) return;
@@ -168,19 +180,44 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         facilitiesLayerRef.current = L.layerGroup().addTo(map);
         mapInstanceRef.current = map;
 
+        const emitCurrentBounds = () => {
+            // Guard against unmounted or uninitialized leaflet container panes
+            if (!onBoundsChangeRef.current || !mapInstanceRef.current) return;
+            try {
+                const b = mapInstanceRef.current.getBounds();
+                if (!b || !b.isValid()) return;
+                onBoundsChangeRef.current({
+                    minLat: b.getSouth(),
+                    minLng: b.getWest(),
+                    maxLat: b.getNorth(),
+                    maxLng: b.getEast(),
+                });
+            } catch {
+                // Ignore transient frame checks during zoom transitions
+            }
+        };
+
         map.on('move', redrawSketchedPaths);
         map.on('zoom', redrawSketchedPaths);
         map.on('zoomend', redrawSketchedPaths);
+        map.on('moveend', emitCurrentBounds);
         map.on('resize', redrawSketchedPaths);
 
         if (onMapReady) onMapReady(map);
 
-        setTimeout(() => {
-            map.invalidateSize();
-            redrawSketchedPaths();
-        }, 200);
+        // Only invalidate size and emit bounds once map is fully loaded
+        map.whenReady(() => {
+            setTimeout(() => {
+                if (mapInstanceRef.current) {
+                    mapInstanceRef.current.invalidateSize();
+                    redrawSketchedPaths();
+                    emitCurrentBounds();
+                }
+            }, 300);
+        });
 
         return () => {
+            map.off();
             map.remove();
             mapInstanceRef.current = null;
         };
@@ -200,15 +237,22 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         if (!layer) return;
         layer.clearLayers();
 
-        landmarks.forEach((lm, idx) => {
+        const itineraryIndexMap = new Map(itineraryStopIds.map((id, index) => [id, index + 1]));
+
+        landmarks.forEach((lm) => {
             const isSelected = activeLandmark?.id === lm.id;
+            const stopNumber = itineraryIndexMap.get(lm.id);
+            const isItineraryStop = stopNumber !== undefined;
+
+            const badgeHtml = isItineraryStop
+                ? `<span class="absolute -top-3 -right-2 w-6 h-6 bg-watercolor-brick text-white rounded-full border-2 border-white font-black text-xs flex items-center justify-center shadow-stamp z-20">${stopNumber}</span>`
+                : `<span class="absolute -top-3 -right-2 w-6 h-6 bg-[#f4c568] text-paper-900 rounded-full border-2 border-paper-900 font-black text-xs flex items-center justify-center shadow-stamp z-20">✨</span>`;
+
             const markerHtml = `
         <div class="relative flex flex-col items-center select-none cursor-pointer group transition-transform ${isSelected ? 'scale-115 -translate-y-2' : 'hover:scale-110 hover:-translate-y-1'
                 }">
-          <span class="absolute -top-3 -right-2 w-6 h-6 bg-watercolor-brick text-white rounded-full border-2 border-white font-black text-xs flex items-center justify-center shadow-stamp z-20">
-            ${idx + 1}
-          </span>
-          <div class="w-14 h-14 p-1 rounded-2xl bg-paper-50 border-2 border-paper-900 shadow-stamp flex items-center justify-center">
+          ${badgeHtml}
+          <div class="w-14 h-14 p-1 rounded-2xl ${isItineraryStop ? 'bg-paper-50' : 'bg-paper-100 ring-2 ring-amber-400'} border-2 border-paper-900 shadow-stamp flex items-center justify-center">
             ${lm.svgSnippet}
           </div>
           <div class="mt-1 px-2.5 py-0.5 rounded-lg bg-paper-50/95 border-2 border-paper-900 shadow-sm text-[11px] font-bold text-paper-900 whitespace-nowrap max-w-[130px] truncate font-serif">
