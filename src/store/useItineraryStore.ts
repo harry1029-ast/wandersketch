@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { AppStage, TravelPlan, ScenicZoneKey, RouteTheme, ScenicZone } from '@/types/itinerary';
 import { MASTER_ZONES, INITIAL_PLANS } from '@/lib/mockData';
 import { fetchPedestrianRoute } from '@/lib/routing';
-import { fetchAllPlans, fetchDestinations } from '@/lib/repositories';
+import { fetchAllPlans, fetchDestinations, saveCustomSpotToDb } from '@/lib/repositories';
 import { supabase } from '@/lib/supabaseClient';
 
 interface ItineraryState {
@@ -25,7 +25,11 @@ interface ItineraryState {
     updatePlannerZone: (zoneKey: ScenicZoneKey) => void;
     reorderPlannerStops: (fromIdx: number, toIdx: number) => void;
     removePlannerStop: (idx: number) => void;
-    addPlannerCustomStop: (name: string) => void;
+    addPlannerCustomStop: (
+        name: string,
+        coords: [number, number],
+        address?: string
+    ) => Promise<string>;
     savePlannerAsNewPlan: () => Promise<string>;
     updateActivePlanTheme: (theme: RouteTheme) => Promise<void>;
     updatePlanTitle: (planId: string, title: string) => Promise<void>;
@@ -59,7 +63,7 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
                         updatedZones[dest.id] = {
                             ...updatedZones[dest.id],
                             ...dest,
-                            landmarksPool: updatedZones[dest.id].landmarksPool, // Retain local illustrated SVGs
+                            landmarksPool: updatedZones[dest.id].landmarksPool, // Keep client illustrated SVGs intact
                         };
                     }
                 });
@@ -72,7 +76,7 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
                 };
             });
         } catch (err) {
-            console.warn('Could not load from Supabase, falling back to local seed data:', err);
+            console.warn('Could not load from Supabase, using fallback data:', err);
             set({ isLoadingDb: false });
         }
     },
@@ -112,10 +116,10 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
         }));
     },
 
-    addPlannerCustomStop: (name) => {
+    addPlannerCustomStop: async (name, coords, address) => {
         const { zoneKey, spotIds } = get().plannerBuffer;
         const zone = get().zones[zoneKey] || MASTER_ZONES[zoneKey];
-        if (!zone) return;
+        if (!zone) return '';
 
         const newId = `custom-${Date.now()}`;
         const newLandmark = {
@@ -123,10 +127,7 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
             name,
             category: 'craft' as const,
             color: '#f4c568',
-            coords: [
-                zone.center[0] + (Math.random() - 0.5) * 0.003,
-                zone.center[1] + (Math.random() - 0.5) * 0.003,
-            ] as [number, number],
+            coords: coords,
             svgSnippet: `
         <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-md">
           <circle cx="50" cy="50" r="34" fill="#f4c568" stroke="#2b261b" stroke-width="3"/>
@@ -134,16 +135,37 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
         </svg>
       `,
             tag: 'Personal Spot',
-            desc: `Custom stop added by user: ${name}.`,
+            desc: address || `Custom stop added by user: ${name}.`,
             audioNote: `You have arrived at your custom stop: ${name}.`,
             panoUrl: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1200&q=80',
             tips: 'Check out local seasonal recommendations when you arrive.',
         };
 
+        // Update in-memory pool for the active session
         zone.landmarksPool.push(newLandmark);
         set((state) => ({
             plannerBuffer: { ...state.plannerBuffer, spotIds: [...spotIds, newId] },
         }));
+
+        // Async sync to Supabase custom_spots table
+        try {
+            await saveCustomSpotToDb({
+                id: newId,
+                destinationId: zoneKey,
+                name,
+                category: 'craft',
+                color: '#f4c568',
+                coords,
+                address,
+                tag: 'Personal Spot',
+                description: address,
+                audioNote: `You have arrived at ${name}.`,
+            });
+        } catch (err) {
+            console.warn('Could not sync custom spot to database:', err);
+        }
+
+        return newId;
     },
 
     savePlannerAsNewPlan: async () => {
@@ -174,14 +196,14 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
             },
         };
 
-        // Optimistic UI update
+        // Optimistic store update
         set((state) => ({
             savedPlans: [newPlan, ...state.savedPlans],
             activePlanId: id,
             currentStage: 'map',
         }));
 
-        // Async persistence to Supabase
+        // Persist to Supabase
         try {
             await supabase.from('travel_plans').insert({
                 id: newPlan.id,
@@ -227,7 +249,6 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
 
         set({ savedPlans: updated });
 
-        // Sync theme selection to Supabase
         try {
             await supabase
                 .from('travel_plans')

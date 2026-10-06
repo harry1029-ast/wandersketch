@@ -15,6 +15,7 @@ import {
     Coffee,
     ArrowCounterClockwise
 } from '@phosphor-icons/react';
+import { SpotSearchAutocomplete } from '@/components/SpotSearchAutocomplete';
 
 export const PlannerView: React.FC = () => {
     const {
@@ -27,7 +28,6 @@ export const PlannerView: React.FC = () => {
         setStage,
     } = useItineraryStore();
 
-    const [customSpotText, setCustomSpotText] = useState('');
     const [planTitle, setPlanTitle] = useState(plannerBuffer.title);
 
     const zone = MASTER_ZONES[plannerBuffer.zoneKey];
@@ -42,18 +42,11 @@ export const PlannerView: React.FC = () => {
         setPlanTitle(`Explore ${MASTER_ZONES[newZone].name}`);
     };
 
-    const handleAddCustomSpot = () => {
-        if (!customSpotText.trim()) return;
-        playChime('stamp');
-        addPlannerCustomStop(customSpotText.trim());
-        setCustomSpotText('');
-    };
-
-    const handleAddPresetCoffee = () => {
+    const handleAddPresetCoffee = async () => {
         playChime('stamp');
         const available = zone.landmarksPool.find((l) => !plannerBuffer.spotIds.includes(l.id));
         if (available) {
-            addPlannerCustomStop(available.name);
+            await addPlannerCustomStop(available.name, available.coords, available.desc);
         }
     };
 
@@ -220,41 +213,34 @@ export const PlannerView: React.FC = () => {
                     </div>
 
                     {/* Add Custom Spot Field */}
-                    <div className="pt-2 flex flex-col sm:flex-row items-center gap-2">
-                        <input
-                            type="text"
-                            value={customSpotText}
-                            onChange={(e) => setCustomSpotText(e.target.value)}
-                            placeholder="Add your own spot (e.g. vintage vinyl shop, artisan bakery)..."
-                            className="flex-1 w-full bg-paper-50 border-2 border-paper-300 focus:border-paper-900 rounded-xl px-4 py-2.5 text-xs font-bold focus:outline-none"
+                    <div className="pt-2">
+                        <SpotSearchAutocomplete
+                            currentZone={zone}
+                            onSelectSpot={async (name, coords, address) => {
+                                playChime('stamp');
+                                await addPlannerCustomStop(name, coords, address);
+                            }}
                         />
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div className="flex justify-end gap-3 pt-2">
                         <button
-                            onClick={handleAddCustomSpot}
-                            className="w-full sm:w-auto px-4 py-2.5 bg-paper-200 hover:bg-paper-300 border-2 border-paper-900 rounded-xl font-bold text-xs text-paper-900 flex items-center justify-center gap-1.5 shadow-sm"
+                            onClick={() => setStage('plans')}
+                            className="px-5 py-2.5 bg-paper-200 hover:bg-paper-300 text-paper-900 font-bold text-xs sm:text-sm rounded-2xl border-2 border-paper-900"
                         >
-                            <Plus size={16} weight="bold" />
-                            <span>Add Spot</span>
+                            Cancel & View Plans
+                        </button>
+                        <button
+                            onClick={handleSaveAndLaunch}
+                            className="px-6 py-2.5 bg-watercolor-brick hover:bg-red-700 text-white font-black text-xs sm:text-sm rounded-2xl border-2 border-paper-900 shadow-stamp flex items-center gap-2 transition active:scale-95"
+                        >
+                            <Sparkle size={18} weight="fill" className="text-amber-200" />
+                            <span>Save & Open Illustrated Map</span>
                         </button>
                     </div>
-                </div>
 
-                {/* Footer Actions */}
-                <div className="flex justify-end gap-3 pt-2">
-                    <button
-                        onClick={() => setStage('plans')}
-                        className="px-5 py-2.5 bg-paper-200 hover:bg-paper-300 text-paper-900 font-bold text-xs sm:text-sm rounded-2xl border-2 border-paper-900"
-                    >
-                        Cancel & View Plans
-                    </button>
-                    <button
-                        onClick={handleSaveAndLaunch}
-                        className="px-6 py-2.5 bg-watercolor-brick hover:bg-red-700 text-white font-black text-xs sm:text-sm rounded-2xl border-2 border-paper-900 shadow-stamp flex items-center gap-2 transition active:scale-95"
-                    >
-                        <Sparkle size={18} weight="fill" className="text-amber-200" />
-                        <span>Save & Open Illustrated Map</span>
-                    </button>
                 </div>
-
             </div>
         </section>
     );

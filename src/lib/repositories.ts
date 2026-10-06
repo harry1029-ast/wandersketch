@@ -75,3 +75,36 @@ export async function fetchAllPlans(): Promise<TravelPlan[]> {
         themeRoutes: p.theme_routes,
     }));
 }
+
+export async function saveCustomSpotToDb(spot: {
+    id: string;
+    destinationId: string;
+    name: string;
+    category: string;
+    color: string;
+    coords: [number, number];
+    address?: string;
+    tag?: string;
+    description?: string;
+    audioNote?: string;
+}) {
+    const { data, error } = await supabase.rpc('create_custom_spot', {
+        spot_id: spot.id,
+        dest_id: spot.destinationId,
+        spot_name: spot.name,
+        spot_category: spot.category,
+        spot_color: spot.color,
+        lat: spot.coords[0],
+        lng: spot.coords[1],
+        spot_address: spot.address || '',
+        spot_tag: spot.tag || 'Personal Spot',
+        spot_description: spot.description || '',
+        spot_audio_note: spot.audioNote || `Arrived at ${spot.name}`,
+    });
+
+    if (error) {
+        console.error('Failed to persist custom spot to PostGIS:', error);
+        return null;
+    }
+    return data;
+}
