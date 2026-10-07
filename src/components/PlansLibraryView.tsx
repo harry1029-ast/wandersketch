@@ -5,16 +5,42 @@ import { useItineraryStore } from '@/store/useItineraryStore';
 import { MASTER_ZONES } from '@/lib/mockData';
 import { playChime } from '@/lib/audio';
 import { ContainedIslandModal } from '@/components/Modals/ContainedIslandModal';
-import { PlusCircle, Sparkle, Footprints, Clock } from '@phosphor-icons/react';
+import { PlusCircle, Sparkle, Footprints, Clock, Trash, PencilSimple } from '@phosphor-icons/react';
 
 export const PlansLibraryView: React.FC = () => {
-    const { savedPlans, setActivePlanId, setStage } = useItineraryStore();
+    const { savedPlans, setActivePlanId, setStage, deletePlan, updatePlanTitle } = useItineraryStore();
     const [selectedPlanForIsland, setSelectedPlanForIsland] = useState<string | null>(null);
+    const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
+    const [editTitleDraft, setEditTitleDraft] = useState<string>('');
 
     const handleOpenIslandModal = (planId: string) => {
         playChime('stamp');
         setActivePlanId(planId);
         setSelectedPlanForIsland(planId);
+    };
+
+    const handleDeletePlan = async (e: React.MouseEvent, planId: string) => {
+        e.stopPropagation();
+        if (confirm('Delete this travel itinerary?')) {
+            playChime('tap');
+            await deletePlan(planId);
+        }
+    };
+
+    const handleStartRename = (e: React.MouseEvent, planId: string, currentTitle: string) => {
+        e.stopPropagation();
+        setEditingPlanId(planId);
+        setEditTitleDraft(currentTitle);
+    };
+
+    const handleSaveRename = async (e: React.FormEvent, planId: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (editTitleDraft.trim()) {
+            playChime('stamp');
+            await updatePlanTitle(planId, editTitleDraft.trim());
+        }
+        setEditingPlanId(null);
     };
 
     const handleCreateNew = () => {
@@ -73,9 +99,37 @@ export const PlansLibraryView: React.FC = () => {
                                         </span>
                                     </div>
 
-                                    <h3 className="font-black text-lg text-paper-900 font-serif leading-snug group-hover:text-watercolor-brick transition-colors">
-                                        {plan.title}
-                                    </h3>
+                                    {editingPlanId === plan.id ? (
+                                        <form onSubmit={(e) => handleSaveRename(e, plan.id)} className="my-1 flex gap-1">
+                                            <input
+                                                type="text"
+                                                value={editTitleDraft}
+                                                onChange={(e) => setEditTitleDraft(e.target.value)}
+                                                autoFocus
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="flex-1 px-2 py-1 text-sm font-bold border-2 border-paper-900 rounded-lg bg-paper-50"
+                                            />
+                                            <button
+                                                type="submit"
+                                                className="px-2 py-1 bg-watercolor-brick text-white text-xs font-bold rounded-lg border border-paper-900"
+                                            >
+                                                Save
+                                            </button>
+                                        </form>
+                                    ) : (
+                                        <div className="flex items-start justify-between gap-1 group/title">
+                                            <h3 className="font-black text-lg text-paper-900 font-serif leading-snug group-hover:text-watercolor-brick transition-colors">
+                                                {plan.title}
+                                            </h3>
+                                            <button
+                                                onClick={(e) => handleStartRename(e, plan.id, plan.title)}
+                                                title="Rename Plan"
+                                                className="p-1 opacity-0 group-hover/title:opacity-100 hover:bg-paper-200 rounded-lg text-paper-800 transition"
+                                            >
+                                                <PencilSimple size={14} weight="bold" />
+                                            </button>
+                                        </div>
+                                    )}
 
                                     <p className="text-xs text-paper-800 mt-2 line-clamp-2 leading-relaxed">
                                         Focused on {zone.name}. Features {plan.spotIds.length} stops connected with hand-sketched walking trails.
@@ -116,16 +170,25 @@ export const PlansLibraryView: React.FC = () => {
                                         </span>
                                     </div>
 
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleOpenIslandModal(plan.id);
-                                        }}
-                                        className="px-3 py-1.5 bg-watercolor-brick hover:bg-red-700 text-white rounded-xl font-bold flex items-center gap-1.5 shadow-stamp transition active:scale-95"
-                                    >
-                                        <Sparkle size={14} weight="fill" className="text-amber-200" />
-                                        <span>Stylized Island</span>
-                                    </button>
+                                    <div className="flex items-center gap-1.5">
+                                        <button
+                                            onClick={(e) => handleDeletePlan(e, plan.id)}
+                                            title="Delete Itinerary"
+                                            className="p-1.5 rounded-xl border border-paper-900 bg-paper-50 hover:bg-red-100 text-watercolor-brick transition active:scale-95"
+                                        >
+                                            <Trash size={14} weight="bold" />
+                                        </button>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleOpenIslandModal(plan.id);
+                                            }}
+                                            className="px-3 py-1.5 bg-watercolor-brick hover:bg-red-700 text-white rounded-xl font-bold flex items-center gap-1.5 shadow-stamp transition active:scale-95"
+                                        >
+                                            <Sparkle size={14} weight="fill" className="text-amber-200" />
+                                            <span>Stylized Island</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         );

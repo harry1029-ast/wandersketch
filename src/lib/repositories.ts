@@ -76,6 +76,15 @@ export async function fetchAllPlans(): Promise<TravelPlan[]> {
     }));
 }
 
+export async function deletePlanFromDb(planId: string): Promise<boolean> {
+    const { error } = await supabase.from('travel_plans').delete().eq('id', planId);
+    if (error) {
+        console.error('Failed to delete travel plan from Supabase:', error);
+        return false;
+    }
+    return true;
+}
+
 export async function saveCustomSpotToDb(spot: {
     id: string;
     destinationId: string;

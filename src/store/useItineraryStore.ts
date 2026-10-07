@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { AppStage, TravelPlan, ScenicZoneKey, RouteTheme, ScenicZone } from '@/types/itinerary';
 import { MASTER_ZONES, INITIAL_PLANS } from '@/lib/mockData';
 import { fetchPedestrianRoute } from '@/lib/routing';
-import { fetchAllPlans, fetchDestinations, saveCustomSpotToDb } from '@/lib/repositories';
+import { fetchAllPlans, fetchDestinations, saveCustomSpotToDb, deletePlanFromDb } from '@/lib/repositories';
 import { supabase } from '@/lib/supabaseClient';
 
 interface ItineraryState {
@@ -33,6 +33,7 @@ interface ItineraryState {
     savePlannerAsNewPlan: () => Promise<string>;
     updateActivePlanTheme: (theme: RouteTheme) => Promise<void>;
     updatePlanTitle: (planId: string, title: string) => Promise<void>;
+    deletePlan: (planId: string) => Promise<void>;
 }
 
 export const useItineraryStore = create<ItineraryState>()((set, get) => ({
@@ -269,5 +270,17 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
         } catch (err) {
             console.warn('Could not sync title change to DB:', err);
         }
+    },
+
+    deletePlan: async (planId) => {
+        const { savedPlans, activePlanId } = get();
+        const filtered = savedPlans.filter((p) => p.id !== planId);
+
+        set({
+            savedPlans: filtered,
+            activePlanId: activePlanId === planId ? (filtered[0]?.id || '') : activePlanId,
+        });
+
+        await deletePlanFromDb(planId);
     },
 }));
