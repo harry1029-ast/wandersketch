@@ -85,6 +85,34 @@ export async function deletePlanFromDb(planId: string): Promise<boolean> {
     return true;
 }
 
+export async function fetchAllCustomSpots(): Promise<Landmark[]> {
+    const { data, error } = await supabase.from('custom_spots').select('*');
+    if (error || !data) {
+        console.warn('Failed to fetch custom spots:', error);
+        return [];
+    }
+
+    return data.map((c: any) => ({
+        id: c.id,
+        destinationId: c.destination_id,
+        name: c.name,
+        category: (c.category || 'craft') as any,
+        color: c.color || '#f4c568',
+        coords: [c.lat || 0, c.lng || 0] as [number, number],
+        svgSnippet: `
+      <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-md">
+        <circle cx="50" cy="50" r="34" fill="${c.color || '#f4c568'}" stroke="#2b261b" stroke-width="3"/>
+        <text x="50" y="58" font-size="22" text-anchor="middle">✨</text>
+      </svg>
+    `,
+        tag: c.tag || 'Personal Spot',
+        desc: c.description || c.address || '',
+        audioNote: c.audio_note || `You have arrived at ${c.name}.`,
+        panoUrl: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1200&q=80',
+        tips: 'Discovered Community Spot',
+    }));
+}
+
 export async function saveCustomSpotToDb(spot: {
     id: string;
     destinationId: string;

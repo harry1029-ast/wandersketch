@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { AppStage, TravelPlan, ScenicZoneKey, RouteTheme, ScenicZone } from '@/types/itinerary';
 import { MASTER_ZONES, INITIAL_PLANS } from '@/lib/mockData';
 import { fetchPedestrianRoute } from '@/lib/routing';
-import { fetchAllPlans, fetchDestinations, saveCustomSpotToDb, deletePlanFromDb } from '@/lib/repositories';
+import { fetchAllPlans, fetchDestinations, saveCustomSpotToDb, deletePlanFromDb, fetchAllCustomSpots } from '@/lib/repositories';
 import { supabase } from '@/lib/supabaseClient';
 
 interface ItineraryState {
@@ -52,19 +52,27 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
     initializeFromDatabase: async () => {
         set({ isLoadingDb: true });
         try {
-            const [dbPlans, dbDestinations] = await Promise.all([
+            const [dbPlans, dbDestinations, dbCustomSpots] = await Promise.all([
                 fetchAllPlans(),
                 fetchDestinations(),
+                fetchAllCustomSpots(),
             ]);
 
             set((state) => {
                 const updatedZones = { ...state.zones };
                 dbDestinations.forEach((dest) => {
                     if (updatedZones[dest.id]) {
+                        // Keep default curated landmarks and append any custom spots belonging to this zone
+                        const basePool = updatedZones[dest.id].landmarksPool;
+                        const existingIds = new Set(basePool.map((l) => l.id));
+                        const zoneCustom = dbCustomSpots.filter(
+                            (cs: any) => (cs.destinationId === dest.id || !cs.destinationId) && !existingIds.has(cs.id)
+                        );
+
                         updatedZones[dest.id] = {
                             ...updatedZones[dest.id],
                             ...dest,
-                            landmarksPool: updatedZones[dest.id].landmarksPool, // Keep client illustrated SVGs intact
+                            landmarksPool: [...basePool, ...zoneCustom],
                         };
                     }
                 });
