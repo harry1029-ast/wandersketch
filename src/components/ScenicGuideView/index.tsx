@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import L from 'leaflet';
+import type L from 'leaflet';
 import { useItineraryStore } from '@/store/useItineraryStore';
 import { MASTER_ZONES } from '@/lib/mockData';
 import { Landmark } from '@/types/itinerary';
@@ -11,7 +11,12 @@ import { playChime, playVoiceNarrator } from '@/lib/audio';
 import { useGeolocationTracker } from '@/lib/useGeolocationTracker';
 import { GuideDrawer } from './GuideDrawer';
 import { LandmarkDetailModal } from '@/components/Modals/LandmarkDetailModal';
-import { Palette, ArrowsOut, NavigationArrow, Crosshair } from '@phosphor-icons/react';
+import { Palette, ArrowsOut, NavigationArrow, Crosshair, Sparkle } from '@phosphor-icons/react';
+
+const DynamicIslandModal = dynamic(
+    () => import('@/components/Modals/ContainedIslandModal').then((mod) => mod.ContainedIslandModal),
+    { ssr: false }
+);
 
 const DynamicLeafletMap = dynamic(
     () => import('./LeafletBaseMap').then((mod) => mod.LeafletBaseMap),
@@ -37,6 +42,7 @@ export const ScenicGuideView: React.FC = () => {
     const [isCruiseActive, setIsCruiseActive] = useState<boolean>(false);
     const [filterRestrooms, setFilterRestrooms] = useState<boolean>(true);
     const [filterCafes, setFilterCafes] = useState<boolean>(true);
+    const [isIslandModalOpen, setIsIslandModalOpen] = useState<boolean>(false);
 
     const mapRef = useRef<L.Map | null>(null);
     const cruiseIndexRef = useRef<number>(0);
@@ -196,6 +202,10 @@ export const ScenicGuideView: React.FC = () => {
                     userHeading={isLiveGpsActive ? liveHeading : null}
                     userAccuracy={isLiveGpsActive ? liveAccuracy : null}
                     isParchmentMode={isParchmentMode}
+                    onOpenIslandView={() => {
+                        playChime('stamp');
+                        setIsIslandModalOpen(true);
+                    }}
                     onBoundsChange={handleBoundsChange}
                     onMapReady={(map) => {
                         mapRef.current = map;
@@ -204,6 +214,16 @@ export const ScenicGuideView: React.FC = () => {
 
                 {/* Floating Map Controls */}
                 <div className="absolute top-4 right-4 z-20 flex flex-col gap-2">
+                    <button
+                        onClick={() => {
+                            playChime('stamp');
+                            setIsIslandModalOpen(true);
+                        }}
+                        title="Open Illustrated Island View"
+                        className="p-2.5 rounded-2xl bg-paper-50 hover:bg-amber-100 border-2 border-paper-900 text-paper-900 shadow-card transition active:scale-95"
+                    >
+                        <Sparkle size={20} weight="fill" className="text-amber-500" />
+                    </button>
                     <button
                         onClick={() => setIsParchmentMode(!isParchmentMode)}
                         title="Toggle Sepia Watercolor Parchment"
@@ -249,6 +269,12 @@ export const ScenicGuideView: React.FC = () => {
                 <LandmarkDetailModal
                     landmark={activeLandmark}
                     onClose={() => setActiveLandmark(null)}
+                />
+
+                {/* Hand-Drawn Island Modal */}
+                <DynamicIslandModal
+                    isOpen={isIslandModalOpen}
+                    onClose={() => setIsIslandModalOpen(false)}
                 />
             </div>
         </div>

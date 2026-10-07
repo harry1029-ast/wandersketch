@@ -130,6 +130,11 @@ export const MASTER_ZONES: Record<string, ScenicZone> = {
             [34.9910, 135.7720],
             [35.0020, 135.7890],
         ],
+        illustratedMapUrl: '/maps/kyoto_scenic_illustrated_v4.jpg',
+        illustratedMapBounds: [
+            [34.989504, 135.771790],
+            [35.003003, 135.791016],
+        ],
         facilities: [
             { type: 'restroom', name: 'Public Restroom (Kiyomizu Approach)', coords: [34.9958, 135.7828], emoji: '🚻' },
             { type: 'info', name: 'Higashiyama Tourist Office', coords: [34.9995, 135.7765], emoji: 'ℹ️' },
@@ -142,7 +147,7 @@ export const MASTER_ZONES: Record<string, ScenicZone> = {
                 name: 'Yasaka Pagoda (Hokan-ji)',
                 category: 'history',
                 color: '#c14937',
-                coords: [34.9985, 135.7788],
+                coords: [35.0010, 135.7750], // Shifted NW to align with illustration
                 svgSnippet: `
           <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-md">
             <polygon points="30,80 50,15 70,80" fill="#423b2c" stroke="#2b261b" stroke-width="3"/>
@@ -162,7 +167,7 @@ export const MASTER_ZONES: Record<string, ScenicZone> = {
                 name: 'Ninenzaka & Sannenzaka Lanes',
                 category: 'craft',
                 color: '#f4c568',
-                coords: [34.9972, 135.7812],
+                coords: [34.9985, 135.7800], // Shifted NW to align with illustration
                 svgSnippet: `
           <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-md">
             <rect x="25" y="40" width="50" height="45" fill="#f4c568" stroke="#2b261b" stroke-width="3"/>
@@ -181,7 +186,7 @@ export const MASTER_ZONES: Record<string, ScenicZone> = {
                 name: 'Kiyomizu-dera Wooden Stage',
                 category: 'history',
                 color: '#c14937',
-                coords: [34.9949, 135.7850],
+                coords: [34.9935, 135.7880], // Shifted SE to align with illustration
                 svgSnippet: `
           <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-md">
             <rect x="20" y="40" width="60" height="45" fill="#c14937" stroke="#2b261b" stroke-width="3"/>

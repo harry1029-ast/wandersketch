@@ -5,6 +5,12 @@ import L from 'leaflet';
 import rough from 'roughjs';
 import { Landmark, ScenicFacility, ScenicZone } from '@/types/itinerary';
 import { fetchPedestrianRoute } from '@/lib/routing';
+import {
+    calculateItineraryBoundingCircle,
+    getPixelCircle,
+    getCirclePerimeterCoords,
+    BoundingCircle,
+} from '@/lib/geoMask';
 
 interface LeafletBaseMapProps {
     zone: ScenicZone;
@@ -17,6 +23,7 @@ interface LeafletBaseMapProps {
     userHeading?: number | null;
     userAccuracy?: number | null;
     isParchmentMode: boolean;
+    onOpenIslandView?: () => void;
     onMapReady?: (map: L.Map) => void;
     onBoundsChange?: (bounds: { minLat: number; minLng: number; maxLat: number; maxLng: number }) => void;
 }
@@ -32,6 +39,7 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
     userHeading,
     userAccuracy,
     isParchmentMode,
+    onOpenIslandView,
     onMapReady,
     onBoundsChange,
 }) => {
@@ -41,8 +49,13 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
     const facilitiesLayerRef = useRef<L.LayerGroup | null>(null);
     const userMarkerRef = useRef<L.Marker | null>(null);
     const accuracyCircleRef = useRef<L.Circle | null>(null);
+    const itineraryCircleRef = useRef<L.Circle | null>(null);
     const svgOverlayRef = useRef<SVGSVGElement | null>(null);
+    const inpaintedPaneRef = useRef<HTMLElement | null>(null);
+    const badgeMarkerRef = useRef<L.Marker | null>(null);
+    const maskCircleRef = useRef<SVGCircleElement | null>(null);
 
+    const boundingCircleRef = useRef<BoundingCircle | null>(null);
     const trajectoryRef = useRef<[number, number][]>([]);
     const landmarksRef = useRef<Landmark[]>(landmarks);
     landmarksRef.current = landmarks;
@@ -50,17 +63,107 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
     const onBoundsChangeRef = useRef(onBoundsChange);
     onBoundsChangeRef.current = onBoundsChange;
 
+    const onOpenIslandViewRef = useRef(onOpenIslandView);
+    onOpenIslandViewRef.current = onOpenIslandView;
+
+    const updateInpaintingMask = () => {
+        const map = mapInstanceRef.current;
+        const inpaintedPane = inpaintedPaneRef.current;
+        const bCircle = boundingCircleRef.current;
+        if (!map || !inpaintedPane || !bCircle) return;
+
+        const { layerCenter, radiusPx } = getPixelCircle(
+            map,
+            bCircle.center,
+            bCircle.radiusMeters
+        );
+
+        if (maskCircleRef.current) {
+            maskCircleRef.current.setAttribute('cx', `${layerCenter.x}`);
+            maskCircleRef.current.setAttribute('cy', `${layerCenter.y}`);
+            maskCircleRef.current.setAttribute('r', `${radiusPx}`);
+        }
+
+        inpaintedPane.style.clipPath = `circle(${radiusPx}px at ${layerCenter.x}px ${layerCenter.y}px)`;
+        (inpaintedPane.style as any).webkitClipPath = `circle(${radiusPx}px at ${layerCenter.x}px ${layerCenter.y}px)`;
+    };
+
+    const updatePerimeterBadge = () => {
+        const map = mapInstanceRef.current;
+        const bCircle = boundingCircleRef.current;
+        if (!map || !bCircle) return;
+
+        const badgeCoords = getCirclePerimeterCoords(bCircle.center, bCircle.radiusMeters, 42);
+
+        if (badgeMarkerRef.current) {
+            badgeMarkerRef.current.setLatLng(badgeCoords);
+        } else {
+            const badgeHtml = `
+        <button
+          type="button"
+          class="group flex items-center gap-1.5 px-3 py-1 bg-paper-50 hover:bg-amber-100 text-paper-900 border-2 border-paper-900 rounded-full font-serif font-black text-xs shadow-stamp cursor-pointer transform hover:scale-105 active:scale-95 transition-all select-none whitespace-nowrap"
+          title="Open self-contained illustrated island view"
+        >
+          <span class="text-amber-500 animate-spin-slow">✨</span>
+          <span>Enter Island View</span>
+          <span class="text-[10px] text-watercolor-brick opacity-80 group-hover:translate-x-0.5 transition-transform">➔</span>
+        </button>
+      `;
+
+            const badgeIcon = L.divIcon({
+                className: 'custom-island-trigger-badge',
+                html: badgeHtml,
+                iconSize: [140, 32],
+                iconAnchor: [70, 16],
+            });
+
+            const marker = L.marker(badgeCoords, { icon: badgeIcon, zIndexOffset: 2500 });
+            marker.on('click', (e) => {
+                L.DomEvent.stopPropagation(e);
+                if (onOpenIslandViewRef.current) {
+                    onOpenIslandViewRef.current();
+                }
+            });
+            marker.addTo(map);
+            badgeMarkerRef.current = marker;
+        }
+    };
+
+    const updateItineraryCircle = () => {
+        const map = mapInstanceRef.current;
+        if (!map) return;
+
+        if (boundingCircleRef.current) {
+            const { center, radiusMeters } = boundingCircleRef.current;
+            if (itineraryCircleRef.current) {
+                itineraryCircleRef.current.setLatLng(center);
+                itineraryCircleRef.current.setRadius(radiusMeters);
+            } else {
+                itineraryCircleRef.current = L.circle(center, {
+                    radius: radiusMeters,
+                    color: '#c14937',
+                    weight: 1.5,
+                    fillColor: '#c14937',
+                    fillOpacity: 0.05,
+                    interactive: false,
+                }).addTo(map);
+            }
+        } else if (itineraryCircleRef.current) {
+            itineraryCircleRef.current.remove();
+            itineraryCircleRef.current = null;
+        }
+    };
+
     const redrawSketchedPaths = () => {
         const map = mapInstanceRef.current;
         const svg = svgOverlayRef.current;
         if (!map || !svg) return;
 
-        const coords = trajectoryRef.current;
-        if (coords.length < 2) {
-            while (svg.firstChild) svg.removeChild(svg.firstChild);
-            return;
-        }
+        updateInpaintingMask();
+        updateItineraryCircle();
+        updatePerimeterBadge();
 
+        const coords = trajectoryRef.current;
         while (svg.firstChild) svg.removeChild(svg.firstChild);
 
         const topLeft = map.containerPointToLayerPoint([0, 0]);
@@ -72,35 +175,39 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
 
         const rc = rough.svg(svg);
 
-        const pixelPoints = coords.map(([lat, lng]) => {
-            const pt = map.latLngToContainerPoint(L.latLng(lat, lng));
-            return [pt.x, pt.y];
-        });
+        // 2. Draw trajectory walking path
+        if (coords.length >= 2) {
+            const pixelPoints = coords.map(([lat, lng]) => {
+                const pt = map.latLngToContainerPoint(L.latLng(lat, lng));
+                return [pt.x, pt.y];
+            });
 
-        for (let i = 0; i < pixelPoints.length - 1; i++) {
-            const p1 = pixelPoints[i];
-            const p2 = pixelPoints[i + 1];
+            for (let i = 0; i < pixelPoints.length - 1; i++) {
+                const p1 = pixelPoints[i];
+                const p2 = pixelPoints[i + 1];
 
-            svg.appendChild(
-                rc.line(p1[0], p1[1], p2[0], p2[1], {
-                    roughness: 1.5,
-                    stroke: 'rgba(232, 220, 186, 0.85)',
-                    strokeWidth: 14,
-                    bowing: 1.2,
-                })
-            );
+                svg.appendChild(
+                    rc.line(p1[0], p1[1], p2[0], p2[1], {
+                        roughness: 1.5,
+                        stroke: 'rgba(232, 220, 186, 0.85)',
+                        strokeWidth: 14,
+                        bowing: 1.2,
+                    })
+                );
 
-            svg.appendChild(
-                rc.line(p1[0], p1[1], p2[0], p2[1], {
-                    roughness: 1.4,
-                    stroke: '#c14937',
-                    strokeWidth: 3.5,
-                    strokeLineDash: [8, 6],
-                    bowing: 1.1,
-                })
-            );
+                svg.appendChild(
+                    rc.line(p1[0], p1[1], p2[0], p2[1], {
+                        roughness: 1.4,
+                        stroke: '#c14937',
+                        strokeWidth: 3.5,
+                        strokeLineDash: [8, 6],
+                        bowing: 1.1,
+                    })
+                );
+            }
         }
 
+        // 3. Draw milestone dots
         landmarksRef.current.forEach((lm) => {
             const pt = map.latLngToContainerPoint(L.latLng(lm.coords[0], lm.coords[1]));
             svg.appendChild(
@@ -121,15 +228,18 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
             ? itineraryStopIds.map((id) => landmarks.find((l) => l.id === id)).filter(Boolean) as Landmark[]
             : landmarks;
 
+        // Calculate and cache bounding circle
+        const stopCoords = itineraryLandmarks.map((l) => l.coords);
+        const bCircle = calculateItineraryBoundingCircle(stopCoords, zone.center);
+        boundingCircleRef.current = bCircle;
+
         if (itineraryLandmarks.length < 2) {
-            trajectoryRef.current = itineraryLandmarks.map((l) => l.coords);
+            trajectoryRef.current = stopCoords;
             redrawSketchedPaths();
             return;
         }
 
         let isMounted = true;
-        const stopCoords = itineraryLandmarks.map((l) => l.coords);
-
         fetchPedestrianRoute(stopCoords).then((result) => {
             if (isMounted) {
                 trajectoryRef.current =
@@ -141,7 +251,7 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         return () => {
             isMounted = false;
         };
-    }, [landmarks, itineraryStopIds]);
+    }, [landmarks, itineraryStopIds, zone.center]);
 
     useEffect(() => {
         if (!mapContainerRef.current || mapInstanceRef.current) return;
@@ -155,6 +265,7 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
 
         L.control.zoom({ position: 'bottomright' }).addTo(map);
 
+        // 1. Base tile layer in standard tilePane (z-index: 200) - muted sepia parchment
         L.tileLayer(
             'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
             {
@@ -163,6 +274,29 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
             }
         ).addTo(map);
 
+        // Apply parchment shader to base tilePane
+        const baseTilePane = map.getPane('tilePane');
+        if (baseTilePane && isParchmentMode) {
+            baseTilePane.classList.add('hand-drawn-tile-filter');
+        }
+
+        // 2. Inpainted tile layer in custom pane (z-index: 220) - vibrant illustrated watercolor
+        const inpaintedPane = map.createPane('inpaintedTilePane');
+        inpaintedPane.style.zIndex = '220';
+        inpaintedPane.style.pointerEvents = 'none';
+        inpaintedPane.classList.add('illustrated-watercolor-tiles');
+        inpaintedPaneRef.current = inpaintedPane;
+
+        L.tileLayer(
+            'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+            {
+                maxZoom: 19,
+                crossOrigin: true,
+                pane: 'inpaintedTilePane',
+            }
+        ).addTo(map);
+
+        // 3. Rough.js vector overlay pane (z-index: 450)
         const customPane = map.createPane('roughOverlayPane');
         customPane.style.zIndex = '450';
         customPane.style.pointerEvents = 'none';
@@ -181,7 +315,6 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         mapInstanceRef.current = map;
 
         const emitCurrentBounds = () => {
-            // Guard against unmounted or uninitialized leaflet container panes
             if (!onBoundsChangeRef.current || !mapInstanceRef.current) return;
             try {
                 const b = mapInstanceRef.current.getBounds();
@@ -200,12 +333,12 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         map.on('move', redrawSketchedPaths);
         map.on('zoom', redrawSketchedPaths);
         map.on('zoomend', redrawSketchedPaths);
+        map.on('viewreset', redrawSketchedPaths);
         map.on('moveend', emitCurrentBounds);
         map.on('resize', redrawSketchedPaths);
 
         if (onMapReady) onMapReady(map);
 
-        // Only invalidate size and emit bounds once map is fully loaded
         map.whenReady(() => {
             setTimeout(() => {
                 if (mapInstanceRef.current) {
@@ -217,6 +350,14 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         });
 
         return () => {
+            if (itineraryCircleRef.current) {
+                itineraryCircleRef.current.remove();
+                itineraryCircleRef.current = null;
+            }
+            if (badgeMarkerRef.current) {
+                badgeMarkerRef.current.remove();
+                badgeMarkerRef.current = null;
+            }
             map.off();
             map.remove();
             mapInstanceRef.current = null;
@@ -224,11 +365,15 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
     }, [zone]);
 
     useEffect(() => {
-        if (!mapContainerRef.current) return;
+        const map = mapInstanceRef.current;
+        if (!map) return;
+        const tilePane = map.getPane('tilePane');
+        if (!tilePane) return;
+
         if (isParchmentMode) {
-            mapContainerRef.current.classList.add('hand-drawn-tile-filter');
+            tilePane.classList.add('hand-drawn-tile-filter');
         } else {
-            mapContainerRef.current.classList.remove('hand-drawn-tile-filter');
+            tilePane.classList.remove('hand-drawn-tile-filter');
         }
     }, [isParchmentMode]);
 
@@ -274,7 +419,7 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         });
 
         redrawSketchedPaths();
-    }, [landmarks, activeLandmark]);
+    }, [landmarks, activeLandmark, itineraryStopIds]);
 
     useEffect(() => {
         const layer = facilitiesLayerRef.current;
@@ -353,6 +498,18 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
 
     return (
         <div className="relative w-full h-full overflow-hidden bg-[#e8dcba]">
+            {/* SVG Defs for itinerary bounding mask clipPath */}
+            <svg
+                className="absolute pointer-events-none"
+                style={{ position: 'absolute', width: 0, height: 0, left: 0, top: 0 }}
+                aria-hidden="true"
+            >
+                <defs>
+                    <clipPath id="itinerary-bounding-mask" clipPathUnits="userSpaceOnUse">
+                        <circle ref={maskCircleRef} cx="0" cy="0" r="0" />
+                    </clipPath>
+                </defs>
+            </svg>
             <div ref={mapContainerRef} className="w-full h-full relative z-0" />
         </div>
     );

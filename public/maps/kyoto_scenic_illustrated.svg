@@ -1,0 +1,178 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" width="1000" height="700">
+  <defs>
+    <!-- Soft watercolor drop shadow for 2.5D buildings and terrain -->
+    <filter id="softShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="3" dy="6" stdDeviation="5" flood-color="#2d281f" flood-opacity="0.28" />
+    </filter>
+    <filter id="mountainShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#213a26" flood-opacity="0.22" />
+    </filter>
+    
+    <!-- Organic gradients for mountains, water, and pathways -->
+    <linearGradient id="mountainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#93c48b" />
+      <stop offset="50%" stop-color="#699f66" />
+      <stop offset="100%" stop-color="#487847" />
+    </linearGradient>
+    <linearGradient id="hillGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#a6d89d" />
+      <stop offset="100%" stop-color="#70a66d" />
+    </linearGradient>
+    <linearGradient id="landGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f5edd8" />
+      <stop offset="100%" stop-color="#ece0c3" />
+    </linearGradient>
+    <linearGradient id="waterGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7dbed3" />
+      <stop offset="100%" stop-color="#5fa9c2" />
+    </linearGradient>
+    <linearGradient id="roofGrad1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4a463f" />
+      <stop offset="100%" stop-color="#322f2a" />
+    </linearGradient>
+    <linearGradient id="roofGradRed" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#cb5341" />
+      <stop offset="100%" stop-color="#9e3626" />
+    </linearGradient>
+  </defs>
+
+  <!-- 1. Organic Base District Landmass with feathered boundary -->
+  <path d="M 120,80 C 350,30 650,40 880,90 C 960,180 970,520 890,620 C 650,680 320,670 110,610 C 40,510 50,180 120,80 Z" 
+        fill="url(#landGrad)" stroke="#3a3225" stroke-width="4" stroke-dasharray="8 4" filter="url(#softShadow)" />
+
+  <!-- 2. Eastern Mountain Slopes & Forest Ridge (Higashiyama Hills) -->
+  <path d="M 620,80 C 740,60 880,90 920,180 C 960,320 950,540 870,620 C 760,650 680,620 640,560 C 700,430 660,260 620,80 Z" 
+        fill="url(#mountainGrad)" filter="url(#mountainShadow)" />
+  
+  <!-- Secondary inner ridge -->
+  <path d="M 680,120 C 770,110 880,140 900,240 C 920,380 910,500 840,570 C 760,570 710,480 690,380 C 670,280 660,180 680,120 Z" 
+        fill="url(#hillGrad)" opacity="0.85" />
+
+  <!-- 3. Shirakawa Stream / Koi Pond Ribbon -->
+  <path d="M 220,100 Q 280,240 240,360 T 320,580" 
+        fill="none" stroke="url(#waterGrad)" stroke-width="26" stroke-linecap="round" opacity="0.9" />
+  <path d="M 220,100 Q 280,240 240,360 T 320,580" 
+        fill="none" stroke="#bfe5f0" stroke-width="4" stroke-dasharray="14 10" stroke-linecap="round" opacity="0.8" />
+
+  <!-- 4. Historic Pedestrian Promenade & Cobblestone Stone Alleys (Ninenzaka & Sannenzaka) -->
+  <!-- Main artery: Yasaka (NW) -> Ninenzaka (Center) -> Kiyomizu (SE) -->
+  <path d="M 280,160 Q 420,240 480,310 T 740,520" 
+        fill="none" stroke="#dfceab" stroke-width="36" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 280,160 Q 420,240 480,310 T 740,520" 
+        fill="none" stroke="#9e8d69" stroke-width="3" stroke-dasharray="10 8" />
+  <path d="M 280,160 Q 420,240 480,310 T 740,520" 
+        fill="none" stroke="#ffffff" stroke-width="2" stroke-dasharray="4 14" opacity="0.6" />
+
+  <!-- Connecting side alley towards north gardens -->
+  <path d="M 460,280 Q 520,210 590,160" 
+        fill="none" stroke="#dfceab" stroke-width="24" stroke-linecap="round" />
+  <!-- Connecting south alley -->
+  <path d="M 440,340 Q 420,440 480,510" 
+        fill="none" stroke="#dfceab" stroke-width="24" stroke-linecap="round" />
+
+  <!-- 5. 2.5D Isometric Machiya Townhouses & Temples -->
+  
+  <!-- Cluster A: Northern Machiya Rows near Yasaka -->
+  <g filter="url(#softShadow)">
+    <!-- Building 1 -->
+    <rect x="230" y="210" width="54" height="34" rx="2" fill="#ece0c8" stroke="#2b261b" stroke-width="2" />
+    <polygon points="224,210 257,185 290,210" fill="url(#roofGrad1)" stroke="#2b261b" stroke-width="2" />
+    <line x1="257" y1="185" x2="257" y2="210" stroke="#7a7367" stroke-width="1.5" />
+    
+    <!-- Building 2 -->
+    <rect x="300" y="195" width="48" height="32" rx="2" fill="#e5d5b7" stroke="#2b261b" stroke-width="2" />
+    <polygon points="295,195 324,172 353,195" fill="url(#roofGrad1)" stroke="#2b261b" stroke-width="2" />
+
+    <!-- Building 3 -->
+    <rect x="250" y="260" width="60" height="36" rx="2" fill="#e8dcbf" stroke="#2b261b" stroke-width="2" />
+    <polygon points="244,260 280,232 316,260" fill="url(#roofGrad1)" stroke="#2b261b" stroke-width="2" />
+  </g>
+
+  <!-- Cluster B: Center Historic Machiya Shops (Ninenzaka) -->
+  <g filter="url(#softShadow)">
+    <!-- Machiya Shop 1 -->
+    <rect x="420" y="230" width="50" height="34" rx="2" fill="#f0e4cd" stroke="#2b261b" stroke-width="2" />
+    <polygon points="414,230 445,205 476,230" fill="url(#roofGrad1)" stroke="#2b261b" stroke-width="2" />
+    
+    <!-- Machiya Shop 2 with Vermilion Eaves -->
+    <rect x="500" y="270" width="58" height="38" rx="2" fill="#ede0c5" stroke="#2b261b" stroke-width="2" />
+    <polygon points="494,270 529,242 564,270" fill="url(#roofGradRed)" stroke="#2b261b" stroke-width="2" />
+    
+    <!-- Teahouse with courtyard -->
+    <rect x="390" y="320" width="52" height="36" rx="2" fill="#e5d5b7" stroke="#2b261b" stroke-width="2" />
+    <polygon points="384,320 416,294 448,320" fill="url(#roofGrad1)" stroke="#2b261b" stroke-width="2" />
+    
+    <!-- Machiya Row 3 -->
+    <rect x="520" y="340" width="64" height="40" rx="2" fill="#f2e6cf" stroke="#2b261b" stroke-width="2" />
+    <polygon points="512,340 552,310 592,340" fill="url(#roofGrad1)" stroke="#2b261b" stroke-width="2" />
+  </g>
+
+  <!-- Cluster C: Southeast Temple Stage (Kiyomizu Cliffside Complex) -->
+  <g filter="url(#softShadow)">
+    <!-- Cliff Timber Stilts Foundation -->
+    <line x1="720" y1="480" x2="720" y2="540" stroke="#5a4128" stroke-width="5" stroke-linecap="round" />
+    <line x1="745" y1="485" x2="745" y2="550" stroke="#5a4128" stroke-width="5" stroke-linecap="round" />
+    <line x1="770" y1="485" x2="770" y2="545" stroke="#5a4128" stroke-width="5" stroke-linecap="round" />
+    <line x1="710" y1="510" x2="780" y2="510" stroke="#48331e" stroke-width="4" />
+    
+    <!-- Cantilever Stage Deck -->
+    <polygon points="705,480 785,480 770,500 690,500" fill="#c49b66" stroke="#2b261b" stroke-width="2.5" />
+    
+    <!-- Main Temple Hall Roof -->
+    <rect x="710" y="440" width="80" height="42" fill="#9e3626" stroke="#2b261b" stroke-width="2.5" />
+    <polygon points="695,440 750,400 805,440" fill="url(#roofGradRed)" stroke="#2b261b" stroke-width="2.5" />
+    
+    <!-- Temple Pagoda Tower next to Stage -->
+    <rect x="650" y="430" width="34" height="40" fill="#3a362f" stroke="#2b261b" stroke-width="2" />
+    <polygon points="640,430 667,410 694,430" fill="url(#roofGrad1)" stroke="#2b261b" stroke-width="2" />
+    <polygon points="644,410 667,395 690,410" fill="url(#roofGrad1)" stroke="#2b261b" stroke-width="2" />
+    <line x1="667" y1="395" x2="667" y2="380" stroke="#d49a37" stroke-width="3" stroke-linecap="round" />
+  </g>
+
+  <!-- 6. Stylized Forest Canopies & Botanical Groves (ThinkGIS Style) -->
+  <!-- Mountain Pine and Maple tree clusters -->
+  <g filter="url(#softShadow)">
+    <!-- Forest Cluster 1 (Northeast) -->
+    <circle cx="650" cy="140" r="26" fill="#4d8251" stroke="#2a472c" stroke-width="2" />
+    <circle cx="678" cy="130" r="30" fill="#65a46a" stroke="#2a472c" stroke-width="2" />
+    <circle cx="710" cy="150" r="28" fill="#528c56" stroke="#2a472c" stroke-width="2" />
+    <circle cx="670" cy="165" r="24" fill="#3d6e40" stroke="#2a472c" stroke-width="2" />
+
+    <!-- Forest Cluster 2 (East Mid) -->
+    <circle cx="750" cy="270" r="32" fill="#56925b" stroke="#2a472c" stroke-width="2" />
+    <circle cx="785" cy="255" r="36" fill="#71b576" stroke="#2a472c" stroke-width="2" />
+    <circle cx="820" cy="285" r="30" fill="#427346" stroke="#2a472c" stroke-width="2" />
+    <circle cx="775" cy="305" r="28" fill="#58965d" stroke="#2a472c" stroke-width="2" />
+
+    <!-- Forest Cluster 3 (Southeast Kiyomizu gorge) -->
+    <circle cx="670" cy="540" r="34" fill="#3c6b40" stroke="#213d24" stroke-width="2" />
+    <circle cx="710" cy="565" r="36" fill="#57965c" stroke="#213d24" stroke-width="2" />
+    <circle cx="755" cy="550" r="32" fill="#78bf7e" stroke="#213d24" stroke-width="2" />
+
+    <!-- Cherry Blossom Tree Accents (Pink Sakura) -->
+    <circle cx="480" cy="220" r="18" fill="#f7b7cb" stroke="#99576a" stroke-width="1.8" />
+    <circle cx="496" cy="214" r="14" fill="#ffd1de" stroke="#99576a" stroke-width="1.8" />
+    <circle cx="610" cy="380" r="20" fill="#f7b7cb" stroke="#99576a" stroke-width="1.8" />
+    
+    <!-- Bamboo Grove (West Stream) -->
+    <ellipse cx="290" cy="320" rx="24" ry="34" fill="#88c48a" stroke="#376939" stroke-width="2" />
+    <ellipse cx="320" cy="340" rx="20" ry="28" fill="#6ea870" stroke="#376939" stroke-width="2" />
+  </g>
+
+  <!-- 7. Decorative Red Torii Gate Accent (Entrance) -->
+  <g transform="translate(260, 140)">
+    <line x1="0" y1="0" x2="32" y2="0" stroke="#c14937" stroke-width="4.5" stroke-linecap="round" />
+    <line x1="3" y1="7" x2="29" y2="7" stroke="#c14937" stroke-width="3" />
+    <line x1="6" y1="0" x2="6" y2="28" stroke="#c14937" stroke-width="3.5" stroke-linecap="round" />
+    <line x1="26" y1="0" x2="26" y2="28" stroke="#c14937" stroke-width="3.5" stroke-linecap="round" />
+  </g>
+
+  <!-- 8. Vintage Hand-Lettered Cartouche Seal -->
+  <g transform="translate(80, 560)">
+    <rect width="180" height="46" rx="12" fill="#fdfbf7" stroke="#3a3225" stroke-width="2.5" filter="url(#softShadow)" />
+    <text x="90" y="28" font-family="serif" font-weight="900" font-size="16" fill="#2b261b" text-anchor="middle" letter-spacing="1.5">
+      京都 · 東山名胜导览
+    </text>
+  </g>
+</svg>
+

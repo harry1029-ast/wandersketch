@@ -4,8 +4,13 @@ import React, { useState } from 'react';
 import { useItineraryStore } from '@/store/useItineraryStore';
 import { MASTER_ZONES } from '@/lib/mockData';
 import { playChime } from '@/lib/audio';
-import { ContainedIslandModal } from '@/components/Modals/ContainedIslandModal';
+import dynamic from 'next/dynamic';
 import { PlusCircle, Sparkle, Footprints, Clock, Trash, PencilSimple } from '@phosphor-icons/react';
+
+const DynamicIslandModal = dynamic(
+    () => import('@/components/Modals/ContainedIslandModal').then((mod) => mod.ContainedIslandModal),
+    { ssr: false }
+);
 
 export const PlansLibraryView: React.FC = () => {
     const { savedPlans, setActivePlanId, setStage, deletePlan, updatePlanTitle } = useItineraryStore();
@@ -198,7 +203,7 @@ export const PlansLibraryView: React.FC = () => {
             </div>
 
             {/* Contained Hand-Drawn Island Modal */}
-            <ContainedIslandModal
+            <DynamicIslandModal
                 isOpen={Boolean(selectedPlanForIsland)}
                 onClose={() => setSelectedPlanForIsland(null)}
             />

@@ -33,6 +33,8 @@ export interface ScenicZone {
     bounds: [[number, number], [number, number]];
     facilities: ScenicFacility[];
     landmarksPool: Landmark[];
+    illustratedMapUrl?: string;
+    illustratedMapBounds?: [[number, number], [number, number]];
 }
 
 export interface TravelPlan {

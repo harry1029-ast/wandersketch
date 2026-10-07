@@ -13,5 +13,27 @@
 }
 
 .hand-drawn-tile-filter {
-  filter: sepia(38%) saturate(125%) hue-rotate(-10deg) contrast(95%) brightness(101%);
+  filter: sepia(45%) saturate(112%) hue-rotate(-12deg) contrast(92%) brightness(99%);
+}
+
+.illustrated-watercolor-tiles {
+  filter: saturate(185%) hue-rotate(4deg) contrast(118%) brightness(104%);
+}
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spinSlow 9s linear infinite;
+}
+
+.custom-island-landmark-bubble,
+.custom-island-facility-pin,
+.custom-scenic-building-pin,
+.custom-amenity-pin,
+.custom-user-gps-marker {
+  background: transparent !important;
+  border: none !important;
 }
