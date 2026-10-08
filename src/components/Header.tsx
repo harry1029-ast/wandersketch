@@ -3,10 +3,10 @@
 import React from 'react';
 import { useItineraryStore } from '@/store/useItineraryStore';
 import { playChime } from '@/lib/audio';
-import { MapTrifold, BookmarkSimple, PencilSimpleLine, PlusCircle } from '@phosphor-icons/react';
+import { MapTrifold, BookmarkSimple, PencilSimpleLine, PlusCircle, Sparkle } from '@phosphor-icons/react';
 
 export const Header: React.FC = () => {
-    const { currentStage, setStage, savedPlans, savePlannerAsNewPlan } = useItineraryStore();
+    const { currentStage, setStage, savedPlans, savePlannerAsNewPlan, setTripModalOpen } = useItineraryStore();
 
     const handleStageChange = (stage: 'planner' | 'plans' | 'map') => {
         playChime('tap');
@@ -77,7 +77,19 @@ export const Header: React.FC = () => {
                 </button>
             </nav>
 
-            <div>
+            <div className="flex items-center gap-2">
+                <button
+                    onClick={() => {
+                        playChime('tap');
+                        setTripModalOpen(true);
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-500 text-paper-900 font-extrabold text-xs sm:text-sm border-2 border-paper-900 shadow-stamp transition-all active:scale-95"
+                    title="Generate New Multi-Day Itinerary with AI"
+                >
+                    <Sparkle size={18} weight="fill" className="text-watercolor-brick" />
+                    <span>+ New Trip</span>
+                </button>
+
                 <button
                     onClick={handleQuickAction}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-watercolor-green hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm border-2 border-paper-900 shadow-stamp transition-all active:scale-95"

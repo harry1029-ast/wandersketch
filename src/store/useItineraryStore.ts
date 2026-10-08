@@ -94,11 +94,13 @@ interface ItineraryState {
     totalBudgetCeiling: number;
     isOverBudget: boolean;
     budgetSummary: BudgetSummary;
+    isTripModalOpen: boolean;
 
     // Actions
     initializeFromDatabase: () => Promise<void>;
     setStage: (stage: AppStage) => void;
     setActivePlanId: (id: string) => void;
+    setTripModalOpen: (open: boolean) => void;
     updatePlannerZone: (zoneKey: ScenicZoneKey) => void;
     reorderPlannerStops: (fromIdx: number, toIdx: number) => void;
     removePlannerStop: (idx: number) => void;
@@ -125,6 +127,25 @@ interface ItineraryState {
         estimatedCost?: number,
         actualCost?: number
     ) => void;
+    swapItineraryItem: (
+        dayNumber: number,
+        oldItemId: string,
+        replacement: {
+            name: string;
+            estimatedCost: number;
+            category?: ExpenseCategory;
+            location?: [number, number];
+        }
+    ) => void;
+    updateDayHotel: (
+        dayNumber: number,
+        hotel: {
+            name: string;
+            price: number;
+            notes?: string;
+            coords?: [number, number];
+        }
+    ) => void;
     recalculateBudget: () => void;
 }
 
@@ -134,6 +155,7 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
     savedPlans: INITIAL_PLANS,
     zones: MASTER_ZONES,
     isLoadingDb: false,
+    isTripModalOpen: false,
 
     plannerBuffer: {
         title: 'Toronto Lakefront & Distillery Autumn Walk',
@@ -156,6 +178,8 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
             transit: { estimated: 0, actual: 0 },
         },
     },
+
+    setTripModalOpen: (open) => set({ isTripModalOpen: open }),
 
     initializeFromDatabase: async () => {
         set({ isLoadingDb: true });
@@ -474,6 +498,94 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
             });
             return {
                 ...day,
+                items: updatedItems,
+            };
+        });
+        const { updatedDays, isOverBudget, budgetSummary } = computeBudgetFromDays(updated, totalBudgetCeiling);
+        set({
+            currentItineraryDays: updatedDays,
+            isOverBudget,
+            budgetSummary,
+        });
+    },
+
+    swapItineraryItem: (dayNumber, oldItemId, replacement) => {
+        const { currentItineraryDays, totalBudgetCeiling } = get();
+        const updated = currentItineraryDays.map((day) => {
+            if (day.dayNumber !== dayNumber) return day;
+            let hotelInfo = day.hotelInfo;
+            const updatedItems = (day.items || []).map((item) => {
+                if (item.id !== oldItemId) return item;
+                if (item.category === 'lodging') {
+                    hotelInfo = {
+                        ...hotelInfo,
+                        name: replacement.name.replace(/^Stay at\s+/i, ''),
+                        price: replacement.estimatedCost,
+                    };
+                }
+                return {
+                    ...item,
+                    name: replacement.name,
+                    estimatedCost: replacement.estimatedCost,
+                    category: replacement.category || item.category,
+                    location: replacement.location || item.location,
+                };
+            });
+            return {
+                ...day,
+                hotelInfo,
+                items: updatedItems,
+            };
+        });
+        const { updatedDays, isOverBudget, budgetSummary } = computeBudgetFromDays(updated, totalBudgetCeiling);
+        set({
+            currentItineraryDays: updatedDays,
+            isOverBudget,
+            budgetSummary,
+        });
+    },
+
+    updateDayHotel: (dayNumber, hotel) => {
+        const { currentItineraryDays, totalBudgetCeiling } = get();
+        const updated = currentItineraryDays.map((day) => {
+            if (day.dayNumber !== dayNumber) return day;
+            let lodgingFound = false;
+            const updatedItems = (day.items || []).map((item) => {
+                if (item.category === 'lodging') {
+                    lodgingFound = true;
+                    return {
+                        ...item,
+                        name: `Stay at ${hotel.name}`,
+                        estimatedCost: hotel.price,
+                        location: hotel.coords || item.location,
+                    };
+                }
+                return item;
+            });
+
+            if (!lodgingFound) {
+                updatedItems.unshift({
+                    id: `item_${day.dayNumber}_lodging_${Date.now()}`,
+                    dayId: day.id,
+                    planId: day.planId,
+                    name: `Stay at ${hotel.name}`,
+                    category: 'lodging',
+                    estimatedCost: hotel.price,
+                    actualCost: 0,
+                    location: hotel.coords,
+                    orderIndex: 0,
+                });
+            }
+
+            return {
+                ...day,
+                hotelInfo: {
+                    ...day.hotelInfo,
+                    name: hotel.name,
+                    price: hotel.price,
+                    notes: hotel.notes || day.hotelInfo?.notes,
+                    coords: hotel.coords || day.hotelInfo?.coords,
+                },
                 items: updatedItems,
             };
         });

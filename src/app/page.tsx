@@ -6,9 +6,10 @@ import { Header } from '@/components/Header';
 import { PlansLibraryView } from '@/components/PlansLibraryView';
 import { PlannerView } from '@/components/PlannerView';
 import { ScenicGuideView } from '@/components/ScenicGuideView';
+import { TripCreationModal } from '@/components/Modals/TripCreationModal';
 
 export default function Home() {
-  const { currentStage, initializeFromDatabase, isLoadingDb } = useItineraryStore();
+  const { currentStage, initializeFromDatabase, isLoadingDb, isTripModalOpen, setTripModalOpen } = useItineraryStore();
 
   useEffect(() => {
     initializeFromDatabase();
@@ -28,6 +29,11 @@ export default function Home() {
       {currentStage === 'plans' && <PlansLibraryView />}
       {currentStage === 'planner' && <PlannerView />}
       {currentStage === 'map' && <ScenicGuideView />}
+
+      <TripCreationModal
+        isOpen={isTripModalOpen}
+        onClose={() => setTripModalOpen(false)}
+      />
     </main>
   );
 }

@@ -144,22 +144,19 @@ Transform the itinerary display into a multi-tiered illustrated journey:
 - **Product Direction**: Merging "Trip Archive" lifecycle capabilities (AI itinerary planning, dual budget ledgers, multimedia travel journals, and PDF dossiers) into WanderSketch's illustrated hand-drawn map engine without regressing existing features.
 
 ## 2. Global Integration Roadmap
-- **Phase 1: Data Architecture & Storage Expansion (COMPLETED - 0 Type Errors)**
-  - Schema migration complete: `user_profiles`, `itinerary_days`, `itinerary_items`, `travel_diaries`, `trip_archives`, and `trip-assets` storage bucket.
-  - TypeScript domain types in `src/types/itinerary.ts` and repository CRUD helpers in `src/lib/repositories.ts` are verified.
-- **Phase 2: Pre-Trip Planning & Budget Calculation Engine (CURRENT)**
-  - Intake form with budget ceilings and travel style preference pills (`TripCreationModal.tsx`).
-  - Structured LLM itinerary generation endpoint (`/api/itinerary/generate`) outputting day-by-day plans, attraction sequence, hotel recommendations, 3 meals, and cost estimates.
-  - Real-time budget calculation engine in `useItineraryStore.ts` with subtotal rollups and overrun warnings (`isOverBudget`).
-  - Expense breakdown comparison table (`ExpenseBreakdownView.tsx`) and recommendation swap modal (`RecommendationSwapModal.tsx`).
+- **Phase 1: Data Architecture & Storage Expansion (COMPLETED - 0 Errors)**
+  - Schema, domain types in `src/types/itinerary.ts`, and repository helpers in `src/lib/repositories.ts` verified.
+- **Phase 2: Pre-Trip Planning & Budget Calculation Engine (IN PROGRESS)**
+  - Step 1 (Completed): `/api/itinerary/generate` route and dynamic budget engine in `useItineraryStore.ts` (0 errors).
+  - Step 2 (Completed): Intake form (`TripCreationModal.tsx`), multi-day agenda carousel, and real-time budget tracking banner in `PlannerView.tsx` (0 errors).
+  - Step 3 (CURRENT): Dual ledger view (`ExpenseBreakdownView.tsx`) and recommendation swapping modal (`RecommendationSwapModal.tsx`).
 - **Phase 3: On-Trip Dual Modes, Daily Footprints & Live Ledger**
-  - Toggle between Planning and On-Trip modes, date-filtered Rough.js footprints, and live expense logging.
 - **Phase 4: Travel Diary & PDF Archive Dossier Compilation**
-  - Date-indexed multimedia journals, client-side photo compression, and multi-page illustrated PDF export.
 - **Phase 5: Testing, Hardening & Offline Resilience**
-  - Budget engine unit tests, schema fallbacks, and local offline caching.
 
-## 3. Active Milestone: Phase 2 — Step 1 (AI Generation Route & Dynamic Budget Engine)
+## 3. Active Milestone: Phase 2 — Step 3 (Expense Breakdown Ledger & Recommendation Swapping)
 Goal:
-1. Build `/api/itinerary/generate` route handler with structured JSON generation and fallback mocks.
-2. Extend `src/store/useItineraryStore.ts` to support multi-day itinerary state (`days: ItineraryDay[]`), active day selection, dynamic budget calculation (subtotals, categories, grand total), and `isOverBudget` flag.
+1. Build `src/components/ExpenseBreakdownView.tsx` for side-by-side Estimated vs. Actual ledger across Lodging, Dining, Tickets, and Transit.
+2. Build `src/components/Modals/RecommendationSwapModal.tsx` for one-click replacement of hotels and dining stops with instant budget recalculation.
+3. Wire the ledger entry button in `PlannerView.tsx` and swap trigger buttons on agenda items.
+4. Verify with `npx tsc --noEmit` (0 errors).
