@@ -49,3 +49,66 @@ export interface TravelPlan {
     spotIds: string[];
     themeRoutes: Record<RouteTheme, string[]>;
 }
+
+// --- Trip Archive Integration Domain Types ---
+
+export type ExpenseCategory = 'lodging' | 'dining' | 'ticket' | 'transit';
+export type TripArchiveStatus = 'planning' | 'on-trip' | 'completed';
+
+export interface UserTravelProfile {
+    id: string;
+    lodgingTier?: string;
+    diningTastes: string[];
+    walkingEndurance?: string;
+    attractionTypes: string[];
+    createdAt?: string;
+}
+
+export interface ItineraryItem {
+    id: string;
+    dayId: string;
+    planId: string;
+    name: string;
+    category: ExpenseCategory;
+    estimatedCost: number;
+    actualCost: number;
+    location?: [number, number];
+    orderIndex: number;
+}
+
+export interface ItineraryDay {
+    id: string;
+    planId: string;
+    dayNumber: number;
+    calendarDate?: string;
+    hotelInfo?: {
+        name?: string;
+        coords?: [number, number];
+        notes?: string;
+        price?: number;
+    };
+    subtotalEstimated: number;
+    subtotalActual: number;
+    items?: ItineraryItem[];
+    createdAt?: string;
+}
+
+export interface TravelDiaryEntry {
+    id: string;
+    planId: string;
+    entryDate: string;
+    content: string;
+    imageUrls: string[];
+    createdAt?: string;
+}
+
+export interface TripArchiveDossier {
+    id: string;
+    planId: string;
+    status: TripArchiveStatus;
+    totalEstimated: number;
+    totalActual: number;
+    pdfUrl?: string;
+    snapshotUrl?: string;
+    finalizedAt?: string;
+}

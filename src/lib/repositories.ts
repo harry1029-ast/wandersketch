@@ -1,5 +1,17 @@
 import { supabase } from '@/lib/supabaseClient';
-import { Landmark, TravelPlan, ScenicZone } from '@/types/itinerary';
+import {
+    Landmark,
+    TravelPlan,
+    ScenicZone,
+    UserTravelProfile,
+    ItineraryDay,
+    ItineraryItem,
+    TravelDiaryEntry,
+    TripArchiveDossier,
+    TripArchiveStatus,
+    ExpenseCategory,
+} from '@/types/itinerary';
+
 
 export async function fetchDestinations(): Promise<ScenicZone[]> {
     const { data, error } = await supabase.from('destinations').select('*');
@@ -189,4 +201,268 @@ export async function fetchSpotsInEnvelope(
         audioNote: item.audio_note,
         isCustom: Boolean(item.is_custom),
     }));
+}
+
+// -----------------------------------------------------------------------------
+// Trip Archive Integration Repository CRUD Methods
+// -----------------------------------------------------------------------------
+
+function parsePointLocation(loc: any): [number, number] | undefined {
+    if (!loc) return undefined;
+    if (Array.isArray(loc) && loc.length === 2) {
+        return [loc[0], loc[1]];
+    }
+    // GeoJSON format: { type: 'Point', coordinates: [lng, lat] }
+    if (typeof loc === 'object' && loc.coordinates && Array.isArray(loc.coordinates) && loc.coordinates.length >= 2) {
+        return [loc.coordinates[1], loc.coordinates[0]];
+    }
+    // WKT format: "POINT(lng lat)" or "POINT(lng, lat)"
+    if (typeof loc === 'string') {
+        const match = loc.match(/POINT\s*\(\s*([-\d.]+)\s+([-\d.]+)\s*\)/i);
+        if (match) {
+            const lng = parseFloat(match[1]);
+            const lat = parseFloat(match[2]);
+            return [lat, lng];
+        }
+    }
+    return undefined;
+}
+
+export async function fetchUserProfile(userId: string): Promise<UserTravelProfile | null> {
+    const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+
+    if (error || !data) {
+        if (error) console.error('Error fetching user profile:', error);
+        return null;
+    }
+
+    return {
+        id: data.id,
+        lodgingTier: data.lodging_tier || undefined,
+        diningTastes: data.dining_tastes || [],
+        walkingEndurance: data.walking_endurance || undefined,
+        attractionTypes: data.attraction_types || [],
+        createdAt: data.created_at,
+    };
+}
+
+export async function upsertUserProfile(profile: UserTravelProfile): Promise<boolean> {
+    const { error } = await supabase.from('user_profiles').upsert({
+        id: profile.id,
+        lodging_tier: profile.lodgingTier,
+        dining_tastes: profile.diningTastes,
+        walking_endurance: profile.walkingEndurance,
+        attraction_types: profile.attractionTypes,
+    });
+
+    if (error) {
+        console.error('Failed to upsert user profile:', error);
+        return false;
+    }
+    return true;
+}
+
+export async function fetchItineraryDaysWithItems(planId: string): Promise<ItineraryDay[]> {
+    const [daysResult, itemsResult] = await Promise.all([
+        supabase
+            .from('itinerary_days')
+            .select('*')
+            .eq('plan_id', planId)
+            .order('day_number', { ascending: true }),
+        supabase
+            .from('itinerary_items')
+            .select('*')
+            .eq('plan_id', planId)
+            .order('order_index', { ascending: true }),
+    ]);
+
+    if (daysResult.error) {
+        console.error('Error fetching itinerary days:', daysResult.error);
+        return [];
+    }
+    if (itemsResult.error) {
+        console.error('Error fetching itinerary items:', itemsResult.error);
+    }
+
+    const items = itemsResult.data || [];
+    const itemsByDay = new Map<string, ItineraryItem[]>();
+
+    for (const item of items) {
+        const mappedItem: ItineraryItem = {
+            id: item.id,
+            dayId: item.day_id,
+            planId: item.plan_id,
+            name: item.name,
+            category: item.category as ExpenseCategory,
+            estimatedCost: Number(item.estimated_cost || 0),
+            actualCost: Number(item.actual_cost || 0),
+            location: parsePointLocation(item.location),
+            orderIndex: item.order_index ?? 0,
+        };
+
+        const existing = itemsByDay.get(item.day_id) || [];
+        existing.push(mappedItem);
+        itemsByDay.set(item.day_id, existing);
+    }
+
+    return (daysResult.data || []).map((day: any) => ({
+        id: day.id,
+        planId: day.plan_id,
+        dayNumber: day.day_number,
+        calendarDate: day.calendar_date || undefined,
+        hotelInfo: day.hotel_info || {},
+        subtotalEstimated: Number(day.subtotal_estimated || 0),
+        subtotalActual: Number(day.subtotal_actual || 0),
+        items: itemsByDay.get(day.id) || [],
+        createdAt: day.created_at,
+    }));
+}
+
+export async function saveItineraryItem(item: ItineraryItem): Promise<boolean> {
+    const pointLocation = item.location && item.location.length === 2
+        ? `POINT(${item.location[1]} ${item.location[0]})`
+        : null;
+
+    const { error } = await supabase.from('itinerary_items').upsert({
+        id: item.id,
+        day_id: item.dayId,
+        plan_id: item.planId,
+        name: item.name,
+        category: item.category,
+        estimated_cost: item.estimatedCost,
+        actual_cost: item.actualCost,
+        location: pointLocation,
+        order_index: item.orderIndex,
+    });
+
+    if (error) {
+        console.error('Failed to save itinerary item to Supabase:', error);
+        return false;
+    }
+    return true;
+}
+
+export async function fetchTravelDiaries(planId: string): Promise<TravelDiaryEntry[]> {
+    const { data, error } = await supabase
+        .from('travel_diaries')
+        .select('*')
+        .eq('plan_id', planId)
+        .order('entry_date', { ascending: true });
+
+    if (error || !data) {
+        if (error) console.error('Error fetching travel diaries:', error);
+        return [];
+    }
+
+    return data.map((d: any) => ({
+        id: d.id,
+        planId: d.plan_id,
+        entryDate: d.entry_date,
+        content: d.content || '',
+        imageUrls: d.image_urls || [],
+        createdAt: d.created_at,
+    }));
+}
+
+export async function saveTravelDiary(entry: TravelDiaryEntry): Promise<boolean> {
+    const { error } = await supabase.from('travel_diaries').upsert({
+        id: entry.id,
+        plan_id: entry.planId,
+        entry_date: entry.entryDate,
+        content: entry.content,
+        image_urls: entry.imageUrls,
+    });
+
+    if (error) {
+        console.error('Failed to save travel diary entry:', error);
+        return false;
+    }
+    return true;
+}
+
+export async function fetchTripArchive(planId: string): Promise<TripArchiveDossier | null> {
+    const { data, error } = await supabase
+        .from('trip_archives')
+        .select('*')
+        .eq('plan_id', planId)
+        .maybeSingle();
+
+    if (error || !data) {
+        if (error) console.error('Error fetching trip archive:', error);
+        return null;
+    }
+
+    return {
+        id: data.id,
+        planId: data.plan_id,
+        status: data.status as TripArchiveStatus,
+        totalEstimated: Number(data.total_estimated || 0),
+        totalActual: Number(data.total_actual || 0),
+        pdfUrl: data.pdf_url || undefined,
+        snapshotUrl: data.snapshot_url || undefined,
+        finalizedAt: data.finalized_at || undefined,
+    };
+}
+
+export async function updateTripArchiveStatus(
+    planId: string,
+    status: TripArchiveStatus,
+    totals?: { estimated: number; actual: number }
+): Promise<boolean> {
+    const updatePayload: Record<string, any> = {
+        status,
+    };
+
+    if (totals) {
+        updatePayload.total_estimated = totals.estimated;
+        updatePayload.total_actual = totals.actual;
+    }
+
+    if (status === 'completed') {
+        updatePayload.finalized_at = new Date().toISOString();
+    }
+
+    const { data: existing, error: selectError } = await supabase
+        .from('trip_archives')
+        .select('id')
+        .eq('plan_id', planId)
+        .maybeSingle();
+
+    if (selectError) {
+        console.error('Error checking existing trip archive:', selectError);
+        return false;
+    }
+
+    if (existing) {
+        const { error: updateError } = await supabase
+            .from('trip_archives')
+            .update(updatePayload)
+            .eq('plan_id', planId);
+
+        if (updateError) {
+            console.error('Failed to update trip archive status:', updateError);
+            return false;
+        }
+        return true;
+    } else {
+        const { error: insertError } = await supabase
+            .from('trip_archives')
+            .insert({
+                id: `archive_${planId}`,
+                plan_id: planId,
+                total_estimated: totals?.estimated ?? 0,
+                total_actual: totals?.actual ?? 0,
+                ...updatePayload,
+            });
+
+        if (insertError) {
+            console.error('Failed to insert trip archive:', insertError);
+            return false;
+        }
+        return true;
+    }
 }

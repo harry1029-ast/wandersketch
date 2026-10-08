@@ -131,3 +131,32 @@ Transform the itinerary display into a multi-tiered illustrated journey:
     - Water features: `#6bbcd6` fill with `watercolor` stipples.
     - Parks/Gardens: `#7fa87f` stipple fill with organic tree cluster loops.
     - Buildings & Roofs: `#c14937` and `#d97d3e` with `#2b261b` Rough.js ink borders.
+
+
+# WanderSketch Redesign & Trip Archive — Architecture & Roadmap
+
+## 1. Project Background & System Stack
+- **Framework**: Next.js 15 (App Router), React 19, TypeScript
+- **Styling**: Tailwind CSS v3 (do NOT upgrade to v4, keep existing paper/watercolor tokens)
+- **State**: Zustand (`src/store/useItineraryStore.ts`)
+- **Cartography & Rendering**: Leaflet, Rough.js, OpenStreetMap Nominatim (`/api/geocode`), OSRM Foot Profile
+- **Spatial Backend**: Supabase PostgreSQL + PostGIS (`GEOMETRY(Point, 4326)`)
+- **Integration Direction**: Merging "Trip Archive" lifecycle capabilities (AI itinerary planning, daily budget engine, travel journals, and PDF dossiers) into WanderSketch's illustrated hand-drawn map engine.
+
+## 2. Global Integration Roadmap
+- **Phase 1: Data Architecture & Storage Expansion (CURRENT - Steps 2 & 3 in progress)**
+  - Schema migration complete: `user_profiles`, `itinerary_days`, `itinerary_items`, `travel_diaries`, `trip_archives`, and `trip-assets` storage bucket.
+  - Active tasks: TypeScript domain type expansion and repository CRUD helpers.
+- **Phase 2: Pre-Trip Planning & Budget Calculation Engine**
+  - Intake form with budget ceilings, LLM structured itinerary generation, and real-time ledger recalculation.
+- **Phase 3: On-Trip Dual Modes, Daily Footprints & Live Ledger**
+  - Toggle between Planning and On-Trip modes, date-filtered Rough.js footprints, and live expense logging.
+- **Phase 4: Travel Diary & PDF Archive Dossier Compilation**
+  - Date-indexed multimedia journals, client-side photo compression, and multi-page illustrated PDF export.
+- **Phase 5: Testing, Hardening & Offline Resilience**
+  - Budget engine unit tests, schema fallbacks, and local offline caching.
+
+## 3. Active Milestone: Phase 1 — Steps 2 & 3
+- Update `src/types/itinerary.ts` with new domain interfaces (`ExpenseCategory`, `TripArchiveStatus`, `UserTravelProfile`, `ItineraryItem`, `ItineraryDay`, `TravelDiaryEntry`, `TripArchiveDossier`).
+- Update `src/lib/repositories.ts` with query and mutation methods for user profiles, itinerary days/items, diaries, and archives.
+- Ensure `npx tsc --noEmit` completes with 0 errors.
