@@ -1,9 +1,79 @@
 import { create } from 'zustand';
-import { AppStage, TravelPlan, ScenicZoneKey, RouteTheme, ScenicZone } from '@/types/itinerary';
+import {
+    AppStage,
+    TravelPlan,
+    ScenicZoneKey,
+    RouteTheme,
+    ScenicZone,
+    ItineraryDay,
+    ItineraryItem,
+    ExpenseCategory,
+} from '@/types/itinerary';
 import { MASTER_ZONES, INITIAL_PLANS } from '@/lib/mockData';
 import { fetchPedestrianRoute } from '@/lib/routing';
 import { fetchAllPlans, fetchDestinations, saveCustomSpotToDb, deletePlanFromDb, fetchAllCustomSpots } from '@/lib/repositories';
 import { supabase } from '@/lib/supabaseClient';
+
+export interface BudgetSummary {
+    estimatedTotal: number;
+    actualTotal: number;
+    byCategory: Record<ExpenseCategory, { estimated: number; actual: number }>;
+}
+
+export function computeBudgetFromDays(
+    days: ItineraryDay[],
+    totalBudgetCeiling: number
+): {
+    updatedDays: ItineraryDay[];
+    isOverBudget: boolean;
+    budgetSummary: BudgetSummary;
+} {
+    const byCategory: Record<ExpenseCategory, { estimated: number; actual: number }> = {
+        lodging: { estimated: 0, actual: 0 },
+        dining: { estimated: 0, actual: 0 },
+        ticket: { estimated: 0, actual: 0 },
+        transit: { estimated: 0, actual: 0 },
+    };
+
+    const updatedDays = days.map((day) => {
+        let daySubtotalEstimated = 0;
+        let daySubtotalActual = 0;
+
+        (day.items || []).forEach((item) => {
+            const est = Number(item.estimatedCost) || 0;
+            const act = Number(item.actualCost) || 0;
+            daySubtotalEstimated += est;
+            daySubtotalActual += act;
+
+            const cat = item.category in byCategory ? item.category : 'ticket';
+            byCategory[cat].estimated += est;
+            byCategory[cat].actual += act;
+        });
+
+        return {
+            ...day,
+            subtotalEstimated: daySubtotalEstimated,
+            subtotalActual: daySubtotalActual,
+        };
+    });
+
+    const estimatedTotal = Object.values(byCategory).reduce((acc, c) => acc + c.estimated, 0);
+    const actualTotal = Object.values(byCategory).reduce((acc, c) => acc + c.actual, 0);
+
+    const isOverBudget =
+        totalBudgetCeiling > 0 &&
+        (estimatedTotal > totalBudgetCeiling || actualTotal > totalBudgetCeiling);
+
+    return {
+        updatedDays,
+        isOverBudget,
+        budgetSummary: {
+            estimatedTotal,
+            actualTotal,
+            byCategory,
+        },
+    };
+}
 
 interface ItineraryState {
     currentStage: AppStage;
@@ -17,6 +87,13 @@ interface ItineraryState {
         zoneKey: ScenicZoneKey;
         spotIds: string[];
     };
+
+    // Multi-day itinerary & budget state
+    currentItineraryDays: ItineraryDay[];
+    activeDayNumber: number;
+    totalBudgetCeiling: number;
+    isOverBudget: boolean;
+    budgetSummary: BudgetSummary;
 
     // Actions
     initializeFromDatabase: () => Promise<void>;
@@ -34,6 +111,21 @@ interface ItineraryState {
     updateActivePlanTheme: (theme: RouteTheme) => Promise<void>;
     updatePlanTitle: (planId: string, title: string) => Promise<void>;
     deletePlan: (planId: string) => Promise<void>;
+
+    // Multi-day itinerary & budget actions
+    setItineraryDays: (days: ItineraryDay[], totalBudget?: number) => void;
+    setActiveDay: (dayNumber: number) => void;
+    addItineraryItem: (
+        dayNumber: number,
+        item: Omit<ItineraryItem, 'id' | 'dayId' | 'planId'>
+    ) => void;
+    removeItineraryItem: (itemId: string) => void;
+    updateItemCost: (
+        itemId: string,
+        estimatedCost?: number,
+        actualCost?: number
+    ) => void;
+    recalculateBudget: () => void;
 }
 
 export const useItineraryStore = create<ItineraryState>()((set, get) => ({
@@ -47,6 +139,22 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
         title: 'Toronto Lakefront & Distillery Autumn Walk',
         zoneKey: 'toronto_distillery',
         spotIds: ['td-1', 'td-2', 'td-3', 'td-4', 'td-5'],
+    },
+
+    // Multi-day itinerary & budget initial state
+    currentItineraryDays: [],
+    activeDayNumber: 1,
+    totalBudgetCeiling: 0,
+    isOverBudget: false,
+    budgetSummary: {
+        estimatedTotal: 0,
+        actualTotal: 0,
+        byCategory: {
+            lodging: { estimated: 0, actual: 0 },
+            dining: { estimated: 0, actual: 0 },
+            ticket: { estimated: 0, actual: 0 },
+            transit: { estimated: 0, actual: 0 },
+        },
     },
 
     initializeFromDatabase: async () => {
@@ -290,5 +398,103 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
         });
 
         await deletePlanFromDb(planId);
+    },
+
+    setItineraryDays: (days, totalBudget) => {
+        const ceiling = totalBudget !== undefined ? totalBudget : get().totalBudgetCeiling;
+        const { updatedDays, isOverBudget, budgetSummary } = computeBudgetFromDays(days, ceiling);
+        const activeDay = get().activeDayNumber;
+        set({
+            currentItineraryDays: updatedDays,
+            totalBudgetCeiling: ceiling,
+            isOverBudget,
+            budgetSummary,
+            activeDayNumber: updatedDays.length > 0 && activeDay <= updatedDays.length ? activeDay : 1,
+        });
+    },
+
+    setActiveDay: (dayNumber) => set({ activeDayNumber: dayNumber }),
+
+    addItineraryItem: (dayNumber, itemData) => {
+        const { currentItineraryDays, totalBudgetCeiling, activePlanId } = get();
+        const updated = currentItineraryDays.map((day) => {
+            if (day.dayNumber !== dayNumber) return day;
+            const dayItems = day.items ? [...day.items] : [];
+            const newItem: ItineraryItem = {
+                ...itemData,
+                id: `item_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+                dayId: day.id,
+                planId: day.planId || activePlanId,
+                orderIndex: dayItems.length,
+            };
+            return {
+                ...day,
+                items: [...dayItems, newItem],
+            };
+        });
+        const { updatedDays, isOverBudget, budgetSummary } = computeBudgetFromDays(updated, totalBudgetCeiling);
+        set({
+            currentItineraryDays: updatedDays,
+            isOverBudget,
+            budgetSummary,
+        });
+    },
+
+    removeItineraryItem: (itemId) => {
+        const { currentItineraryDays, totalBudgetCeiling } = get();
+        const updated = currentItineraryDays.map((day) => {
+            if (!day.items || !day.items.some((i) => i.id === itemId)) return day;
+            const filtered = day.items
+                .filter((i) => i.id !== itemId)
+                .map((item, idx) => ({ ...item, orderIndex: idx }));
+            return {
+                ...day,
+                items: filtered,
+            };
+        });
+        const { updatedDays, isOverBudget, budgetSummary } = computeBudgetFromDays(updated, totalBudgetCeiling);
+        set({
+            currentItineraryDays: updatedDays,
+            isOverBudget,
+            budgetSummary,
+        });
+    },
+
+    updateItemCost: (itemId, estimatedCost, actualCost) => {
+        const { currentItineraryDays, totalBudgetCeiling } = get();
+        const updated = currentItineraryDays.map((day) => {
+            if (!day.items || !day.items.some((i) => i.id === itemId)) return day;
+            const updatedItems = day.items.map((item) => {
+                if (item.id !== itemId) return item;
+                return {
+                    ...item,
+                    estimatedCost: estimatedCost !== undefined ? estimatedCost : item.estimatedCost,
+                    actualCost: actualCost !== undefined ? actualCost : item.actualCost,
+                };
+            });
+            return {
+                ...day,
+                items: updatedItems,
+            };
+        });
+        const { updatedDays, isOverBudget, budgetSummary } = computeBudgetFromDays(updated, totalBudgetCeiling);
+        set({
+            currentItineraryDays: updatedDays,
+            isOverBudget,
+            budgetSummary,
+        });
+    },
+
+    recalculateBudget: () => {
+        const { currentItineraryDays, totalBudgetCeiling } = get();
+        const { updatedDays, isOverBudget, budgetSummary } = computeBudgetFromDays(
+            currentItineraryDays,
+            totalBudgetCeiling
+        );
+        set({
+            currentItineraryDays: updatedDays,
+            isOverBudget,
+            budgetSummary,
+        });
     },
 }));

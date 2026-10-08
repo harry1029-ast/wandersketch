@@ -137,18 +137,21 @@ Transform the itinerary display into a multi-tiered illustrated journey:
 
 ## 1. Project Background & System Stack
 - **Framework**: Next.js 15 (App Router), React 19, TypeScript
-- **Styling**: Tailwind CSS v3 (do NOT upgrade to v4, keep existing paper/watercolor tokens)
-- **State**: Zustand (`src/store/useItineraryStore.ts`)
-- **Cartography & Rendering**: Leaflet, Rough.js, OpenStreetMap Nominatim (`/api/geocode`), OSRM Foot Profile
+- **Styling**: Tailwind CSS v3 (do NOT upgrade to v4; preserve existing watercolor/paper tokens)
+- **State Engine**: Zustand (`src/store/useItineraryStore.ts`)
+- **Spatial UI & Cartography**: Leaflet, Rough.js, OpenStreetMap Nominatim proxy (`/api/geocode`), OSRM Foot Profile
 - **Spatial Backend**: Supabase PostgreSQL + PostGIS (`GEOMETRY(Point, 4326)`)
-- **Integration Direction**: Merging "Trip Archive" lifecycle capabilities (AI itinerary planning, daily budget engine, travel journals, and PDF dossiers) into WanderSketch's illustrated hand-drawn map engine.
+- **Product Direction**: Merging "Trip Archive" lifecycle capabilities (AI itinerary planning, dual budget ledgers, multimedia travel journals, and PDF dossiers) into WanderSketch's illustrated hand-drawn map engine without regressing existing features.
 
 ## 2. Global Integration Roadmap
-- **Phase 1: Data Architecture & Storage Expansion (CURRENT - Steps 2 & 3 in progress)**
+- **Phase 1: Data Architecture & Storage Expansion (COMPLETED - 0 Type Errors)**
   - Schema migration complete: `user_profiles`, `itinerary_days`, `itinerary_items`, `travel_diaries`, `trip_archives`, and `trip-assets` storage bucket.
-  - Active tasks: TypeScript domain type expansion and repository CRUD helpers.
-- **Phase 2: Pre-Trip Planning & Budget Calculation Engine**
-  - Intake form with budget ceilings, LLM structured itinerary generation, and real-time ledger recalculation.
+  - TypeScript domain types in `src/types/itinerary.ts` and repository CRUD helpers in `src/lib/repositories.ts` are verified.
+- **Phase 2: Pre-Trip Planning & Budget Calculation Engine (CURRENT)**
+  - Intake form with budget ceilings and travel style preference pills (`TripCreationModal.tsx`).
+  - Structured LLM itinerary generation endpoint (`/api/itinerary/generate`) outputting day-by-day plans, attraction sequence, hotel recommendations, 3 meals, and cost estimates.
+  - Real-time budget calculation engine in `useItineraryStore.ts` with subtotal rollups and overrun warnings (`isOverBudget`).
+  - Expense breakdown comparison table (`ExpenseBreakdownView.tsx`) and recommendation swap modal (`RecommendationSwapModal.tsx`).
 - **Phase 3: On-Trip Dual Modes, Daily Footprints & Live Ledger**
   - Toggle between Planning and On-Trip modes, date-filtered Rough.js footprints, and live expense logging.
 - **Phase 4: Travel Diary & PDF Archive Dossier Compilation**
@@ -156,7 +159,7 @@ Transform the itinerary display into a multi-tiered illustrated journey:
 - **Phase 5: Testing, Hardening & Offline Resilience**
   - Budget engine unit tests, schema fallbacks, and local offline caching.
 
-## 3. Active Milestone: Phase 1 — Steps 2 & 3
-- Update `src/types/itinerary.ts` with new domain interfaces (`ExpenseCategory`, `TripArchiveStatus`, `UserTravelProfile`, `ItineraryItem`, `ItineraryDay`, `TravelDiaryEntry`, `TripArchiveDossier`).
-- Update `src/lib/repositories.ts` with query and mutation methods for user profiles, itinerary days/items, diaries, and archives.
-- Ensure `npx tsc --noEmit` completes with 0 errors.
+## 3. Active Milestone: Phase 2 — Step 1 (AI Generation Route & Dynamic Budget Engine)
+Goal:
+1. Build `/api/itinerary/generate` route handler with structured JSON generation and fallback mocks.
+2. Extend `src/store/useItineraryStore.ts` to support multi-day itinerary state (`days: ItineraryDay[]`), active day selection, dynamic budget calculation (subtotals, categories, grand total), and `isOverBudget` flag.
