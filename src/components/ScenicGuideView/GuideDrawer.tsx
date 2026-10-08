@@ -84,7 +84,7 @@ export const GuideDrawer: React.FC<GuideDrawerProps> = ({
                         className="text-xs font-bold text-paper-800 hover:text-paper-900 flex items-center gap-1 group"
                     >
                         <ArrowLeft size={14} weight="bold" className="group-hover:-translate-x-0.5 transition-transform" />
-                        <span>Back to Plans Library</span>
+                        <span>Back to Trip Hub</span>
                     </button>
                     <span className="text-[11px] font-mono text-paper-800">{plan?.createdAt}</span>
                 </div>

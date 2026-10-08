@@ -3,8 +3,8 @@
 import React, { useEffect } from 'react';
 import { useItineraryStore } from '@/store/useItineraryStore';
 import { Header } from '@/components/Header';
-import { PlansLibraryView } from '@/components/PlansLibraryView';
-import { PlannerView } from '@/components/PlannerView';
+import { TripHubView } from '@/components/TripHubView';
+import { RouteCuratorView } from '@/components/RouteCuratorView';
 import { ScenicGuideView } from '@/components/ScenicGuideView';
 import { TripCreationModal } from '@/components/Modals/TripCreationModal';
 import { Compass, CalendarBlank } from '@phosphor-icons/react';
@@ -69,8 +69,8 @@ export default function Home() {
         </div>
       ) : (
         <>
-          {currentStage === 'plans' && <PlansLibraryView />}
-          {currentStage === 'planner' && <PlannerView />}
+          {currentStage === 'plans' && <TripHubView />}
+          {currentStage === 'planner' && <RouteCuratorView />}
           {currentStage === 'map' && <ScenicGuideView />}
         </>
       )}

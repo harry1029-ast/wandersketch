@@ -13,7 +13,7 @@ import {
 } from '@/types/itinerary';
 import { MASTER_ZONES, INITIAL_PLANS } from '@/lib/mockData';
 import { fetchPedestrianRoute } from '@/lib/routing';
-import { fetchAllPlans, fetchDestinations, saveCustomSpotToDb, deletePlanFromDb, fetchAllCustomSpots } from '@/lib/repositories';
+import { fetchAllPlans, fetchDestinations, saveCustomSpotToDb, deletePlanFromDb, fetchAllCustomSpots, fetchItineraryDaysWithItems } from '@/lib/repositories';
 import { supabase } from '@/lib/supabaseClient';
 
 export interface BudgetSummary {
@@ -75,6 +75,68 @@ export function computeBudgetFromDays(
             byCategory,
         },
     };
+}
+
+export function synthesizeDaysForPlan(plan: TravelPlan, zone: ScenicZone): ItineraryDay[] {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const planId = plan.id;
+    const dayId = `day_1_${planId}`;
+
+    const defaultHotels: Record<ScenicZoneKey, { name: string; notes: string; price: number; coords: [number, number] }> = {
+        toronto_distillery: {
+            name: 'The Omni King Edward Historic Hotel',
+            notes: 'Classic Victorian luxury near King St & St. Lawrence Market',
+            price: 215,
+            coords: [43.6496, -79.3764],
+        },
+        kyoto_higashiyama: {
+            name: 'The Celestine Kyoto Gion Ryokan',
+            notes: 'Tranquil Japanese garden courtyard steps from Yasaka Shrine',
+            price: 190,
+            coords: [34.9995, 135.7745],
+        },
+        paris_marais: {
+            name: 'Pavillon de la Reine Historic Hotel',
+            notes: '17th-century ivy-covered residence tucked in Place des Vosges',
+            price: 240,
+            coords: [48.8558, 2.3662],
+        },
+    };
+
+    const hotel = (zone && defaultHotels[zone.id as ScenicZoneKey]) || defaultHotels[plan.zoneKey] || defaultHotels.toronto_distillery;
+
+    const items: ItineraryItem[] = (plan.spotIds || []).map((sid, idx) => {
+        const landmark = zone?.landmarksPool?.find((l) => l.id === sid);
+        const isDining = idx === 1 || idx === 3;
+        const category: ExpenseCategory = isDining ? 'dining' : 'ticket';
+        const cost = isDining ? 35 : 25;
+        return {
+            id: `item_1_${idx}_${planId}`,
+            dayId,
+            planId,
+            name: landmark ? landmark.name : `Stop #${idx + 1}`,
+            category,
+            estimatedCost: cost,
+            actualCost: 0,
+            location: landmark ? landmark.coords : (zone ? zone.center : [43.65, -79.38]),
+            orderIndex: idx,
+        };
+    });
+
+    const daySubtotal = hotel.price + items.reduce((acc, i) => acc + i.estimatedCost, 0);
+
+    return [
+        {
+            id: dayId,
+            planId,
+            dayNumber: 1,
+            calendarDate: todayStr,
+            hotelInfo: hotel,
+            subtotalEstimated: daySubtotal,
+            subtotalActual: 0,
+            items,
+        },
+    ];
 }
 
 export function getActiveDayLandmarks(
@@ -198,6 +260,9 @@ interface ItineraryState {
     };
 
     // Multi-day itinerary & budget state
+    selectedTripViewId: string | null;
+    daysCacheByPlanId: Record<string, ItineraryDay[]>;
+    budgetCeilingByPlanId: Record<string, number>;
     currentItineraryDays: ItineraryDay[];
     activeDayNumber: number;
     totalBudgetCeiling: number;
@@ -210,6 +275,15 @@ interface ItineraryState {
     setAppMode: (mode: AppMode) => void;
     setStage: (stage: AppStage) => void;
     setActivePlanId: (id: string) => void;
+    setSelectedTripViewId: (planId: string | null) => void;
+    selectTripForDetail: (planId: string) => Promise<void>;
+    createQuickExcursion: (zoneKey?: ScenicZoneKey, customTitle?: string) => Promise<string>;
+    turnPlannerRouteIntoExcursion: () => Promise<string>;
+    createTripWithDays: (
+        planData: Partial<TravelPlan>,
+        days: ItineraryDay[],
+        totalBudget?: number
+    ) => Promise<string>;
     setTripModalOpen: (open: boolean) => void;
     updatePlannerZone: (zoneKey: ScenicZoneKey) => void;
     reorderPlannerStops: (fromIdx: number, toIdx: number) => void;
@@ -276,6 +350,9 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
     },
 
     // Multi-day itinerary & budget initial state
+    selectedTripViewId: null,
+    daysCacheByPlanId: {},
+    budgetCeilingByPlanId: {},
     currentItineraryDays: [],
     activeDayNumber: 1,
     totalBudgetCeiling: 0,
@@ -349,6 +426,282 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
         }
     },
     setActivePlanId: (id) => set({ activePlanId: id }),
+
+    setSelectedTripViewId: (planId) => set({ selectedTripViewId: planId }),
+
+    selectTripForDetail: async (planId) => {
+        const { savedPlans, zones, daysCacheByPlanId, budgetCeilingByPlanId } = get();
+        const plan = savedPlans.find((p) => p.id === planId) || savedPlans[0];
+        if (!plan) return;
+
+        const zone = zones[plan.zoneKey] || MASTER_ZONES[plan.zoneKey] || MASTER_ZONES.toronto_distillery;
+
+        // Check cache first
+        let days = daysCacheByPlanId[planId];
+        let ceiling = budgetCeilingByPlanId[planId] || plan.totalBudget || 0;
+
+        if (!days || days.length === 0) {
+            try {
+                const dbDays = await fetchItineraryDaysWithItems(planId);
+                if (dbDays && dbDays.length > 0) {
+                    days = dbDays;
+                }
+            } catch (e) {
+                console.warn('Could not fetch days from DB for plan:', planId, e);
+            }
+        }
+
+        if (!days || days.length === 0) {
+            days = synthesizeDaysForPlan(plan, zone);
+            if (ceiling === 0) {
+                ceiling = days.reduce((acc, d) => acc + d.subtotalEstimated, 0);
+            }
+        }
+
+        const { updatedDays, isOverBudget, budgetSummary } = computeBudgetFromDays(days, ceiling);
+
+        set({
+            activePlanId: planId,
+            selectedTripViewId: planId,
+            currentItineraryDays: updatedDays,
+            totalBudgetCeiling: ceiling,
+            isOverBudget,
+            budgetSummary,
+            activeDayNumber: 1,
+            currentStage: 'plans',
+            daysCacheByPlanId: {
+                ...get().daysCacheByPlanId,
+                [planId]: updatedDays,
+            },
+            budgetCeilingByPlanId: {
+                ...get().budgetCeilingByPlanId,
+                [planId]: ceiling,
+            },
+        });
+    },
+
+    createQuickExcursion: async (zoneKey = 'kyoto_higashiyama', customTitle) => {
+        const { zones } = get();
+        const zone = zones[zoneKey] || MASTER_ZONES[zoneKey] || MASTER_ZONES.toronto_distillery;
+        const newId = `excursion_${Date.now()}`;
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        const spotIds = zone.landmarksPool.slice(0, 4).map((l) => l.id);
+        const stopCoords = spotIds
+            .map((sid) => zone.landmarksPool.find((l) => l.id === sid)?.coords)
+            .filter(Boolean) as [number, number][];
+
+        const routeData = await fetchPedestrianRoute(stopCoords);
+        const title = customTitle || `${zone.name.split(' ')[0]} ${zone.city} 1-Day Excursion`;
+
+        const newPlan: TravelPlan = {
+            id: newId,
+            title,
+            zoneKey: zone.id as ScenicZoneKey,
+            createdAt: todayStr,
+            tag: '1-Day Excursion',
+            estimatedDistance: `${routeData.distanceKm} km`,
+            estimatedDuration: `${routeData.durationMinutes} mins`,
+            activeRouteKey: 'classic',
+            spotIds,
+            themeRoutes: {
+                classic: spotIds,
+                culture: spotIds.slice(0, 3),
+                rain: spotIds.slice(0, 2),
+            },
+            isExcursion: true,
+            daysCount: 1,
+            totalBudget: 350,
+        };
+
+        const days = synthesizeDaysForPlan(newPlan, zone);
+        const ceiling = 350;
+        const { updatedDays, isOverBudget, budgetSummary } = computeBudgetFromDays(days, ceiling);
+
+        set((state) => ({
+            savedPlans: [newPlan, ...state.savedPlans],
+            activePlanId: newId,
+            selectedTripViewId: newId,
+            currentItineraryDays: updatedDays,
+            totalBudgetCeiling: ceiling,
+            isOverBudget,
+            budgetSummary,
+            activeDayNumber: 1,
+            currentStage: 'plans',
+            daysCacheByPlanId: {
+                ...state.daysCacheByPlanId,
+                [newId]: updatedDays,
+            },
+            budgetCeilingByPlanId: {
+                ...state.budgetCeilingByPlanId,
+                [newId]: ceiling,
+            },
+        }));
+
+        try {
+            await supabase.from('travel_plans').insert({
+                id: newPlan.id,
+                title: newPlan.title,
+                destination_id: newPlan.zoneKey,
+                tag: newPlan.tag,
+                estimated_distance: newPlan.estimatedDistance,
+                estimated_duration: newPlan.estimatedDuration,
+                active_route_key: newPlan.activeRouteKey,
+                spot_ids: newPlan.spotIds,
+                theme_routes: newPlan.themeRoutes,
+            });
+        } catch (err) {
+            console.warn('Could not sync excursion to Supabase:', err);
+        }
+
+        return newId;
+    },
+
+    turnPlannerRouteIntoExcursion: async () => {
+        const { plannerBuffer, zones } = get();
+        const zone = zones[plannerBuffer.zoneKey] || MASTER_ZONES[plannerBuffer.zoneKey];
+        const newId = `excursion_${Date.now()}`;
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        const stopCoords = plannerBuffer.spotIds
+            .map((sid) => zone.landmarksPool.find((l) => l.id === sid)?.coords)
+            .filter(Boolean) as [number, number][];
+
+        const routeData = await fetchPedestrianRoute(stopCoords);
+        const title = `${plannerBuffer.title || zone.name} 1-Day Excursion`;
+
+        const newPlan: TravelPlan = {
+            id: newId,
+            title,
+            zoneKey: plannerBuffer.zoneKey,
+            createdAt: todayStr,
+            tag: '1-Day Excursion',
+            estimatedDistance: `${routeData.distanceKm} km`,
+            estimatedDuration: `${routeData.durationMinutes} mins`,
+            activeRouteKey: 'classic',
+            spotIds: [...plannerBuffer.spotIds],
+            themeRoutes: {
+                classic: [...plannerBuffer.spotIds],
+                culture: plannerBuffer.spotIds.slice(0, 3),
+                rain: plannerBuffer.spotIds.slice(0, 2),
+            },
+            isExcursion: true,
+            daysCount: 1,
+            totalBudget: 400,
+        };
+
+        const days = synthesizeDaysForPlan(newPlan, zone);
+        const ceiling = 400;
+        const { updatedDays, isOverBudget, budgetSummary } = computeBudgetFromDays(days, ceiling);
+
+        set((state) => ({
+            savedPlans: [newPlan, ...state.savedPlans],
+            activePlanId: newId,
+            selectedTripViewId: newId,
+            currentItineraryDays: updatedDays,
+            totalBudgetCeiling: ceiling,
+            isOverBudget,
+            budgetSummary,
+            activeDayNumber: 1,
+            currentStage: 'plans',
+            daysCacheByPlanId: {
+                ...state.daysCacheByPlanId,
+                [newId]: updatedDays,
+            },
+            budgetCeilingByPlanId: {
+                ...state.budgetCeilingByPlanId,
+                [newId]: ceiling,
+            },
+        }));
+
+        try {
+            await supabase.from('travel_plans').insert({
+                id: newPlan.id,
+                title: newPlan.title,
+                destination_id: newPlan.zoneKey,
+                tag: newPlan.tag,
+                estimated_distance: newPlan.estimatedDistance,
+                estimated_duration: newPlan.estimatedDuration,
+                active_route_key: newPlan.activeRouteKey,
+                spot_ids: newPlan.spotIds,
+                theme_routes: newPlan.themeRoutes,
+            });
+        } catch (err) {
+            console.warn('Could not sync excursion to Supabase:', err);
+        }
+
+        return newId;
+    },
+
+    createTripWithDays: async (planData, days, totalBudget) => {
+        const { zones } = get();
+        const planId = planData.id || `trip_${Date.now()}`;
+        const zoneKey = planData.zoneKey || 'toronto_distillery';
+        const zone = zones[zoneKey] || MASTER_ZONES[zoneKey];
+        const ceiling = totalBudget ?? 1500;
+
+        const spotIds = planData.spotIds || (zone?.landmarksPool ? zone.landmarksPool.slice(0, 4).map((l) => l.id) : []);
+
+        const newPlan: TravelPlan = {
+            id: planId,
+            title: planData.title || `${zone.city} ${days.length}-Day Journey`,
+            zoneKey,
+            createdAt: new Date().toISOString().split('T')[0],
+            tag: planData.tag || `${days.length} Days`,
+            estimatedDistance: `${(days.length * 2.8).toFixed(1)} km`,
+            estimatedDuration: `${days.length} days`,
+            activeRouteKey: 'classic',
+            spotIds,
+            themeRoutes: {
+                classic: spotIds,
+                culture: spotIds.slice(0, 3),
+                rain: spotIds.slice(0, 2),
+            },
+            isExcursion: days.length === 1,
+            daysCount: days.length,
+            totalBudget: ceiling,
+        };
+
+        const { updatedDays, isOverBudget, budgetSummary } = computeBudgetFromDays(days, ceiling);
+
+        set((state) => ({
+            savedPlans: [newPlan, ...state.savedPlans],
+            activePlanId: planId,
+            selectedTripViewId: planId,
+            currentItineraryDays: updatedDays,
+            totalBudgetCeiling: ceiling,
+            isOverBudget,
+            budgetSummary,
+            activeDayNumber: 1,
+            currentStage: 'plans',
+            daysCacheByPlanId: {
+                ...state.daysCacheByPlanId,
+                [planId]: updatedDays,
+            },
+            budgetCeilingByPlanId: {
+                ...state.budgetCeilingByPlanId,
+                [planId]: ceiling,
+            },
+        }));
+
+        try {
+            await supabase.from('travel_plans').insert({
+                id: newPlan.id,
+                title: newPlan.title,
+                destination_id: newPlan.zoneKey,
+                tag: newPlan.tag,
+                estimated_distance: newPlan.estimatedDistance,
+                estimated_duration: newPlan.estimatedDuration,
+                active_route_key: newPlan.activeRouteKey,
+                spot_ids: newPlan.spotIds,
+                theme_routes: newPlan.themeRoutes,
+            });
+        } catch (err) {
+            console.warn('Could not sync trip plan to Supabase:', err);
+        }
+
+        return planId;
+    },
 
     updatePlannerZone: (zoneKey) => {
         const zone = get().zones[zoneKey] || MASTER_ZONES[zoneKey];
@@ -538,12 +891,13 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
     },
 
     deletePlan: async (planId) => {
-        const { savedPlans, activePlanId } = get();
+        const { savedPlans, activePlanId, selectedTripViewId } = get();
         const filtered = savedPlans.filter((p) => p.id !== planId);
 
         set({
             savedPlans: filtered,
             activePlanId: activePlanId === planId ? (filtered[0]?.id || '') : activePlanId,
+            selectedTripViewId: selectedTripViewId === planId ? null : selectedTripViewId,
         });
 
         await deletePlanFromDb(planId);
@@ -553,13 +907,22 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
         const ceiling = totalBudget !== undefined ? totalBudget : get().totalBudgetCeiling;
         const { updatedDays, isOverBudget, budgetSummary } = computeBudgetFromDays(days, ceiling);
         const activeDay = get().activeDayNumber;
-        set({
+        const activePlanId = get().activePlanId;
+        set((state) => ({
             currentItineraryDays: updatedDays,
             totalBudgetCeiling: ceiling,
             isOverBudget,
             budgetSummary,
             activeDayNumber: updatedDays.length > 0 && activeDay <= updatedDays.length ? activeDay : 1,
-        });
+            daysCacheByPlanId: {
+                ...state.daysCacheByPlanId,
+                [activePlanId]: updatedDays,
+            },
+            budgetCeilingByPlanId: {
+                ...state.budgetCeilingByPlanId,
+                [activePlanId]: ceiling,
+            },
+        }));
     },
 
     setActiveDay: (dayNumber) => set({ activeDayNumber: dayNumber }),

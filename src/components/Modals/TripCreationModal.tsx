@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useItineraryStore } from '@/store/useItineraryStore';
 import { playChime } from '@/lib/audio';
 import { MASTER_ZONES } from '@/lib/mockData';
+import { ScenicZoneKey } from '@/types/itinerary';
 import {
     X,
     Sparkle,
@@ -28,6 +29,7 @@ export const TripCreationModal: React.FC<TripCreationModalProps> = ({ isOpen, on
     const {
         plannerBuffer,
         setItineraryDays,
+        createTripWithDays,
         setStage,
     } = useItineraryStore();
 
@@ -124,8 +126,24 @@ export const TripCreationModal: React.FC<TripCreationModalProps> = ({ isOpen, on
 
             const data = await res.json();
             if (data.days && Array.isArray(data.days)) {
-                setItineraryDays(data.days, totalBudget);
-                setStage('planner');
+                const destLower = destination.toLowerCase();
+                let matchedZoneKey: ScenicZoneKey = 'toronto_distillery';
+                if (destLower.includes('kyoto')) matchedZoneKey = 'kyoto_higashiyama';
+                else if (destLower.includes('paris')) matchedZoneKey = 'paris_marais';
+
+                await createTripWithDays(
+                    {
+                        id: data.planId,
+                        title: `${destination} ${data.days.length}-Day Journey`,
+                        zoneKey: matchedZoneKey,
+                        tag: `${data.days.length} Days`,
+                        daysCount: data.days.length,
+                        totalBudget,
+                    },
+                    data.days,
+                    totalBudget
+                );
+                setStage('plans');
                 playChime('stamp');
                 onClose();
             } else {

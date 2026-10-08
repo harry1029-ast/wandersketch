@@ -49,6 +49,9 @@ export interface TravelPlan {
     activeRouteKey: RouteTheme;
     spotIds: string[];
     themeRoutes: Record<RouteTheme, string[]>;
+    isExcursion?: boolean;
+    totalBudget?: number;
+    daysCount?: number;
 }
 
 // --- Trip Archive Integration Domain Types ---
