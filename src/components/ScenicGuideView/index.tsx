@@ -3,15 +3,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import type L from 'leaflet';
-import { useItineraryStore } from '@/store/useItineraryStore';
+import { useItineraryStore, getActiveDayLandmarks } from '@/store/useItineraryStore';
 import { MASTER_ZONES } from '@/lib/mockData';
-import { Landmark } from '@/types/itinerary';
+import { Landmark, ItineraryItem, ExpenseCategory } from '@/types/itinerary';
 import { fetchSpotsInEnvelope, DynamicMapSpot } from '@/lib/repositories';
 import { playChime, playVoiceNarrator } from '@/lib/audio';
 import { useGeolocationTracker } from '@/lib/useGeolocationTracker';
 import { GuideDrawer } from './GuideDrawer';
 import { LandmarkDetailModal } from '@/components/Modals/LandmarkDetailModal';
-import { Palette, ArrowsOut, NavigationArrow, Crosshair, Sparkle } from '@phosphor-icons/react';
+import { QuickExpenseModal } from '@/components/Modals/QuickExpenseModal';
+import { Palette, ArrowsOut, NavigationArrow, Crosshair, Sparkle, CalendarBlank } from '@phosphor-icons/react';
 
 const DynamicIslandModal = dynamic(
     () => import('@/components/Modals/ContainedIslandModal').then((mod) => mod.ContainedIslandModal),
@@ -31,9 +32,20 @@ const DynamicLeafletMap = dynamic(
 );
 
 export const ScenicGuideView: React.FC = () => {
-    const { activePlanId, savedPlans } = useItineraryStore();
+    const {
+        appMode,
+        activePlanId,
+        savedPlans,
+        currentItineraryDays,
+        activeDayNumber,
+        setActiveDay,
+    } = useItineraryStore();
+
     const plan = savedPlans.find((p) => p.id === activePlanId) || savedPlans[0];
     const zone = MASTER_ZONES[plan?.zoneKey] || MASTER_ZONES.toronto_distillery;
+
+    const activeDay = currentItineraryDays.find((d) => d.dayNumber === activeDayNumber);
+    const dayLandmarks = React.useMemo(() => getActiveDayLandmarks(activeDay, zone), [activeDay, zone]);
 
     const [activeLandmark, setActiveLandmark] = useState<Landmark | null>(null);
     const [userCoords, setUserCoords] = useState<[number, number]>(zone.userOrigin);
@@ -43,14 +55,51 @@ export const ScenicGuideView: React.FC = () => {
     const [filterRestrooms, setFilterRestrooms] = useState<boolean>(true);
     const [filterCafes, setFilterCafes] = useState<boolean>(true);
     const [isIslandModalOpen, setIsIslandModalOpen] = useState<boolean>(false);
+    const [isExpenseModalOpen, setIsExpenseModalOpen] = useState<boolean>(false);
+    const [expenseModalItem, setExpenseModalItem] = useState<ItineraryItem | null>(null);
+
+    const handleRecordExpense = (item: ItineraryItem) => {
+        setExpenseModalItem(item);
+        setIsExpenseModalOpen(true);
+    };
+
+    const activeLandmarkItem: ItineraryItem | null = React.useMemo(() => {
+        if (!activeLandmark) return null;
+        const fallbackCategory: ExpenseCategory =
+            activeLandmark.category === 'craft'
+                ? 'dining'
+                : activeLandmark.category === 'history'
+                ? 'transit'
+                : 'ticket';
+
+        return (
+            activeDay?.items?.find((i) => i.id === activeLandmark.id) ||
+            (activeLandmark.tag === 'LODGING'
+                ? activeDay?.items?.find((i) => i.category === 'lodging')
+                : null) || {
+                id: activeLandmark.id,
+                dayId: activeDay?.id || 'day-1',
+                planId: activeDay?.planId || 'plan-1',
+                name: activeLandmark.name,
+                category: fallbackCategory,
+                estimatedCost: 0,
+                actualCost: 0,
+                location: activeLandmark.coords,
+                orderIndex: 0,
+            }
+        );
+    }, [activeLandmark, activeDay]);
 
     const mapRef = useRef<L.Map | null>(null);
     const cruiseIndexRef = useRef<number>(0);
     const cruiseIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-    const orderedLandmarks = (plan?.spotIds || [])
-        .map((id) => zone.landmarksPool.find((l) => l.id === id))
-        .filter(Boolean) as Landmark[];
+    const orderedLandmarks = React.useMemo(() => {
+        if (dayLandmarks.length > 0) return dayLandmarks;
+        return (plan?.spotIds || [])
+            .map((id) => zone.landmarksPool.find((l) => l.id === id))
+            .filter(Boolean) as Landmark[];
+    }, [dayLandmarks, plan?.spotIds, zone.landmarksPool]);
 
     // Dynamic spots queried from PostGIS ST_MakeEnvelope
     const [envelopeSpots, setEnvelopeSpots] = useState<DynamicMapSpot[]>([]);
@@ -165,9 +214,10 @@ export const ScenicGuideView: React.FC = () => {
     const handleResetLocation = () => {
         playChime('tap');
         if (isLiveGpsActive) setIsLiveGpsActive(false);
-        setUserCoords(zone.userOrigin);
+        const originCoords = orderedLandmarks.length > 0 ? orderedLandmarks[0].coords : zone.userOrigin;
+        setUserCoords(originCoords);
         if (mapRef.current) {
-            mapRef.current.flyTo(zone.userOrigin, 16);
+            mapRef.current.flyTo(originCoords, 16);
         }
     };
 
@@ -188,13 +238,14 @@ export const ScenicGuideView: React.FC = () => {
                 setFilterRestrooms={setFilterRestrooms}
                 filterCafes={filterCafes}
                 setFilterCafes={setFilterCafes}
+                onRecordExpense={handleRecordExpense}
             />
 
             <div className="flex-1 h-full relative">
                 <DynamicLeafletMap
                     zone={zone}
                     landmarks={displayedLandmarks}
-                    itineraryStopIds={plan?.spotIds || []}
+                    itineraryStopIds={orderedLandmarks.map((l) => l.id)}
                     facilities={activeFacilities}
                     activeLandmark={activeLandmark}
                     onSelectLandmark={handleSelectLandmark}
@@ -207,10 +258,63 @@ export const ScenicGuideView: React.FC = () => {
                         setIsIslandModalOpen(true);
                     }}
                     onBoundsChange={handleBoundsChange}
+                    onRecordExpense={handleRecordExpense}
                     onMapReady={(map) => {
                         mapRef.current = map;
                     }}
                 />
+
+                {/* Sticky Day-Picker Carousel */}
+                {currentItineraryDays.length > 0 && (
+                    <div className="absolute top-4 left-4 z-20 max-w-[calc(100%-120px)] sm:max-w-[calc(100%-140px)]">
+                        <div className="flex items-center gap-1.5 p-1.5 bg-paper-100/95 backdrop-blur-md border-2 border-paper-900 rounded-2xl shadow-stamp overflow-x-auto no-scrollbar">
+                            <span className="text-[10px] font-black uppercase text-paper-700 px-2 font-mono shrink-0 hidden sm:inline">
+                                Day:
+                            </span>
+                            {currentItineraryDays.map((day) => {
+                                const isActive = day.dayNumber === activeDayNumber;
+                                return (
+                                    <button
+                                        key={day.dayNumber}
+                                        onClick={() => {
+                                            playChime('tap');
+                                            setActiveDay(day.dayNumber);
+                                        }}
+                                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 select-none ${
+                                            isActive
+                                                ? 'bg-watercolor-brick text-white shadow-stamp font-black ring-1 ring-paper-900/30 scale-102'
+                                                : 'bg-paper-50 hover:bg-paper-200 text-paper-900 border border-paper-300'
+                                        }`}
+                                        title={`Switch to Day ${day.dayNumber} itinerary`}
+                                    >
+                                        <CalendarBlank size={13} weight={isActive ? 'fill' : 'bold'} />
+                                        <span>Day {day.dayNumber}</span>
+                                        {day.calendarDate && (
+                                            <span
+                                                className={`text-[10px] font-mono px-1 rounded ${
+                                                    isActive
+                                                        ? 'bg-red-950/40 text-amber-100'
+                                                        : 'bg-paper-200 text-paper-700'
+                                                }`}
+                                            >
+                                                {day.calendarDate.slice(5)}
+                                            </span>
+                                        )}
+                                        <span
+                                            className={`text-[10px] font-mono font-black px-1.5 py-0.2 rounded-full ${
+                                                isActive
+                                                    ? 'bg-amber-300 text-paper-900'
+                                                    : 'bg-paper-200 text-paper-800'
+                                            }`}
+                                        >
+                                            ${day.subtotalEstimated}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
 
                 {/* Floating Map Controls */}
                 <div className="absolute top-4 right-4 z-20 flex flex-col gap-2">
@@ -269,12 +373,25 @@ export const ScenicGuideView: React.FC = () => {
                 <LandmarkDetailModal
                     landmark={activeLandmark}
                     onClose={() => setActiveLandmark(null)}
+                    onRecordExpense={
+                        appMode === 'on-trip' && activeLandmarkItem
+                            ? () => handleRecordExpense(activeLandmarkItem)
+                            : undefined
+                    }
                 />
 
                 {/* Hand-Drawn Island Modal */}
                 <DynamicIslandModal
                     isOpen={isIslandModalOpen}
                     onClose={() => setIsIslandModalOpen(false)}
+                />
+
+                {/* Quick Expense Logging Modal */}
+                <QuickExpenseModal
+                    isOpen={isExpenseModalOpen}
+                    onClose={() => setIsExpenseModalOpen(false)}
+                    targetItem={expenseModalItem}
+                    dayNumber={activeDayNumber}
                 />
             </div>
         </div>

@@ -135,6 +135,8 @@ Transform the itinerary display into a multi-tiered illustrated journey:
 
 # WanderSketch Redesign & Trip Archive — Architecture & Roadmap
 
+# WanderSketch & Trip Archive — Architecture & System Guidelines
+
 ## 1. Project Background & System Stack
 - **Framework**: Next.js 15 (App Router), React 19, TypeScript
 - **Styling**: Tailwind CSS v3 (do NOT upgrade to v4; preserve existing watercolor/paper tokens)
@@ -145,18 +147,17 @@ Transform the itinerary display into a multi-tiered illustrated journey:
 
 ## 2. Global Integration Roadmap
 - **Phase 1: Data Architecture & Storage Expansion (COMPLETED - 0 Errors)**
-  - Schema, domain types in `src/types/itinerary.ts`, and repository helpers in `src/lib/repositories.ts` verified.
-- **Phase 2: Pre-Trip Planning & Budget Calculation Engine (IN PROGRESS)**
-  - Step 1 (Completed): `/api/itinerary/generate` route and dynamic budget engine in `useItineraryStore.ts` (0 errors).
-  - Step 2 (Completed): Intake form (`TripCreationModal.tsx`), multi-day agenda carousel, and real-time budget tracking banner in `PlannerView.tsx` (0 errors).
-  - Step 3 (CURRENT): Dual ledger view (`ExpenseBreakdownView.tsx`) and recommendation swapping modal (`RecommendationSwapModal.tsx`).
-- **Phase 3: On-Trip Dual Modes, Daily Footprints & Live Ledger**
-- **Phase 4: Travel Diary & PDF Archive Dossier Compilation**
+- **Phase 2: Pre-Trip Planning & Budget Calculation Engine (COMPLETED - 0 Errors)**
+- **Phase 3: On-Trip Dual Modes, Daily Footprints & Live Ledger (COMPLETED - 0 Errors)**
+  - Step 1 (Completed): Dual-mode controller (`appMode: 'planning' | 'on-trip'`), Header toggle pill, and navigation routing (0 errors).
+  - Step 2 (Completed): Multi-day date filter carousel & daily OSRM/Rough.js polyline redraw on Leaflet (`[MAP-02]`, `[MAP-03]`) (0 errors).
+  - Step 3 (Completed): Quick live expense intake modal (`[UI-04]`), landmark popup & drawer triggers, live GPS & audio narration linkage (`[UX-05]`) (0 errors).
+- **Phase 4: Travel Diary & PDF Archive Dossier Compilation (UPCOMING)**
 - **Phase 5: Testing, Hardening & Offline Resilience**
 
-## 3. Active Milestone: Phase 2 — Step 3 (Expense Breakdown Ledger & Recommendation Swapping)
+## 3. Active Milestone: Phase 4 (Travel Diary & PDF Archive Dossier Compilation)
 Goal:
-1. Build `src/components/ExpenseBreakdownView.tsx` for side-by-side Estimated vs. Actual ledger across Lodging, Dining, Tickets, and Transit.
-2. Build `src/components/Modals/RecommendationSwapModal.tsx` for one-click replacement of hotels and dining stops with instant budget recalculation.
-3. Wire the ledger entry button in `PlannerView.tsx` and swap trigger buttons on agenda items.
+1. Build travel journal entries recording system (rich-text notes, photo scrapbook attachments, mood stamps).
+2. Wire journal entries to Supabase persistence (`travel_journals` table).
+3. Implement illustrated trip dossier PDF export (`[UI-05]`) compiling itinerary timeline, maps, ledger balance summary, and journal scrapbook into a print-ready travel archive.
 4. Verify with `npx tsc --noEmit` (0 errors).

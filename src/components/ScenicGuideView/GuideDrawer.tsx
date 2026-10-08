@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useItineraryStore } from '@/store/useItineraryStore';
+import { useItineraryStore, getActiveDayLandmarks } from '@/store/useItineraryStore';
 import { MASTER_ZONES } from '@/lib/mockData';
-import { Landmark, RouteTheme } from '@/types/itinerary';
+import { Landmark, RouteTheme, ItineraryItem } from '@/types/itinerary';
 import { playChime, playVoiceNarrator } from '@/lib/audio';
 import { ScrapbookPostcardModal } from '@/components/Modals/ScrapbookPostcardModal';
 import {
@@ -15,6 +15,8 @@ import {
     Faders,
     Crosshair,
     Stamp,
+    CalendarBlank,
+    Coins,
 } from '@phosphor-icons/react';
 
 interface GuideDrawerProps {
@@ -26,6 +28,7 @@ interface GuideDrawerProps {
     setFilterRestrooms: (val: boolean) => void;
     filterCafes: boolean;
     setFilterCafes: (val: boolean) => void;
+    onRecordExpense?: (item: ItineraryItem) => void;
 }
 
 export const GuideDrawer: React.FC<GuideDrawerProps> = ({
@@ -37,15 +40,34 @@ export const GuideDrawer: React.FC<GuideDrawerProps> = ({
     setFilterRestrooms,
     filterCafes,
     setFilterCafes,
+    onRecordExpense,
 }) => {
-    const { activePlanId, savedPlans, setStage, updateActivePlanTheme } = useItineraryStore();
+    const {
+        appMode,
+        activePlanId,
+        savedPlans,
+        setStage,
+        updateActivePlanTheme,
+        currentItineraryDays,
+        activeDayNumber,
+        setActiveDay,
+    } = useItineraryStore();
     const [isPostcardOpen, setIsPostcardOpen] = useState(false);
 
     const plan = savedPlans.find((p) => p.id === activePlanId) || savedPlans[0];
     const zone = MASTER_ZONES[plan?.zoneKey] || MASTER_ZONES.toronto_distillery;
+
+    const activeDay = currentItineraryDays.find((d) => d.dayNumber === activeDayNumber);
+    const dayLandmarks = React.useMemo(
+        () => getActiveDayLandmarks(activeDay, zone),
+        [activeDay, zone]
+    );
+
     const orderedLandmarks = (plan?.spotIds || [])
         .map((id) => zone.landmarksPool.find((l) => l.id === id))
         .filter(Boolean) as Landmark[];
+
+    const effectiveOrderedLandmarks = dayLandmarks.length > 0 ? dayLandmarks : orderedLandmarks;
 
     const handleThemeChange = (theme: RouteTheme) => {
         playChime('stamp');
@@ -88,29 +110,77 @@ export const GuideDrawer: React.FC<GuideDrawerProps> = ({
                     </button>
                 </div>
 
-                {/* Theme Route Switcher */}
-                <div className="grid grid-cols-3 gap-1.5 pt-1">
-                    {(['classic', 'culture', 'rain'] as RouteTheme[]).map((theme) => {
-                        const isActive = plan?.activeRouteKey === theme;
-                        const labels: Record<RouteTheme, string> = {
-                            classic: '🌟 Classic',
-                            culture: '🎨 Cultural',
-                            rain: '☂️ Rain Cover',
-                        };
-                        return (
-                            <button
-                                key={theme}
-                                onClick={() => handleThemeChange(theme)}
-                                className={`px-2 py-1.5 rounded-xl text-xs font-bold border-2 transition-all text-center ${isActive
-                                        ? 'border-paper-900 bg-watercolor-navy text-white shadow-sm'
-                                        : 'border-paper-300 bg-paper-100 text-paper-900 hover:bg-paper-200'
+                {/* Multi-Day Itinerary Day Selector or Theme Switcher */}
+                {currentItineraryDays.length > 0 ? (
+                    <div className="pt-1 space-y-1">
+                        <div className="flex items-center justify-between text-xs font-bold text-paper-800">
+                            <span className="flex items-center gap-1">
+                                <CalendarBlank size={14} weight="bold" className="text-watercolor-brick" />
+                                <span>Day Itinerary:</span>
+                            </span>
+                            {activeDay?.calendarDate && (
+                                <span className="font-mono text-[11px] text-paper-700">
+                                    {activeDay.calendarDate}
+                                </span>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+                            {currentItineraryDays.map((day) => {
+                                const isActive = day.dayNumber === activeDayNumber;
+                                return (
+                                    <button
+                                        key={day.dayNumber}
+                                        onClick={() => {
+                                            playChime('tap');
+                                            setActiveDay(day.dayNumber);
+                                        }}
+                                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 select-none ${
+                                            isActive
+                                                ? 'bg-watercolor-brick text-white shadow-sm font-black'
+                                                : 'bg-paper-200 text-paper-900 hover:bg-paper-300 border border-paper-300'
+                                        }`}
+                                    >
+                                        <span>Day {day.dayNumber}</span>
+                                        {day.subtotalEstimated > 0 && (
+                                            <span
+                                                className={`text-[10px] font-mono font-bold px-1 rounded ${
+                                                    isActive ? 'bg-red-950/40 text-amber-100' : 'bg-paper-300 text-paper-800'
+                                                }`}
+                                            >
+                                                ${day.subtotalEstimated}
+                                            </span>
+                                        )}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                ) : (
+                    /* Theme Route Switcher */
+                    <div className="grid grid-cols-3 gap-1.5 pt-1">
+                        {(['classic', 'culture', 'rain'] as RouteTheme[]).map((theme) => {
+                            const isActive = plan?.activeRouteKey === theme;
+                            const labels: Record<RouteTheme, string> = {
+                                classic: '🌟 Classic',
+                                culture: '🎨 Cultural',
+                                rain: '☂️ Rain Cover',
+                            };
+                            return (
+                                <button
+                                    key={theme}
+                                    onClick={() => handleThemeChange(theme)}
+                                    className={`px-2 py-1.5 rounded-xl text-xs font-bold border-2 transition-all text-center ${
+                                        isActive
+                                            ? 'border-paper-900 bg-watercolor-navy text-white shadow-sm'
+                                            : 'border-paper-300 bg-paper-100 text-paper-900 hover:bg-paper-200'
                                     }`}
-                            >
-                                {labels[theme]}
-                            </button>
-                        );
-                    })}
-                </div>
+                                >
+                                    {labels[theme]}
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
 
                 {/* Facility Filter Toggles */}
                 <div className="flex items-center justify-between pt-1 text-xs">
@@ -156,62 +226,121 @@ export const GuideDrawer: React.FC<GuideDrawerProps> = ({
             <div className="px-4 py-2 bg-paper-200/90 border-b-2 border-paper-300 flex items-center justify-around text-center text-xs">
                 <div>
                     <div className="text-paper-800 text-[10px] font-bold uppercase">Walking Distance</div>
-                    <div className="font-black text-watercolor-brick font-serif text-sm">{plan?.estimatedDistance}</div>
+                    <div className="font-black text-watercolor-brick font-serif text-sm">
+                        {plan?.estimatedDistance || '~3.2 km'}
+                    </div>
                 </div>
                 <div className="w-px h-6 bg-paper-300" />
                 <div>
-                    <div className="text-paper-800 text-[10px] font-bold uppercase">Duration</div>
-                    <div className="font-black text-paper-900 font-serif text-sm">{plan?.estimatedDuration}</div>
+                    <div className="text-paper-800 text-[10px] font-bold uppercase">
+                        {activeDay?.subtotalEstimated ? 'Day Budget' : 'Duration'}
+                    </div>
+                    <div className="font-black text-paper-900 font-serif text-sm">
+                        {activeDay?.subtotalEstimated
+                            ? `$${activeDay.subtotalEstimated}`
+                            : plan?.estimatedDuration || '2-3 hrs'}
+                    </div>
                 </div>
                 <div className="w-px h-6 bg-paper-300" />
                 <div>
                     <div className="text-paper-800 text-[10px] font-bold uppercase">Waypoints</div>
-                    <div className="font-black text-watercolor-green font-serif text-sm">{orderedLandmarks.length} Stops</div>
+                    <div className="font-black text-watercolor-green font-serif text-sm">
+                        {effectiveOrderedLandmarks.length} Stops
+                    </div>
                 </div>
             </div>
 
             {/* Sequential Spot Cards */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                {orderedLandmarks.map((landmark, index) => (
-                    <div
-                        key={landmark.id}
-                        onClick={() => onSelectLandmark(landmark)}
-                        className="group relative bg-paper-50 hover:bg-white border-2 border-paper-900 rounded-2xl p-3.5 transition-all shadow-sm hover:shadow-card cursor-pointer"
-                    >
-                        <div className="flex items-start justify-between gap-3 mb-1.5">
-                            <div className="flex items-center gap-2.5">
-                                <div
-                                    className="w-10 h-10 p-0.5 rounded-xl bg-paper-100 border border-paper-900 shrink-0 flex items-center justify-center"
-                                    dangerouslySetInnerHTML={{ __html: landmark.svgSnippet }}
-                                />
-                                <div>
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-200 text-amber-950 border border-paper-900 font-mono">
-                                            #{index + 1}
-                                        </span>
-                                        <span className="text-[11px] font-bold text-watercolor-brick">{landmark.tag}</span>
+                {effectiveOrderedLandmarks.map((landmark, index) => {
+                    const itemMatch =
+                        activeDay?.items?.find((i) => i.id === landmark.id) ||
+                        (landmark.tag === 'LODGING'
+                            ? activeDay?.items?.find((i) => i.category === 'lodging')
+                            : null);
+
+                    return (
+                        <div
+                            key={landmark.id}
+                            onClick={() => onSelectLandmark(landmark)}
+                            className="group relative bg-paper-50 hover:bg-white border-2 border-paper-900 rounded-2xl p-3.5 transition-all shadow-sm hover:shadow-card cursor-pointer"
+                        >
+                            <div className="flex items-start justify-between gap-3 mb-1.5">
+                                <div className="flex items-center gap-2.5">
+                                    <div
+                                        className="w-10 h-10 p-0.5 rounded-xl bg-paper-100 border border-paper-900 shrink-0 flex items-center justify-center"
+                                        dangerouslySetInnerHTML={{ __html: landmark.svgSnippet }}
+                                    />
+                                    <div>
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                            <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-200 text-amber-950 border border-paper-900 font-mono">
+                                                #{index + 1}
+                                            </span>
+                                            <span className="text-[11px] font-bold text-watercolor-brick">{landmark.tag}</span>
+                                            {itemMatch && itemMatch.actualCost > 0 && (
+                                                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-400 font-mono">
+                                                    💸 Paid: ${itemMatch.actualCost}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <h4 className="font-extrabold text-paper-900 text-sm font-serif leading-tight group-hover:text-watercolor-brick transition-colors">
+                                            {landmark.name}
+                                        </h4>
                                     </div>
-                                    <h4 className="font-extrabold text-paper-900 text-sm font-serif leading-tight group-hover:text-watercolor-brick transition-colors">
-                                        {landmark.name}
-                                    </h4>
+                                </div>
+
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                    {appMode === 'on-trip' && (
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                playChime('tap');
+                                                if (onRecordExpense) {
+                                                    const fallbackItem: ItineraryItem = itemMatch || {
+                                                        id: landmark.id,
+                                                        dayId: activeDay?.id || 'day-1',
+                                                        planId: activeDay?.planId || 'plan-1',
+                                                        name: landmark.name,
+                                                        category:
+                                                            landmark.category === 'craft'
+                                                                ? 'dining'
+                                                                : landmark.category === 'history'
+                                                                ? 'transit'
+                                                                : 'ticket',
+                                                        estimatedCost: 0,
+                                                        actualCost: 0,
+                                                        location: landmark.coords,
+                                                        orderIndex: index,
+                                                    };
+                                                    onRecordExpense(fallbackItem);
+                                                }
+                                            }}
+                                            className="p-1.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-950 border border-paper-900 flex items-center gap-1 text-xs font-bold transition active:scale-95"
+                                            title="Record actual spend for this stop"
+                                        >
+                                            <Coins size={14} weight="bold" className="text-emerald-700" />
+                                            <span>Record</span>
+                                        </button>
+                                    )}
+
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            playChime('tap');
+                                            playVoiceNarrator(`${landmark.name}. ${landmark.audioNote}`);
+                                        }}
+                                        className="p-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-950 border border-paper-900 flex items-center gap-1 shrink-0 text-xs font-bold"
+                                    >
+                                        <SpeakerHigh size={14} weight="fill" className="text-watercolor-brick" />
+                                        <span>Audio</span>
+                                    </button>
                                 </div>
                             </div>
-
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    playChime('tap');
-                                    playVoiceNarrator(`${landmark.name}. ${landmark.audioNote}`);
-                                }}
-                                className="p-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-950 border border-paper-900 flex items-center gap-1 shrink-0 text-xs font-bold"
-                            >
-                                <SpeakerHigh size={14} weight="fill" className="text-watercolor-brick" />
-                                <span>Audio</span>
-                            </button>
+                            <p className="text-xs text-paper-800 line-clamp-2 leading-relaxed pl-12">{landmark.desc}</p>
                         </div>
-                        <p className="text-xs text-paper-800 line-clamp-2 leading-relaxed pl-12">{landmark.desc}</p>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
             {/* Bottom Status & Cruise Control */}

@@ -1,6 +1,7 @@
 export type ScenicZoneKey = 'toronto_distillery' | 'kyoto_higashiyama' | 'paris_marais';
 export type RouteTheme = 'classic' | 'culture' | 'rain';
 export type AppStage = 'planner' | 'plans' | 'map';
+export type AppMode = 'planning' | 'on-trip';
 
 export interface Landmark {
     id: string;

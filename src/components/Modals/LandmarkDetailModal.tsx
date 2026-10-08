@@ -3,14 +3,19 @@
 import React from 'react';
 import { Landmark } from '@/types/itinerary';
 import { playChime, playVoiceNarrator } from '@/lib/audio';
-import { X, SpeakerHigh, Lightbulb, Camera } from '@phosphor-icons/react';
+import { X, SpeakerHigh, Lightbulb, Camera, Coins } from '@phosphor-icons/react';
 
 interface LandmarkDetailModalProps {
     landmark: Landmark | null;
     onClose: () => void;
+    onRecordExpense?: () => void;
 }
 
-export const LandmarkDetailModal: React.FC<LandmarkDetailModalProps> = ({ landmark, onClose }) => {
+export const LandmarkDetailModal: React.FC<LandmarkDetailModalProps> = ({
+    landmark,
+    onClose,
+    onRecordExpense,
+}) => {
     if (!landmark) return null;
 
     const handlePlayVoice = () => {
@@ -53,9 +58,22 @@ export const LandmarkDetailModal: React.FC<LandmarkDetailModalProps> = ({ landma
             </div>
 
             <div className="flex items-center justify-between pt-2 border-t border-paper-300">
-                <span className="text-[11px] font-bold text-paper-700 flex items-center gap-1">
-                    <Camera size={14} /> Photo Landmark
-                </span>
+                <div className="flex items-center gap-1.5">
+                    {onRecordExpense && (
+                        <button
+                            type="button"
+                            onClick={onRecordExpense}
+                            className="px-2.5 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-950 rounded-xl font-bold text-xs border border-paper-900 shadow-xs flex items-center gap-1 transition active:scale-95"
+                            title="Record actual spend for this landmark"
+                        >
+                            <Coins size={14} weight="bold" className="text-emerald-700" />
+                            <span>Record</span>
+                        </button>
+                    )}
+                    <span className="text-[11px] font-bold text-paper-700 flex items-center gap-1">
+                        <Camera size={14} /> Photo Landmark
+                    </span>
+                </div>
                 <button
                     onClick={handlePlayVoice}
                     className="px-3.5 py-1.5 bg-watercolor-brick hover:bg-red-700 text-white rounded-xl font-bold text-xs border border-paper-900 shadow-stamp flex items-center gap-1.5 transition active:scale-95"

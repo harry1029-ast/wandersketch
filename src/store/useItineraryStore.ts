@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import {
     AppStage,
+    AppMode,
     TravelPlan,
     ScenicZoneKey,
     RouteTheme,
@@ -8,6 +9,7 @@ import {
     ItineraryDay,
     ItineraryItem,
     ExpenseCategory,
+    Landmark,
 } from '@/types/itinerary';
 import { MASTER_ZONES, INITIAL_PLANS } from '@/lib/mockData';
 import { fetchPedestrianRoute } from '@/lib/routing';
@@ -75,7 +77,114 @@ export function computeBudgetFromDays(
     };
 }
 
+export function getActiveDayLandmarks(
+    day?: ItineraryDay,
+    zone?: ScenicZone
+): Landmark[] {
+    if (!day) return [];
+
+    const result: Landmark[] = [];
+
+    // 1. Overnight Lodging (if hotelInfo coords exist and lodging not already in items)
+    if (day.hotelInfo && day.hotelInfo.name && day.hotelInfo.coords) {
+        const hasHotelInItems = (day.items || []).some(
+            (item) => item.category === 'lodging' && item.location
+        );
+        if (!hasHotelInItems) {
+            result.push({
+                id: `hotel-${day.dayNumber}-${day.id || 'curr'}`,
+                name: day.hotelInfo.name,
+                category: 'landmark',
+                color: '#5c6ac4',
+                coords: day.hotelInfo.coords,
+                svgSnippet: `
+                    <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-md">
+                        <rect x="15" y="15" width="70" height="70" rx="20" fill="#5c6ac4" stroke="#2b261b" stroke-width="3"/>
+                        <text x="50" y="58" font-size="34" text-anchor="middle">🏨</text>
+                    </svg>
+                `,
+                tag: 'LODGING',
+                desc: day.hotelInfo.notes || `Overnight stay for Day ${day.dayNumber}.`,
+                audioNote: `Your lodging for Day ${day.dayNumber}: ${day.hotelInfo.name}.`,
+                panoUrl: '',
+                tips: `Lodging: ${day.hotelInfo.name}`,
+            });
+        }
+    }
+
+    // 2. Day itinerary items with coordinates
+    const categoryColorMap: Record<ExpenseCategory, string> = {
+        lodging: '#5c6ac4',
+        dining: '#e06d53',
+        ticket: '#407958',
+        transit: '#f4c568',
+    };
+
+    const categoryIconMap: Record<ExpenseCategory, string> = {
+        lodging: '🏨',
+        dining: '🍽️',
+        ticket: '🏛️',
+        transit: '🚇',
+    };
+
+    const categoryDomainMap: Record<ExpenseCategory, Landmark['category']> = {
+        lodging: 'landmark',
+        dining: 'craft',
+        ticket: 'culture',
+        transit: 'history',
+    };
+
+    (day.items || []).forEach((item, idx) => {
+        let coords: [number, number] | undefined = item.location;
+        if (!coords && item.category === 'lodging' && day.hotelInfo?.coords) {
+            coords = day.hotelInfo.coords;
+        }
+        if (
+            !coords ||
+            !Array.isArray(coords) ||
+            coords.length !== 2 ||
+            typeof coords[0] !== 'number' ||
+            typeof coords[1] !== 'number'
+        ) {
+            return;
+        }
+
+        const matchedLandmark = zone?.landmarksPool.find(
+            (l) => l.name.toLowerCase() === item.name.toLowerCase()
+        );
+
+        const color = categoryColorMap[item.category] || '#c14937';
+        const emoji = categoryIconMap[item.category] || '📍';
+
+        const svgSnippet =
+            matchedLandmark?.svgSnippet ||
+            `
+            <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-md">
+                <rect x="15" y="15" width="70" height="70" rx="20" fill="${color}" stroke="#2b261b" stroke-width="3"/>
+                <text x="50" y="58" font-size="34" text-anchor="middle">${emoji}</text>
+            </svg>
+        `;
+
+        result.push({
+            id: item.id,
+            name: item.name,
+            category: matchedLandmark?.category || categoryDomainMap[item.category] || 'landmark',
+            color: matchedLandmark?.color || color,
+            coords: coords,
+            svgSnippet,
+            tag: item.category.toUpperCase(),
+            desc: `Estimated: $${item.estimatedCost}${item.actualCost > 0 ? ` · Actual: $${item.actualCost}` : ''}`,
+            audioNote: `Stop #${idx + 1}: ${item.name}.`,
+            panoUrl: matchedLandmark?.panoUrl || '',
+            tips: `Day ${day.dayNumber} · ${item.category}`,
+        });
+    });
+
+    return result;
+}
+
 interface ItineraryState {
+    appMode: AppMode;
     currentStage: AppStage;
     activePlanId: string;
     savedPlans: TravelPlan[];
@@ -98,6 +207,7 @@ interface ItineraryState {
 
     // Actions
     initializeFromDatabase: () => Promise<void>;
+    setAppMode: (mode: AppMode) => void;
     setStage: (stage: AppStage) => void;
     setActivePlanId: (id: string) => void;
     setTripModalOpen: (open: boolean) => void;
@@ -125,7 +235,8 @@ interface ItineraryState {
     updateItemCost: (
         itemId: string,
         estimatedCost?: number,
-        actualCost?: number
+        actualCost?: number,
+        category?: ExpenseCategory
     ) => void;
     swapItineraryItem: (
         dayNumber: number,
@@ -150,6 +261,7 @@ interface ItineraryState {
 }
 
 export const useItineraryStore = create<ItineraryState>()((set, get) => ({
+    appMode: 'planning',
     currentStage: 'plans',
     activePlanId: INITIAL_PLANS[0].id,
     savedPlans: INITIAL_PLANS,
@@ -222,7 +334,20 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
         }
     },
 
-    setStage: (stage) => set({ currentStage: stage }),
+    setAppMode: (mode) => {
+        if (mode === 'on-trip') {
+            set({ appMode: mode, currentStage: 'map' });
+        } else {
+            set({ appMode: mode });
+        }
+    },
+    setStage: (stage) => {
+        if (stage === 'planner' || stage === 'plans') {
+            set({ currentStage: stage, appMode: 'planning' });
+        } else {
+            set({ currentStage: stage });
+        }
+    },
     setActivePlanId: (id) => set({ activePlanId: id }),
 
     updatePlannerZone: (zoneKey) => {
@@ -484,7 +609,7 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
         });
     },
 
-    updateItemCost: (itemId, estimatedCost, actualCost) => {
+    updateItemCost: (itemId, estimatedCost, actualCost, category) => {
         const { currentItineraryDays, totalBudgetCeiling } = get();
         const updated = currentItineraryDays.map((day) => {
             if (!day.items || !day.items.some((i) => i.id === itemId)) return day;
@@ -492,6 +617,7 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
                 if (item.id !== itemId) return item;
                 return {
                     ...item,
+                    category: category !== undefined ? category : item.category,
                     estimatedCost: estimatedCost !== undefined ? estimatedCost : item.estimatedCost,
                     actualCost: actualCost !== undefined ? actualCost : item.actualCost,
                 };

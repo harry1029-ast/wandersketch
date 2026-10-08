@@ -3,8 +3,9 @@
 import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import rough from 'roughjs';
-import { Landmark, ScenicFacility, ScenicZone } from '@/types/itinerary';
+import { Landmark, ScenicFacility, ScenicZone, ItineraryItem } from '@/types/itinerary';
 import { fetchPedestrianRoute } from '@/lib/routing';
+import { useItineraryStore, getActiveDayLandmarks } from '@/store/useItineraryStore';
 import {
     calculateItineraryBoundingCircle,
     getPixelCircle,
@@ -26,6 +27,7 @@ interface LeafletBaseMapProps {
     onOpenIslandView?: () => void;
     onMapReady?: (map: L.Map) => void;
     onBoundsChange?: (bounds: { minLat: number; minLng: number; maxLat: number; maxLng: number }) => void;
+    onRecordExpense?: (item: ItineraryItem) => void;
 }
 
 export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
@@ -42,7 +44,30 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
     onOpenIslandView,
     onMapReady,
     onBoundsChange,
+    onRecordExpense,
 }) => {
+    const { currentItineraryDays, activeDayNumber, appMode } = useItineraryStore();
+    const activeDay = currentItineraryDays.find((d) => d.dayNumber === activeDayNumber);
+    const dayLandmarks = React.useMemo(
+        () => getActiveDayLandmarks(activeDay, zone),
+        [activeDay, zone]
+    );
+
+    // Derive active itinerary stops: either current day's stops, or plan's stops
+    const activeItineraryLandmarks = React.useMemo(() => {
+        if (dayLandmarks.length > 0) return dayLandmarks;
+        if (itineraryStopIds.length > 0) {
+            return itineraryStopIds
+                .map((id) => landmarks.find((l) => l.id === id))
+                .filter(Boolean) as Landmark[];
+        }
+        return landmarks;
+    }, [dayLandmarks, itineraryStopIds, landmarks]);
+
+    const activeStopIds = React.useMemo(() => {
+        return activeItineraryLandmarks.map((l) => l.id);
+    }, [activeItineraryLandmarks]);
+
     const mapContainerRef = useRef<HTMLDivElement | null>(null);
     const mapInstanceRef = useRef<L.Map | null>(null);
     const landmarksLayerRef = useRef<L.LayerGroup | null>(null);
@@ -57,8 +82,8 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
 
     const boundingCircleRef = useRef<BoundingCircle | null>(null);
     const trajectoryRef = useRef<[number, number][]>([]);
-    const landmarksRef = useRef<Landmark[]>(landmarks);
-    landmarksRef.current = landmarks;
+    const landmarksRef = useRef<Landmark[]>(activeItineraryLandmarks);
+    landmarksRef.current = activeItineraryLandmarks;
 
     const onBoundsChangeRef = useRef(onBoundsChange);
     onBoundsChangeRef.current = onBoundsChange;
@@ -223,17 +248,14 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
     };
 
     useEffect(() => {
-        // ONLY route through landmarks that belong to the active itinerary
-        const itineraryLandmarks = itineraryStopIds.length > 0
-            ? itineraryStopIds.map((id) => landmarks.find((l) => l.id === id)).filter(Boolean) as Landmark[]
-            : landmarks;
+        // ONLY route through active itinerary stops (multi-day or plan stops)
+        const stopCoords = activeItineraryLandmarks.map((l) => l.coords);
 
-        // Calculate and cache bounding circle
-        const stopCoords = itineraryLandmarks.map((l) => l.coords);
+        // Calculate and cache bounding circle around the active day's cluster
         const bCircle = calculateItineraryBoundingCircle(stopCoords, zone.center);
         boundingCircleRef.current = bCircle;
 
-        if (itineraryLandmarks.length < 2) {
+        if (activeItineraryLandmarks.length < 2) {
             trajectoryRef.current = stopCoords;
             redrawSketchedPaths();
             return;
@@ -251,7 +273,31 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         return () => {
             isMounted = false;
         };
-    }, [landmarks, itineraryStopIds, zone.center]);
+    }, [activeItineraryLandmarks, zone.center]);
+
+    // Smoothly re-center camera on day switch
+    const prevDayRef = useRef<number>(activeDayNumber);
+    useEffect(() => {
+        const map = mapInstanceRef.current;
+        if (!map) return;
+
+        if (prevDayRef.current !== activeDayNumber) {
+            prevDayRef.current = activeDayNumber;
+            const stopCoords = activeItineraryLandmarks.map((l) => l.coords);
+            if (stopCoords.length > 1) {
+                const latLngs = stopCoords.map(([lat, lng]) => L.latLng(lat, lng));
+                const bounds = L.latLngBounds(latLngs);
+                if (bounds.isValid()) {
+                    map.flyToBounds(bounds.pad(0.35), {
+                        duration: 1.2,
+                        easeLinearity: 0.25,
+                    });
+                }
+            } else if (stopCoords.length === 1) {
+                map.flyTo(stopCoords[0], 16, { duration: 1.0 });
+            }
+        }
+    }, [activeDayNumber, activeItineraryLandmarks]);
 
     useEffect(() => {
         if (!mapContainerRef.current || mapInstanceRef.current) return;
@@ -382,7 +428,7 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         if (!layer) return;
         layer.clearLayers();
 
-        const itineraryIndexMap = new Map(itineraryStopIds.map((id, index) => [id, index + 1]));
+        const itineraryIndexMap = new Map(activeStopIds.map((id, index) => [id, index + 1]));
 
         landmarks.forEach((lm) => {
             const isSelected = activeLandmark?.id === lm.id;
@@ -414,12 +460,82 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
             });
 
             const marker = L.marker(lm.coords, { icon, zIndexOffset: 1000 });
-            marker.on('click', () => onSelectLandmark(lm));
+
+            if (appMode === 'on-trip' && isItineraryStop) {
+                const targetItem =
+                    activeDay?.items?.find((i) => i.id === lm.id) ||
+                    (lm.tag === 'LODGING'
+                        ? activeDay?.items?.find((i) => i.category === 'lodging')
+                        : null);
+
+                const actualCostBadge =
+                    targetItem && targetItem.actualCost > 0
+                        ? `<span class="bg-emerald-100 text-emerald-900 border border-emerald-400 font-mono font-bold text-[10px] px-1.5 py-0.5 rounded-full">Paid: $${targetItem.actualCost}</span>`
+                        : `<span class="bg-amber-100 text-amber-900 border border-amber-300 font-mono font-bold text-[10px] px-1.5 py-0.5 rounded-full">Est: $${targetItem?.estimatedCost || 0}</span>`;
+
+                const popupHtml = `
+                    <div class="p-1 space-y-1.5 font-sans min-w-[190px]">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="text-[10px] font-black px-1.5 py-0.5 bg-watercolor-brick text-white rounded font-mono">#${stopNumber}</span>
+                            ${actualCostBadge}
+                        </div>
+                        <div class="font-serif font-black text-sm text-paper-900 leading-tight">${lm.name}</div>
+                        <div class="text-[11px] text-paper-700 line-clamp-2">${lm.desc}</div>
+                        <button
+                            type="button"
+                            id="btn-expense-${lm.id}"
+                            class="w-full mt-2 py-1.5 px-3 bg-watercolor-brick hover:bg-red-800 text-white rounded-xl text-xs font-extrabold flex items-center justify-center gap-1 shadow-sm cursor-pointer transition active:scale-95"
+                        >
+                            <span>💸 Record Expense</span>
+                        </button>
+                    </div>
+                `;
+
+                marker.bindPopup(popupHtml, {
+                    className: 'custom-watercolor-popup',
+                    offset: [0, -60],
+                    closeButton: true,
+                });
+
+                marker.on('popupopen', () => {
+                    const btn = document.getElementById(`btn-expense-${lm.id}`);
+                    if (btn && onRecordExpense) {
+                        btn.onclick = (e) => {
+                            e.stopPropagation();
+                            const fallbackItem: ItineraryItem = targetItem || {
+                                id: lm.id,
+                                dayId: activeDay?.id || 'day-1',
+                                planId: activeDay?.planId || 'plan-1',
+                                name: lm.name,
+                                category:
+                                    lm.category === 'craft'
+                                        ? 'dining'
+                                        : lm.category === 'history'
+                                        ? 'transit'
+                                        : 'ticket',
+                                estimatedCost: 0,
+                                actualCost: 0,
+                                location: lm.coords,
+                                orderIndex: stopNumber - 1,
+                            };
+                            onRecordExpense(fallbackItem);
+                            marker.closePopup();
+                        };
+                    }
+                });
+            }
+
+            marker.on('click', () => {
+                onSelectLandmark(lm);
+                if (appMode === 'on-trip' && isItineraryStop) {
+                    marker.openPopup();
+                }
+            });
             marker.addTo(layer);
         });
 
         redrawSketchedPaths();
-    }, [landmarks, activeLandmark, itineraryStopIds]);
+    }, [landmarks, activeLandmark, activeStopIds, activeItineraryLandmarks, appMode, activeDay, onRecordExpense]);
 
     useEffect(() => {
         const layer = facilitiesLayerRef.current;
