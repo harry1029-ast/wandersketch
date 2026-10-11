@@ -23,6 +23,7 @@ export const Header: React.FC = () => {
         savedPlans,
         savePlannerAsNewPlan,
         setTripModalOpen,
+        launchAmbientDiscoveryOnMap,
     } = useItineraryStore();
 
     const [isExcursionModalOpen, setIsExcursionModalOpen] = useState(false);
@@ -39,7 +40,11 @@ export const Header: React.FC = () => {
 
     const handleStageChange = (stage: AppStage) => {
         playChime('tap');
-        setStage(stage);
+        if (stage === 'map') {
+            launchAmbientDiscoveryOnMap();
+        } else {
+            setStage(stage);
+        }
     };
 
     const handleQuickAction = () => {
@@ -52,7 +57,7 @@ export const Header: React.FC = () => {
         if (currentStage === 'planner') {
             savePlannerAsNewPlan();
         } else if (currentStage === 'plans') {
-            setStage('map');
+            launchAmbientDiscoveryOnMap();
         } else if (currentStage === 'map') {
             setStage('plans');
         }
@@ -140,18 +145,6 @@ export const Header: React.FC = () => {
                             </button>
 
                             <button
-                                onClick={() => handleStageChange('planner')}
-                                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                                    currentStage === 'planner'
-                                        ? 'bg-watercolor-brick text-white shadow-sm'
-                                        : 'text-paper-800 hover:text-paper-900'
-                                }`}
-                            >
-                                <Footprints size={16} weight="bold" />
-                                <span>Route Curator</span>
-                            </button>
-
-                            <button
                                 onClick={() => handleStageChange('map')}
                                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
                                     currentStage === 'map'
@@ -190,7 +183,7 @@ export const Header: React.FC = () => {
                             playChime('tap');
                             setTripModalOpen(true);
                         }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-500 text-paper-900 font-extrabold text-xs sm:text-sm border-2 border-paper-900 shadow-stamp transition-all active:scale-95 cursor-pointer"
+                        className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-500 text-paper-900 font-extrabold text-xs sm:text-sm border-2 border-paper-900 shadow-stamp transition-all active:scale-95 cursor-pointer"
                         title="Generate New Multi-Day Itinerary with AI"
                     >
                         <Sparkle size={18} weight="fill" className="text-watercolor-brick" />
@@ -199,17 +192,31 @@ export const Header: React.FC = () => {
 
                     <button
                         onClick={handleQuickAction}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-watercolor-green hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm border-2 border-paper-900 shadow-stamp transition-all active:scale-95 cursor-pointer"
+                        className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-watercolor-green hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm border-2 border-paper-900 shadow-stamp transition-all active:scale-95 cursor-pointer"
                     >
-                        <PlusCircle size={18} weight="bold" className="text-amber-200" />
+                        <PlusCircle size={17} weight="bold" className="text-amber-200" />
                         <span>
-                            {appMode === 'on-trip'
-                                ? 'Edit Itinerary'
-                                : currentStage === 'planner'
-                                ? 'Save & Launch Map'
-                                : currentStage === 'plans'
-                                ? 'Open Map'
-                                : 'Back to Trips'}
+                            {appMode === 'on-trip' ? (
+                                <>
+                                    <span className="sm:hidden">Edit</span>
+                                    <span className="hidden sm:inline">Edit Itinerary</span>
+                                </>
+                            ) : currentStage === 'planner' ? (
+                                <>
+                                    <span className="sm:hidden">Save</span>
+                                    <span className="hidden sm:inline">Save & Launch Map</span>
+                                </>
+                            ) : currentStage === 'plans' ? (
+                                <>
+                                    <span className="sm:hidden">Map</span>
+                                    <span className="hidden sm:inline">Open Map</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span className="sm:hidden">Trips</span>
+                                    <span className="hidden sm:inline">Back to Trips</span>
+                                </>
+                            )}
                         </span>
                     </button>
                 </div>

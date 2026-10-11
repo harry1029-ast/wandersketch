@@ -15,6 +15,28 @@ export async function fetchPedestrianRoute(
         return { coordinates: stops, distanceKm: 0, durationMinutes: 0 };
     }
 
+    // Check if stops are far apart (intercity / cross-country jump > 40km)
+    let totalMeters = 0;
+    let hasIntercityJump = false;
+    for (let i = 0; i < stops.length - 1; i++) {
+        const d = haversineDistance(stops[i], stops[i + 1]);
+        totalMeters += d;
+        if (d > 40000) {
+            hasIntercityJump = true;
+        }
+    }
+
+    if (hasIntercityJump || totalMeters > 60000) {
+        // Intercity connection: straight line connection without requesting massive walking geometries
+        const distanceKm = Number((totalMeters / 1000).toFixed(1));
+        const durationMinutes = Math.round((distanceKm / 75) * 60 + 20); // Est transit/high-speed rail
+        return {
+            coordinates: stops,
+            distanceKm,
+            durationMinutes,
+        };
+    }
+
     // OSRM expects coordinates in lng,lat order
     const coordString = stops.map(([lat, lng]) => `${lng},${lat}`).join(';');
     const url = `https://router.project-osrm.org/route/v1/foot/${coordString}?overview=full&geometries=geojson`;
@@ -44,11 +66,11 @@ export async function fetchPedestrianRoute(
     }
 
     // Fallback calculation
-    let totalMeters = 0;
+    let fallbackMeters = 0;
     for (let i = 0; i < stops.length - 1; i++) {
-        totalMeters += haversineDistance(stops[i], stops[i + 1]);
+        fallbackMeters += haversineDistance(stops[i], stops[i + 1]);
     }
-    const fallbackKm = Number((totalMeters / 1000).toFixed(1));
+    const fallbackKm = Number((fallbackMeters / 1000).toFixed(1));
     const fallbackMins = Math.round((fallbackKm / 4.5) * 60); // Average 4.5 km/h walk
 
     return {

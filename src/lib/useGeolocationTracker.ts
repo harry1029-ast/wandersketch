@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { Landmark } from '@/types/itinerary';
 import { playChime, playVoiceNarrator } from '@/lib/audio';
+import { Geolocation } from '@capacitor/geolocation';
+import { Capacitor } from '@capacitor/core';
 
 interface GeolocationTrackerProps {
     landmarks: Landmark[];
@@ -49,13 +51,68 @@ export function useGeolocationTracker({
             return;
         }
 
-        if (typeof window === 'undefined' || !('geolocation' in navigator)) {
-            setGeoError('Geolocation is not supported by your browser.');
-            return;
-        }
-
         setIsTracking(true);
         setGeoError(null);
+
+        // Native Mobile GPS via Capacitor
+        if (typeof window !== 'undefined' && Capacitor.isNativePlatform()) {
+            let nativeWatchId: string | null = null;
+
+            Geolocation.watchPosition(
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 1000,
+                },
+                (pos, err) => {
+                    if (err) {
+                        console.warn('Native geolocation watch error:', err.message);
+                        setGeoError(err.message);
+                        setIsTracking(false);
+                        return;
+                    }
+                    if (!pos) return;
+
+                    const currentPos: [number, number] = [pos.coords.latitude, pos.coords.longitude];
+                    const drift = computeDistanceMeters(prevCoordsRef.current, currentPos);
+                    if (drift >= 0.5) {
+                        prevCoordsRef.current = currentPos;
+                        setCoords(currentPos);
+                    }
+
+                    setHeading(pos.coords.heading ?? null);
+                    setAccuracy(pos.coords.accuracy ?? null);
+
+                    landmarksRef.current.forEach((lm) => {
+                        const dist = computeDistanceMeters(currentPos, lm.coords);
+                        if (dist <= 35 && !triggeredSpotsRef.current.has(lm.id)) {
+                            triggeredSpotsRef.current.add(lm.id);
+                            playChime('bell');
+                            playVoiceNarrator(`Approaching ${lm.name}. ${lm.audioNote}`);
+                        }
+                    });
+                }
+            ).then((id) => {
+                nativeWatchId = id;
+            }).catch((err) => {
+                console.warn('Native watchPosition failed to start:', err);
+                setGeoError(err.message);
+                setIsTracking(false);
+            });
+
+            return () => {
+                if (nativeWatchId) {
+                    Geolocation.clearWatch({ id: nativeWatchId });
+                }
+            };
+        }
+
+        // Web Geolocation API Fallback
+        if (typeof window === 'undefined' || !('geolocation' in navigator)) {
+            setGeoError('Geolocation is not supported by your browser.');
+            setIsTracking(false);
+            return;
+        }
 
         const watchId = navigator.geolocation.watchPosition(
             (pos) => {

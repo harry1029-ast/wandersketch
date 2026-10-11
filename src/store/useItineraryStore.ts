@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import {
     AppStage,
     AppMode,
+    DrawerTab,
+    MapDiscoveryMode,
     TravelPlan,
     ScenicZoneKey,
     RouteTheme,
@@ -12,8 +14,9 @@ import {
     Landmark,
 } from '@/types/itinerary';
 import { MASTER_ZONES, INITIAL_PLANS } from '@/lib/mockData';
+import { getCityPack, findCityPackByCoords } from '@/data/cityPacks';
 import { fetchPedestrianRoute } from '@/lib/routing';
-import { fetchAllPlans, fetchDestinations, saveCustomSpotToDb, deletePlanFromDb, fetchAllCustomSpots, fetchItineraryDaysWithItems } from '@/lib/repositories';
+import { fetchAllPlans, fetchDestinations, saveCustomSpotToDb, deleteCustomSpotFromDb, deletePlanFromDb, fetchAllCustomSpots, fetchItineraryDaysWithItems } from '@/lib/repositories';
 import { supabase } from '@/lib/supabaseClient';
 
 export interface BudgetSummary {
@@ -103,7 +106,12 @@ export function synthesizeDaysForPlan(plan: TravelPlan, zone: ScenicZone): Itine
         },
     };
 
-    const hotel = (zone && defaultHotels[zone.id as ScenicZoneKey]) || defaultHotels[plan.zoneKey] || defaultHotels.toronto_distillery;
+    const hotel = (zone && (defaultHotels as any)[zone.id]) || (defaultHotels as any)[plan.zoneKey] || (zone ? {
+        name: `${zone.city} Heritage Central Hotel`,
+        notes: `Historic boutique accommodations near ${zone.name}`,
+        price: 215,
+        coords: zone.center,
+    } : defaultHotels.toronto_distillery);
 
     const items: ItineraryItem[] = (plan.spotIds || []).map((sid, idx) => {
         const landmark = zone?.landmarksPool?.find((l) => l.id === sid);
@@ -259,6 +267,11 @@ interface ItineraryState {
         spotIds: string[];
     };
 
+    // Map discovery & drawer tab state
+    mapDiscoveryMode: MapDiscoveryMode;
+    drawerTab: DrawerTab;
+    userRealCoords: [number, number] | null;
+
     // Multi-day itinerary & budget state
     selectedTripViewId: string | null;
     daysCacheByPlanId: Record<string, ItineraryDay[]>;
@@ -275,6 +288,13 @@ interface ItineraryState {
     setAppMode: (mode: AppMode) => void;
     setStage: (stage: AppStage) => void;
     setActivePlanId: (id: string) => void;
+    setMapDiscoveryMode: (mode: MapDiscoveryMode) => void;
+    setDrawerTab: (tab: DrawerTab) => void;
+    setUserRealCoords: (coords: [number, number] | null) => void;
+    addStopToRouteBuffer: (landmarkId: string) => void;
+    clearPlannerStops: () => void;
+    launchItineraryOnMap: (planId?: string) => void;
+    launchAmbientDiscoveryOnMap: (zoneKey?: ScenicZoneKey) => void;
     setSelectedTripViewId: (planId: string | null) => void;
     selectTripForDetail: (planId: string) => Promise<void>;
     createQuickExcursion: (zoneKey?: ScenicZoneKey, customTitle?: string) => Promise<string>;
@@ -286,13 +306,17 @@ interface ItineraryState {
     ) => Promise<string>;
     setTripModalOpen: (open: boolean) => void;
     updatePlannerZone: (zoneKey: ScenicZoneKey) => void;
+    jumpToCity: (cityData: { name: string; city: string; coords: [number, number]; bounds?: [[number, number], [number, number]] }) => string;
     reorderPlannerStops: (fromIdx: number, toIdx: number) => void;
     removePlannerStop: (idx: number) => void;
     addPlannerCustomStop: (
         name: string,
         coords: [number, number],
-        address?: string
+        address?: string,
+        addToRoute?: boolean
     ) => Promise<string>;
+    deletedPersonalSpotIds: string[];
+    deletePersonalSpot: (spotId: string) => Promise<void>;
     savePlannerAsNewPlan: () => Promise<string>;
     updateActivePlanTheme: (theme: RouteTheme) => Promise<void>;
     updatePlanTitle: (planId: string, title: string) => Promise<void>;
@@ -344,10 +368,16 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
     isTripModalOpen: false,
 
     plannerBuffer: {
-        title: 'Toronto Lakefront & Distillery Autumn Walk',
+        title: 'Custom Walking Route',
         zoneKey: 'toronto_distillery',
-        spotIds: ['td-1', 'td-2', 'td-3', 'td-4', 'td-5'],
+        spotIds: [],
     },
+
+    // Map discovery & drawer tab initial state
+    mapDiscoveryMode: 'ambient',
+    drawerTab: 'curator',
+    userRealCoords: null,
+    deletedPersonalSpotIds: [],
 
     // Multi-day itinerary & budget initial state
     selectedTripViewId: null,
@@ -379,22 +409,96 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
                 fetchAllCustomSpots(),
             ]);
 
+            let deletedIds: string[] = [];
+            let savedSpotIds: string[] = [];
+            if (typeof window !== 'undefined') {
+                try {
+                    const rawDel = localStorage.getItem('wandersketch_deleted_spot_ids');
+                    if (rawDel) deletedIds = JSON.parse(rawDel);
+                    const rawSaved = localStorage.getItem('wandersketch_saved_personal_spot_ids');
+                    if (rawSaved) savedSpotIds = JSON.parse(rawSaved);
+                } catch {}
+            }
+            const deletedSet = new Set(deletedIds);
+            const savedSpotSet = new Set(savedSpotIds);
+            // Only hydrate custom spots that the user explicitly saved in their browser session!
+            const activeCustomSpots = dbCustomSpots.filter(
+                (cs) => !deletedSet.has(cs.id) && savedSpotSet.has(cs.id)
+            );
+
             set((state) => {
                 const updatedZones = { ...state.zones };
+                // 1. Merge destinations from DB
                 dbDestinations.forEach((dest) => {
                     if (updatedZones[dest.id]) {
-                        // Keep default curated landmarks and append any custom spots belonging to this zone
-                        const basePool = updatedZones[dest.id].landmarksPool;
-                        const existingIds = new Set(basePool.map((l) => l.id));
-                        const zoneCustom = dbCustomSpots.filter(
-                            (cs: any) => (cs.destinationId === dest.id || !cs.destinationId) && !existingIds.has(cs.id)
-                        );
-
                         updatedZones[dest.id] = {
                             ...updatedZones[dest.id],
                             ...dest,
-                            landmarksPool: [...basePool, ...zoneCustom],
+                            landmarksPool: updatedZones[dest.id].landmarksPool,
                         };
+                    }
+                });
+
+                // Ensure all default master zones and their landmarks are fully preserved
+                Object.keys(MASTER_ZONES).forEach((k) => {
+                    if (!updatedZones[k] || !updatedZones[k].landmarksPool || updatedZones[k].landmarksPool.length === 0) {
+                        updatedZones[k] = MASTER_ZONES[k];
+                    } else {
+                        // Merge in any missing master landmarks (e.g. from CityPacks)
+                        const masterPool = MASTER_ZONES[k]?.landmarksPool || [];
+                        if (masterPool.length > 0) {
+                            const curPool = updatedZones[k].landmarksPool || [];
+                            const curMap = new Map(curPool.map((l) => [l.id, l]));
+                            for (const l of masterPool) {
+                                if (!curMap.has(l.id)) {
+                                    curMap.set(l.id, l);
+                                }
+                            }
+                            updatedZones[k].landmarksPool = Array.from(curMap.values());
+                        }
+                    }
+                });
+
+                // Helper to check if coords are near a zone
+                const isSpotInZone = (spotCoords: [number, number], zone: ScenicZone) => {
+                    if (zone.bounds) {
+                        const [[minLat, minLng], [maxLat, maxLng]] = zone.bounds;
+                        if (
+                            spotCoords[0] >= minLat - 0.05 &&
+                            spotCoords[0] <= maxLat + 0.05 &&
+                            spotCoords[1] >= minLng - 0.05 &&
+                            spotCoords[1] <= maxLng + 0.05
+                        ) {
+                            return true;
+                        }
+                    }
+                    if (zone.center) {
+                        const dLat = Math.abs(spotCoords[0] - zone.center[0]);
+                        const dLng = Math.abs(spotCoords[1] - zone.center[1]);
+                        return dLat < 0.25 && dLng < 0.25; // ~25km
+                    }
+                    return false;
+                };
+
+                // 2. Safely distribute custom spots to their respective zones
+                activeCustomSpots.forEach((cs) => {
+                    let targetKey = cs.destinationId && updatedZones[cs.destinationId] ? cs.destinationId : null;
+                    if (!targetKey) {
+                        for (const key of Object.keys(updatedZones)) {
+                            if (isSpotInZone(cs.coords, updatedZones[key])) {
+                                targetKey = key;
+                                break;
+                            }
+                        }
+                    }
+                    if (targetKey && updatedZones[targetKey]) {
+                        const basePool = updatedZones[targetKey].landmarksPool || [];
+                        if (!basePool.some((l) => l.id === cs.id)) {
+                            updatedZones[targetKey] = {
+                                ...updatedZones[targetKey],
+                                landmarksPool: [...basePool, cs],
+                            };
+                        }
                     }
                 });
 
@@ -426,6 +530,55 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
         }
     },
     setActivePlanId: (id) => set({ activePlanId: id }),
+    setMapDiscoveryMode: (mode) => set({ mapDiscoveryMode: mode }),
+    setDrawerTab: (tab) => set({ drawerTab: tab }),
+    setUserRealCoords: (coords) => set({ userRealCoords: coords }),
+    addStopToRouteBuffer: (landmarkId) => {
+        const { plannerBuffer } = get();
+        if (plannerBuffer.spotIds.includes(landmarkId)) return;
+        set({
+            plannerBuffer: {
+                ...plannerBuffer,
+                spotIds: [...plannerBuffer.spotIds, landmarkId],
+            },
+            drawerTab: 'curator',
+        });
+    },
+    clearPlannerStops: () => {
+        const { plannerBuffer } = get();
+        set({
+            plannerBuffer: {
+                ...plannerBuffer,
+                spotIds: [],
+            },
+        });
+    },
+    launchItineraryOnMap: (planId) => {
+        if (planId) {
+            set({
+                activePlanId: planId,
+                currentStage: 'map',
+                mapDiscoveryMode: 'itinerary',
+                drawerTab: 'guide',
+            });
+        } else {
+            set({
+                currentStage: 'map',
+                mapDiscoveryMode: 'itinerary',
+                drawerTab: 'guide',
+            });
+        }
+    },
+    launchAmbientDiscoveryOnMap: (zoneKey) => {
+        if (zoneKey) {
+            get().updatePlannerZone(zoneKey);
+        }
+        set({
+            currentStage: 'map',
+            mapDiscoveryMode: 'ambient',
+            drawerTab: 'curator',
+        });
+    },
 
     setSelectedTripViewId: (planId) => set({ selectedTripViewId: planId }),
 
@@ -706,13 +859,108 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
     updatePlannerZone: (zoneKey) => {
         const zone = get().zones[zoneKey] || MASTER_ZONES[zoneKey];
         if (!zone) return;
+        const isAmbient = get().mapDiscoveryMode === 'ambient';
+        // Authentic curated landmarks only; NEVER auto-pick personal spots as default route stops!
+        const defaultStops = (zone.landmarksPool || [])
+            .filter((l) => !l.isCustom && l.tag !== 'Personal Spot' && !l.id.startsWith('custom-'))
+            .slice(0, 4)
+            .map((l) => l.id);
         set({
             plannerBuffer: {
                 title: `Explore ${zone.name}`,
                 zoneKey,
-                spotIds: zone.landmarksPool.slice(0, 4).map((l) => l.id),
+                spotIds: isAmbient ? [] : defaultStops,
             },
         });
+    },
+
+    jumpToCity: (cityData) => {
+        const [lat, lng] = cityData.coords;
+        const baseSlug = `dest_${cityData.city.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')}`;
+        const currentZones = get().zones;
+
+        // 1. Look up any preloaded City Pack (instant in-memory hit)
+        const pack = getCityPack(cityData.city) || getCityPack(baseSlug) || findCityPackByCoords(lat, lng);
+
+        // Check if a zone for this city already exists (by slug or city name)
+        const existingKey = Object.keys(currentZones).find(
+            (k) =>
+                k === baseSlug ||
+                (pack && k === pack.id) ||
+                currentZones[k]?.city.toLowerCase() === cityData.city.toLowerCase() ||
+                (cityData.city.length > 4 && currentZones[k]?.city.toLowerCase().includes(cityData.city.toLowerCase()))
+        );
+
+        if (existingKey) {
+            const existingZone = currentZones[existingKey];
+            const sanitizedFacilities = (existingZone.facilities || []).filter(
+                (f) => !f.name.toLowerCase().includes('artisan cafe')
+            );
+            const isAmbient = get().mapDiscoveryMode === 'ambient';
+            const masterFallback = MASTER_ZONES[existingKey] || (pack ? { landmarksPool: pack.landmarks } : null);
+            let landmarksPool = existingZone.landmarksPool || [];
+            if (pack && pack.landmarks.length > 0) {
+                const poolMap = new Map(landmarksPool.map((l) => [l.id, l]));
+                for (const l of pack.landmarks) {
+                    if (!poolMap.has(l.id)) {
+                        poolMap.set(l.id, l);
+                    }
+                }
+                landmarksPool = Array.from(poolMap.values());
+            } else if (landmarksPool.length === 0 && masterFallback?.landmarksPool) {
+                landmarksPool = masterFallback.landmarksPool;
+            }
+            set((state) => ({
+                zones: {
+                    ...state.zones,
+                    [existingKey]: {
+                        ...existingZone,
+                        landmarksPool,
+                        facilities: sanitizedFacilities.length > 0 ? sanitizedFacilities : (pack ? pack.facilities : []),
+                    },
+                },
+                plannerBuffer: {
+                    ...state.plannerBuffer,
+                    title: `Explore ${existingZone.name}`,
+                    zoneKey: existingKey,
+                    spotIds: isAmbient ? [] : state.plannerBuffer.spotIds,
+                },
+            }));
+            return existingKey;
+        }
+
+        const delta = 0.025;
+        const bounds: [[number, number], [number, number]] = (pack && pack.bounds) || cityData.bounds || [
+            [lat - delta, lng - delta],
+            [lat + delta, lng + delta],
+        ];
+
+        const targetId = pack ? pack.id : baseSlug;
+        const newZone: ScenicZone = {
+            id: targetId,
+            name: (pack && pack.districtName) || cityData.name || `${cityData.city} Exploration`,
+            city: (pack && pack.cityName) || cityData.city || 'Custom Destination',
+            center: (pack && pack.center) || cityData.coords,
+            zoom: (pack && pack.zoom) || 15,
+            userOrigin: (pack && pack.userOrigin) || cityData.coords,
+            bounds,
+            facilities: pack ? pack.facilities : [],
+            landmarksPool: pack ? pack.landmarks : [],
+        };
+
+        set((state) => ({
+            zones: {
+                ...state.zones,
+                [baseSlug]: newZone,
+            },
+            plannerBuffer: {
+                title: `Explore ${newZone.name}`,
+                zoneKey: baseSlug,
+                spotIds: [],
+            },
+        }));
+
+        return baseSlug;
     },
 
     reorderPlannerStops: (fromIdx, toIdx) => {
@@ -726,7 +974,6 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
 
     removePlannerStop: (idx) => {
         const { spotIds } = get().plannerBuffer;
-        if (spotIds.length <= 2) return;
         set((state) => ({
             plannerBuffer: {
                 ...state.plannerBuffer,
@@ -735,35 +982,96 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
         }));
     },
 
-    addPlannerCustomStop: async (name, coords, address) => {
+    addPlannerCustomStop: async (name, coords, address, addToRoute: boolean = false) => {
         const { zoneKey, spotIds } = get().plannerBuffer;
         const zone = get().zones[zoneKey] || MASTER_ZONES[zoneKey];
         if (!zone) return '';
 
+        // Check if an existing curated landmark matches
+        const existing = zone.landmarksPool.find(
+            (l) =>
+                l.name.toLowerCase() === name.toLowerCase() ||
+                (Math.abs(l.coords[0] - coords[0]) < 0.0005 && Math.abs(l.coords[1] - coords[1]) < 0.0005)
+        );
+
+        if (existing) {
+            if (addToRoute && !spotIds.includes(existing.id)) {
+                set((state) => ({
+                    plannerBuffer: { ...state.plannerBuffer, spotIds: [...spotIds, existing.id] },
+                }));
+            }
+            return existing.id;
+        }
+
         const newId = `custom-${Date.now()}`;
-        const newLandmark = {
+        const newLandmark: Landmark = {
             id: newId,
+            destinationId: zoneKey,
             name,
-            category: 'craft' as const,
+            category: 'craft',
             color: '#f4c568',
             coords: coords,
             svgSnippet: `
         <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-md">
           <circle cx="50" cy="50" r="34" fill="#f4c568" stroke="#2b261b" stroke-width="3"/>
-          <text x="50" y="58" font-size="22" text-anchor="middle">✨</text>
+          <text x="50" y="58" font-size="22" text-anchor="middle">⭐</text>
         </svg>
       `,
             tag: 'Personal Spot',
             desc: address || `Custom stop added by user: ${name}.`,
             audioNote: `You have arrived at your custom stop: ${name}.`,
             panoUrl: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1200&q=80',
-            tips: 'Check out local seasonal recommendations when you arrive.',
+            tips: 'Personal Spot saved by user',
+            isCustom: true,
         };
 
-        // Update in-memory pool for the active session
-        zone.landmarksPool.push(newLandmark);
+        // If this ID was previously marked deleted, unmark it; and add to saved list in localStorage
+        const currentDeleted = get().deletedPersonalSpotIds || [];
+        const updatedDeleted = currentDeleted.filter((id) => id !== newId);
+        if (typeof window !== 'undefined') {
+            try {
+                localStorage.setItem('wandersketch_deleted_spot_ids', JSON.stringify(updatedDeleted));
+                const rawSaved = localStorage.getItem('wandersketch_saved_personal_spot_ids');
+                const savedList: string[] = rawSaved ? JSON.parse(rawSaved) : [];
+                if (!savedList.includes(newId)) {
+                    localStorage.setItem(
+                        'wandersketch_saved_personal_spot_ids',
+                        JSON.stringify([...savedList, newId])
+                    );
+                }
+            } catch {}
+        }
+
+        // Update in-memory pool and bounds for the active session immutably
+        const currentPool = zone.landmarksPool || [];
+        const updatedPool = [...currentPool.filter((l) => l.id !== newId), newLandmark];
+        let updatedBounds = zone.bounds;
+        if (zone.bounds) {
+            const [[minLat, minLng], [maxLat, maxLng]] = zone.bounds;
+            updatedBounds = [
+                [Math.min(minLat, coords[0] - 0.005), Math.min(minLng, coords[1] - 0.005)],
+                [Math.max(maxLat, coords[0] + 0.005), Math.max(maxLng, coords[1] + 0.005)],
+            ];
+        }
+
+        const updatedZone: ScenicZone = {
+            ...zone,
+            landmarksPool: updatedPool,
+            bounds: updatedBounds,
+        };
+
+        const updatedZones = {
+            ...get().zones,
+            [zoneKey]: updatedZone,
+        };
+
         set((state) => ({
-            plannerBuffer: { ...state.plannerBuffer, spotIds: [...spotIds, newId] },
+            deletedPersonalSpotIds: updatedDeleted,
+            zones: updatedZones,
+            plannerBuffer: {
+                ...state.plannerBuffer,
+                spotIds: addToRoute ? [...spotIds, newId] : spotIds,
+            },
         }));
 
         // Async sync to Supabase custom_spots table
@@ -785,6 +1093,63 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
         }
 
         return newId;
+    },
+
+    deletePersonalSpot: async (spotId: string) => {
+        const { zones, plannerBuffer, savedPlans, deletedPersonalSpotIds } = get();
+
+        // 1. Remove from plannerBuffer.spotIds
+        const updatedSpotIds = plannerBuffer.spotIds.filter((id) => id !== spotId);
+
+        // 2. Remove from all zones' landmarksPool
+        const updatedZones = { ...zones };
+        for (const key of Object.keys(updatedZones)) {
+            const z = updatedZones[key];
+            if (z && z.landmarksPool) {
+                updatedZones[key] = {
+                    ...z,
+                    landmarksPool: z.landmarksPool.filter((l) => l.id !== spotId),
+                };
+            }
+        }
+
+        // 3. Remove from saved plans if present
+        const updatedPlans = savedPlans.map((p) => {
+            if (p.spotIds.includes(spotId)) {
+                return {
+                    ...p,
+                    spotIds: p.spotIds.filter((id) => id !== spotId),
+                };
+            }
+            return p;
+        });
+
+        // 4. Mark in persistent deleted spot IDs and remove from saved personal spots
+        const updatedDeleted = Array.from(new Set([...(deletedPersonalSpotIds || []), spotId]));
+        if (typeof window !== 'undefined') {
+            try {
+                localStorage.setItem('wandersketch_deleted_spot_ids', JSON.stringify(updatedDeleted));
+                const rawSaved = localStorage.getItem('wandersketch_saved_personal_spot_ids');
+                const savedList: string[] = rawSaved ? JSON.parse(rawSaved) : [];
+                localStorage.setItem(
+                    'wandersketch_saved_personal_spot_ids',
+                    JSON.stringify(savedList.filter((id: string) => id !== spotId))
+                );
+            } catch {}
+        }
+
+        set({
+            deletedPersonalSpotIds: updatedDeleted,
+            zones: updatedZones,
+            plannerBuffer: {
+                ...plannerBuffer,
+                spotIds: updatedSpotIds,
+            },
+            savedPlans: updatedPlans,
+        });
+
+        // 5. Delete from database
+        await deleteCustomSpotFromDb(spotId);
     },
 
     savePlannerAsNewPlan: async () => {

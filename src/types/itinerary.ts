@@ -1,7 +1,9 @@
-export type ScenicZoneKey = 'toronto_distillery' | 'kyoto_higashiyama' | 'paris_marais';
+export type ScenicZoneKey = string;
 export type RouteTheme = 'classic' | 'culture' | 'rain';
 export type AppStage = 'planner' | 'plans' | 'map';
 export type AppMode = 'planning' | 'on-trip';
+export type DrawerTab = 'guide' | 'curator';
+export type MapDiscoveryMode = 'ambient' | 'itinerary';
 
 export interface Landmark {
     id: string;
@@ -15,6 +17,10 @@ export interface Landmark {
     audioNote: string;
     panoUrl: string;
     tips: string;
+    isCustom?: boolean;
+    destinationId?: string;
+    importanceScore?: number; // 0 to 100
+    prominenceTier?: 1 | 2 | 3; // 1 = major landmark, 2 = district highlight, 3 = street amenity
 }
 
 export interface ScenicFacility {

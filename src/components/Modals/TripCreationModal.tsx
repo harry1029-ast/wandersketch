@@ -130,6 +130,10 @@ export const TripCreationModal: React.FC<TripCreationModalProps> = ({ isOpen, on
                 let matchedZoneKey: ScenicZoneKey = 'toronto_distillery';
                 if (destLower.includes('kyoto')) matchedZoneKey = 'kyoto_higashiyama';
                 else if (destLower.includes('paris')) matchedZoneKey = 'paris_marais';
+                else if (destLower.includes('york') || destLower.includes('nyc') || destLower.includes('manhattan')) matchedZoneKey = 'new_york_manhattan';
+                else if (destLower.includes('london') || destLower.includes('westminster')) matchedZoneKey = 'london_westminster';
+                else if (destLower.includes('tokyo') || destLower.includes('shinjuku')) matchedZoneKey = 'tokyo_shinjuku';
+                else if (destLower.includes('rome') || destLower.includes('roma')) matchedZoneKey = 'rome_centro';
 
                 await createTripWithDays(
                     {
@@ -213,12 +217,12 @@ export const TripCreationModal: React.FC<TripCreationModalProps> = ({ isOpen, on
                         />
                         <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
                             <span className="text-[11px] font-bold text-paper-700">Quick Picks:</span>
-                            {['Toronto Distillery', 'Kyoto Higashiyama', 'Paris Le Marais', 'Tokyo', 'Rome'].map((dest) => (
+                            {['Toronto Distillery', 'Kyoto Higashiyama', 'Paris Le Marais', 'New York Manhattan', 'London Westminster', 'Tokyo Shinjuku', 'Rome Centro'].map((dest) => (
                                 <button
                                     key={dest}
                                     type="button"
                                     onClick={() => handleQuickDest(dest)}
-                                    className="px-2 py-0.5 rounded-lg bg-paper-200 hover:bg-paper-300 border border-paper-900 text-[11px] font-bold text-paper-900 transition"
+                                    className="px-2 py-0.5 rounded-lg bg-paper-200 hover:bg-paper-300 border border-paper-900 text-[11px] font-bold text-paper-900 transition cursor-pointer"
                                 >
                                     {dest}
                                 </button>

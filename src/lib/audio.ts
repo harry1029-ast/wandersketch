@@ -1,8 +1,15 @@
 import * as Tone from 'tone';
 
+import { triggerHaptic } from './mobileFeedback';
+
 let soundSynth: Tone.PolySynth | null = null;
 
 export function playChime(type: 'tap' | 'stamp' | 'bell' = 'tap') {
+    // Tactile mobile haptic feedback
+    if (type === 'tap') triggerHaptic('tap');
+    else if (type === 'stamp') triggerHaptic('stamp');
+    else if (type === 'bell') triggerHaptic('success');
+
     try {
         if (!soundSynth && typeof window !== 'undefined') {
             soundSynth = new Tone.PolySynth(Tone.Synth, {

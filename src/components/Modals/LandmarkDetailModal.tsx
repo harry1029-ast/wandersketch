@@ -3,20 +3,32 @@
 import React from 'react';
 import { Landmark } from '@/types/itinerary';
 import { playChime, playVoiceNarrator } from '@/lib/audio';
-import { X, SpeakerHigh, Lightbulb, Camera, Coins } from '@phosphor-icons/react';
+import { isCommercialChain } from '@/lib/chainBrands';
+import { X, SpeakerHigh, Lightbulb, Camera, Coins, Trash } from '@phosphor-icons/react';
 
 interface LandmarkDetailModalProps {
     landmark: Landmark | null;
     onClose: () => void;
     onRecordExpense?: () => void;
+    onAddToRoute?: () => void;
+    onDeleteSpot?: (id: string) => void;
+    isInRoute?: boolean;
 }
 
 export const LandmarkDetailModal: React.FC<LandmarkDetailModalProps> = ({
     landmark,
     onClose,
     onRecordExpense,
+    onAddToRoute,
+    onDeleteSpot,
+    isInRoute = false,
 }) => {
     if (!landmark) return null;
+
+    const isChain = isCommercialChain(landmark.name);
+    const displayTag = isChain && landmark.tag === 'CAFE' ? 'COFFEE' : landmark.tag;
+    const displayDesc = isChain && landmark.desc.includes('Artisan cafe') ? 'Coffee & quick refreshments' : landmark.desc;
+    const displayTip = isChain && landmark.tips?.includes('Artisan cafe') ? 'Quick refreshments & cafe seating' : landmark.tips;
 
     const handlePlayVoice = () => {
         playChime('tap');
@@ -33,7 +45,7 @@ export const LandmarkDetailModal: React.FC<LandmarkDetailModalProps> = ({
                     />
                     <div>
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-watercolor-brick text-white uppercase tracking-wider font-mono">
-                            {landmark.tag}
+                            {displayTag}
                         </span>
                         <h3 className="font-black text-paper-900 text-base font-serif leading-tight mt-1">
                             {landmark.name}
@@ -46,7 +58,7 @@ export const LandmarkDetailModal: React.FC<LandmarkDetailModalProps> = ({
             </div>
 
             <p className="text-xs text-paper-800 leading-relaxed mb-3">
-                {landmark.desc}
+                {displayDesc}
             </p>
 
             <div className="bg-amber-50 rounded-xl p-2.5 border border-amber-200 mb-3 text-xs text-paper-900">
@@ -54,32 +66,62 @@ export const LandmarkDetailModal: React.FC<LandmarkDetailModalProps> = ({
                     <Lightbulb size={14} weight="fill" />
                     <span>Visiting Tip</span>
                 </div>
-                <p className="text-[11px] text-paper-800">{landmark.tips}</p>
+                <p className="text-[11px] text-paper-800">{displayTip}</p>
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-paper-300">
-                <div className="flex items-center gap-1.5">
+            <div className="flex items-center justify-between pt-2 border-t border-paper-300 gap-2">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                    {onAddToRoute && (
+                        isInRoute ? (
+                            <span className="px-2 py-1 bg-amber-100 text-amber-950 rounded-xl font-bold text-xs border border-amber-300 flex items-center gap-1">
+                                ✓ In Route
+                            </span>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    playChime('stamp');
+                                    onAddToRoute();
+                                }}
+                                className="px-2.5 py-1 bg-amber-400 hover:bg-amber-500 text-paper-900 rounded-xl font-bold text-xs border border-paper-900 shadow-xs flex items-center gap-1 transition active:scale-95"
+                                title="Add this landmark as a stop in your walking route"
+                            >
+                                <span>➕ Add to Route</span>
+                            </button>
+                        )
+                    )}
                     {onRecordExpense && (
                         <button
                             type="button"
                             onClick={onRecordExpense}
-                            className="px-2.5 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-950 rounded-xl font-bold text-xs border border-paper-900 shadow-xs flex items-center gap-1 transition active:scale-95"
+                            className="px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-950 rounded-xl font-bold text-xs border border-paper-900 shadow-xs flex items-center gap-1 transition active:scale-95"
                             title="Record actual spend for this landmark"
                         >
                             <Coins size={14} weight="bold" className="text-emerald-700" />
                             <span>Record</span>
                         </button>
                     )}
-                    <span className="text-[11px] font-bold text-paper-700 flex items-center gap-1">
-                        <Camera size={14} /> Photo Landmark
-                    </span>
+                    {onDeleteSpot && (landmark.isCustom || landmark.tag === 'Personal Spot') && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                playChime('tap');
+                                onDeleteSpot(landmark.id);
+                            }}
+                            className="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-900 rounded-xl font-bold text-xs border border-red-300 shadow-xs flex items-center gap-1 transition active:scale-95"
+                            title="Delete this personal spot"
+                        >
+                            <Trash size={13} weight="bold" />
+                            <span>Delete</span>
+                        </button>
+                    )}
                 </div>
                 <button
                     onClick={handlePlayVoice}
-                    className="px-3.5 py-1.5 bg-watercolor-brick hover:bg-red-700 text-white rounded-xl font-bold text-xs border border-paper-900 shadow-stamp flex items-center gap-1.5 transition active:scale-95"
+                    className="px-3 py-1 bg-watercolor-brick hover:bg-red-700 text-white rounded-xl font-bold text-xs border border-paper-900 shadow-stamp flex items-center gap-1.5 transition active:scale-95 shrink-0"
                 >
                     <SpeakerHigh size={15} weight="fill" />
-                    <span>Play Audio Guide</span>
+                    <span>Audio</span>
                 </button>
             </div>
         </div>

@@ -22,13 +22,14 @@ interface QuickExcursionModalProps {
 }
 
 export const QuickExcursionModal: React.FC<QuickExcursionModalProps> = ({ isOpen, onClose }) => {
-    const { createQuickExcursion } = useItineraryStore();
+    const { createQuickExcursion, zones } = useItineraryStore();
+    const allZones = zones || MASTER_ZONES;
     const [selectedZone, setSelectedZone] = useState<ScenicZoneKey>('kyoto_higashiyama');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     if (!isOpen) return null;
 
-    const zone = MASTER_ZONES[selectedZone];
+    const zone = allZones[selectedZone] || allZones.toronto_distillery || Object.values(allZones)[0];
 
     const handleCreate = async () => {
         setIsSubmitting(true);
@@ -76,9 +77,9 @@ export const QuickExcursionModal: React.FC<QuickExcursionModalProps> = ({ isOpen
                     <label className="text-xs font-black uppercase text-paper-900 tracking-wider">
                         Choose Destination District
                     </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                        {(Object.keys(MASTER_ZONES) as ScenicZoneKey[]).map((zk) => {
-                            const z = MASTER_ZONES[zk];
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-56 overflow-y-auto p-1">
+                        {Object.keys(allZones).map((zk) => {
+                            const z = allZones[zk];
                             const isSelected = selectedZone === zk;
                             return (
                                 <button
@@ -88,7 +89,7 @@ export const QuickExcursionModal: React.FC<QuickExcursionModalProps> = ({ isOpen
                                         playChime('tap');
                                         setSelectedZone(zk);
                                     }}
-                                    className={`p-3 rounded-2xl border-2 text-left transition flex flex-col justify-between gap-2 ${
+                                    className={`p-3 rounded-2xl border-2 text-left transition flex flex-col justify-between gap-2 cursor-pointer ${
                                         isSelected
                                             ? 'bg-amber-100 border-paper-900 shadow-stamp ring-2 ring-amber-400'
                                             : 'bg-paper-50 hover:bg-paper-200 border-paper-400 text-paper-800'

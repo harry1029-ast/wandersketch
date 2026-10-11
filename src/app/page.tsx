@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useItineraryStore } from '@/store/useItineraryStore';
 import { Header } from '@/components/Header';
 import { TripHubView } from '@/components/TripHubView';
 import { RouteCuratorView } from '@/components/RouteCuratorView';
 import { ScenicGuideView } from '@/components/ScenicGuideView';
 import { TripCreationModal } from '@/components/Modals/TripCreationModal';
+import { QuickExpenseModal } from '@/components/Modals/QuickExpenseModal';
+import { MobileNavBar } from '@/components/MobileNavBar';
 import { Compass, CalendarBlank } from '@phosphor-icons/react';
 
 export default function Home() {
@@ -20,6 +22,8 @@ export default function Home() {
     isTripModalOpen,
     setTripModalOpen,
   } = useItineraryStore();
+
+  const [isMobileExpenseOpen, setIsMobileExpenseOpen] = useState(false);
 
   useEffect(() => {
     initializeFromDatabase();
@@ -78,6 +82,18 @@ export default function Home() {
       <TripCreationModal
         isOpen={isTripModalOpen}
         onClose={() => setTripModalOpen(false)}
+      />
+
+      <QuickExpenseModal
+        isOpen={isMobileExpenseOpen}
+        onClose={() => setIsMobileExpenseOpen(false)}
+        dayNumber={activeDayNumber}
+        targetItem={null}
+      />
+
+      {/* Mobile-First Bottom Navigation Bar */}
+      <MobileNavBar
+        onQuickExpenseClick={() => setIsMobileExpenseOpen(true)}
       />
     </main>
   );

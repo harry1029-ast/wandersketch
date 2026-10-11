@@ -48,6 +48,7 @@ export const TripHubView: React.FC = () => {
         updatePlanTitle,
         setStage,
         setTripModalOpen,
+        zones,
         // Multi-day itinerary & budget state
         currentItineraryDays,
         activeDayNumber,
@@ -59,6 +60,8 @@ export const TripHubView: React.FC = () => {
         removeItineraryItem,
         updateItemCost,
         updatePlannerZone,
+        launchItineraryOnMap,
+        launchAmbientDiscoveryOnMap,
     } = useItineraryStore();
 
     // Gallery local states
@@ -78,8 +81,9 @@ export const TripHubView: React.FC = () => {
     const [newItemCategory, setNewItemCategory] = useState<ExpenseCategory>('ticket');
     const [newItemCost, setNewItemCost] = useState(25);
 
+    const allZones = zones || MASTER_ZONES;
     const activePlan = savedPlans.find((p) => p.id === (selectedTripViewId || activePlanId)) || savedPlans[0];
-    const zone = MASTER_ZONES[activePlan?.zoneKey] || MASTER_ZONES.toronto_distillery;
+    const zone = allZones[activePlan?.zoneKey] || allZones.toronto_distillery || Object.values(allZones)[0];
 
     const activeDay =
         currentItineraryDays.find((d) => d.dayNumber === activeDayNumber) ||
@@ -123,13 +127,30 @@ export const TripHubView: React.FC = () => {
 
     const handleLaunchOnMap = () => {
         playChime('stamp');
-        setStage('map');
+        if (activePlan) {
+            launchItineraryOnMap(activePlan.id);
+        } else {
+            launchItineraryOnMap();
+        }
     };
 
     const handleEditRouteInCurator = () => {
         playChime('stamp');
-        updatePlannerZone(activePlan.zoneKey);
-        setStage('planner');
+        if (activePlan) {
+            updatePlannerZone(activePlan.zoneKey);
+            useItineraryStore.setState({
+                plannerBuffer: {
+                    title: activePlan.title,
+                    zoneKey: activePlan.zoneKey,
+                    spotIds: [...activePlan.spotIds],
+                },
+                drawerTab: 'curator',
+                mapDiscoveryMode: 'ambient',
+                currentStage: 'map',
+            });
+        } else {
+            launchAmbientDiscoveryOnMap();
+        }
     };
 
     const handleAddItemSubmit = (e: React.FormEvent) => {
@@ -175,7 +196,7 @@ export const TripHubView: React.FC = () => {
     };
 
     return (
-        <section className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-rice-paper">
+        <section className="flex-1 overflow-y-auto p-4 pb-24 md:pb-8 sm:p-6 lg:p-8 bg-rice-paper">
             <div className="max-w-5xl mx-auto space-y-6">
 
                 {/* ======================================================== */}
@@ -233,7 +254,7 @@ export const TripHubView: React.FC = () => {
                         {/* Plans & Trips Grid */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                             {savedPlans.map((plan) => {
-                                const planZone = MASTER_ZONES[plan.zoneKey] || MASTER_ZONES.toronto_distillery;
+                                const planZone = allZones[plan.zoneKey] || allZones.toronto_distillery || Object.values(allZones)[0];
                                 const isExcursion = plan.isExcursion || plan.tag?.toLowerCase().includes('excursion') || plan.tag?.includes('1-Day');
 
                                 return (

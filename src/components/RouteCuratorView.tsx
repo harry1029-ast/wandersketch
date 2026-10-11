@@ -29,12 +29,14 @@ export const RouteCuratorView: React.FC = () => {
         savePlannerAsNewPlan,
         turnPlannerRouteIntoExcursion,
         setStage,
+        zones,
     } = useItineraryStore();
 
     const [planTitle, setPlanTitle] = useState(plannerBuffer.title);
     const [isConverting, setIsConverting] = useState(false);
 
-    const zone = MASTER_ZONES[plannerBuffer.zoneKey] || MASTER_ZONES.toronto_distillery;
+    const allZones = zones || MASTER_ZONES;
+    const zone = allZones[plannerBuffer.zoneKey] || allZones.toronto_distillery || Object.values(allZones)[0];
     const orderedLandmarks = plannerBuffer.spotIds
         .map((id) => zone.landmarksPool.find((l) => l.id === id))
         .filter(Boolean);
@@ -48,9 +50,11 @@ export const RouteCuratorView: React.FC = () => {
 
     const handleAddPresetCoffee = async () => {
         playChime('stamp');
-        const available = zone.landmarksPool.find((l) => !plannerBuffer.spotIds.includes(l.id));
+        const available = zone.landmarksPool.find(
+            (l) => !plannerBuffer.spotIds.includes(l.id) && !l.isCustom && l.tag !== 'Personal Spot'
+        );
         if (available) {
-            await addPlannerCustomStop(available.name, available.coords, available.desc);
+            await addPlannerCustomStop(available.name, available.coords, available.desc, true);
         }
     };
 
@@ -77,7 +81,7 @@ export const RouteCuratorView: React.FC = () => {
     };
 
     return (
-        <section className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-rice-paper">
+        <section className="flex-1 overflow-y-auto p-4 pb-24 md:pb-8 sm:p-6 lg:p-8 bg-rice-paper">
             <div className="max-w-4xl mx-auto space-y-6">
 
                 {/* Top Banner Ribbon */}
@@ -170,9 +174,11 @@ export const RouteCuratorView: React.FC = () => {
                                 onChange={handleZoneSelect}
                                 className="w-full bg-paper-100 border-2 border-paper-300 focus:border-paper-900 rounded-xl px-3 py-1.5 text-xs font-bold text-paper-900 focus:outline-none cursor-pointer"
                             >
-                                <option value="toronto_distillery">Toronto · Historic Distillery & Waterfront</option>
-                                <option value="kyoto_higashiyama">Kyoto · Higashiyama Temple Walk</option>
-                                <option value="paris_marais">Paris · Le Marais Courtyards</option>
+                                {Object.values(allZones).map((z) => (
+                                    <option key={z.id} value={z.id}>
+                                        {z.city} · {z.name}
+                                    </option>
+                                ))}
                             </select>
                         </div>
                     </div>
@@ -251,7 +257,7 @@ export const RouteCuratorView: React.FC = () => {
                             currentZone={zone}
                             onSelectSpot={async (name, coords, address) => {
                                 playChime('stamp');
-                                await addPlannerCustomStop(name, coords, address);
+                                await addPlannerCustomStop(name, coords, address, true);
                             }}
                         />
                     </div>

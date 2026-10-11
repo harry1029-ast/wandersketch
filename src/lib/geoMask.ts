@@ -78,7 +78,8 @@ export function calculateItineraryBoundingCircle(
 
     // Adaptive breathing margin: comfortable +28% for compact clusters, +15% for wider journeys
     const effectiveMargin = maxDist > 500 ? 1.15 : maxDist > 250 ? 1.22 : marginFactor;
-    const radiusMeters = Math.max(minRadiusMeters, maxDist * effectiveMargin);
+    // Cap radius at 25km to prevent gigantic million-pixel clip-paths on intercity routes
+    const radiusMeters = Math.min(25000, Math.max(minRadiusMeters, maxDist * effectiveMargin));
 
     return {
         center,

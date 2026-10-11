@@ -110,20 +110,34 @@ export async function fetchAllCustomSpots(): Promise<Landmark[]> {
         name: c.name,
         category: (c.category || 'craft') as any,
         color: c.color || '#f4c568',
-        coords: [c.lat || 0, c.lng || 0] as [number, number],
+        coords: [
+            c.lat !== undefined && c.lat !== null
+                ? Number(c.lat)
+                : (c.location?.coordinates ? Number(c.location.coordinates[1]) : 0),
+            c.lng !== undefined && c.lng !== null
+                ? Number(c.lng)
+                : (c.location?.coordinates ? Number(c.location.coordinates[0]) : 0),
+        ] as [number, number],
         svgSnippet: `
       <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-md">
         <circle cx="50" cy="50" r="34" fill="${c.color || '#f4c568'}" stroke="#2b261b" stroke-width="3"/>
-        <text x="50" y="58" font-size="22" text-anchor="middle">✨</text>
+        <text x="50" y="58" font-size="22" text-anchor="middle">⭐</text>
       </svg>
     `,
         tag: c.tag || 'Personal Spot',
         desc: c.description || c.address || '',
         audioNote: c.audio_note || `You have arrived at ${c.name}.`,
         panoUrl: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1200&q=80',
-        tips: 'Discovered Community Spot',
+        tips: 'Personal Spot saved by user',
+        isCustom: true,
     }));
 }
+
+const VALID_DB_DEST_IDS = new Set([
+    'toronto_distillery',
+    'kyoto_higashiyama',
+    'paris_marais',
+]);
 
 export async function saveCustomSpotToDb(spot: {
     id: string;
@@ -137,25 +151,64 @@ export async function saveCustomSpotToDb(spot: {
     description?: string;
     audioNote?: string;
 }) {
-    const { data, error } = await supabase.rpc('create_custom_spot', {
-        spot_id: spot.id,
-        dest_id: spot.destinationId,
-        spot_name: spot.name,
-        spot_category: spot.category,
-        spot_color: spot.color,
-        lat: spot.coords[0],
-        lng: spot.coords[1],
-        spot_address: spot.address || '',
-        spot_tag: spot.tag || 'Personal Spot',
-        spot_description: spot.description || '',
-        spot_audio_note: spot.audioNote || `Arrived at ${spot.name}`,
-    });
+    // Only pass dest_id if it exists in DB destinations table, otherwise pass null to avoid foreign key violation
+    const destId = VALID_DB_DEST_IDS.has(spot.destinationId) ? spot.destinationId : null;
 
-    if (error) {
-        console.error('Failed to persist custom spot to PostGIS:', error);
+    try {
+        const { data, error } = await supabase.rpc('create_custom_spot', {
+            spot_id: spot.id,
+            dest_id: destId,
+            spot_name: spot.name,
+            spot_category: spot.category,
+            spot_color: spot.color,
+            lat: spot.coords[0],
+            lng: spot.coords[1],
+            spot_address: spot.address || '',
+            spot_tag: spot.tag || 'Personal Spot',
+            spot_description: spot.description || '',
+            spot_audio_note: spot.audioNote || `Arrived at ${spot.name}`,
+        });
+
+        if (error) {
+            // If foreign key constraint triggered, retry with null dest_id
+            if (destId !== null && error.code === '23503') {
+                const retry = await supabase.rpc('create_custom_spot', {
+                    spot_id: spot.id,
+                    dest_id: null,
+                    spot_name: spot.name,
+                    spot_category: spot.category,
+                    spot_color: spot.color,
+                    lat: spot.coords[0],
+                    lng: spot.coords[1],
+                    spot_address: spot.address || '',
+                    spot_tag: spot.tag || 'Personal Spot',
+                    spot_description: spot.description || '',
+                    spot_audio_note: spot.audioNote || `Arrived at ${spot.name}`,
+                });
+                if (!retry.error) return retry.data;
+            }
+            console.warn('Could not persist custom spot to PostGIS (saved locally):', error.message || error);
+            return null;
+        }
+        return data;
+    } catch (err: any) {
+        console.warn('Network error saving custom spot to database (saved locally):', err?.message || err);
         return null;
     }
-    return data;
+}
+
+export async function deleteCustomSpotFromDb(spotId: string): Promise<boolean> {
+    try {
+        const { error } = await supabase.from('custom_spots').delete().eq('id', spotId);
+        if (error) {
+            console.warn('Failed to delete custom spot from Supabase:', error);
+            return false;
+        }
+        return true;
+    } catch (err) {
+        console.warn('Error deleting custom spot from Supabase:', err);
+        return false;
+    }
 }
 
 export interface DynamicMapSpot {
@@ -169,6 +222,59 @@ export interface DynamicMapSpot {
     desc: string;
     audioNote: string;
     isCustom: boolean;
+    importanceScore?: number;
+    prominenceTier?: 1 | 2 | 3;
+}
+
+export async function reverseGeocodeCoords(lat: number, lng: number): Promise<{
+    district: string;
+    city: string;
+    country: string;
+    displayName: string;
+    coords: [number, number];
+    bounds?: [[number, number], [number, number]];
+} | null> {
+    try {
+        const res = await fetch(`/api/geocode?lat=${lat}&lng=${lng}&reverse=1`);
+        if (!res.ok) return null;
+        const data = await res.json();
+        return data.result || null;
+    } catch (err) {
+        console.warn('Reverse geocode failed:', err);
+        return null;
+    }
+}
+
+export async function fetchAmbientPOIsInRadius(
+    lat: number,
+    lng: number,
+    radius: number = 1200
+): Promise<DynamicMapSpot[]> {
+    try {
+        const res = await fetch(`/api/pois?lat=${lat}&lng=${lng}&radius=${radius}`);
+        if (!res.ok) return [];
+        const data = await res.json();
+        return (data.pois || []).map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            category: p.category,
+            color: p.color,
+            coords: p.coords,
+            svgSnippet: p.svgSnippet,
+            tag: p.tag,
+            desc: p.desc,
+            audioNote: p.audioNote,
+            isCustom: false,
+            importanceScore: p.importanceScore,
+            prominenceTier: p.prominenceTier,
+        }));
+    } catch (err: any) {
+        // Silently handle expected dev-server reloads or browser socket disconnects
+        if (err?.name !== 'AbortError' && !err?.message?.includes('Failed to fetch')) {
+            console.warn('Could not fetch ambient POIs:', err);
+        }
+        return [];
+    }
 }
 
 export async function fetchSpotsInEnvelope(
@@ -177,30 +283,61 @@ export async function fetchSpotsInEnvelope(
     maxLat: number,
     maxLng: number
 ): Promise<DynamicMapSpot[]> {
-    const { data, error } = await supabase.rpc('get_spots_in_envelope', {
-        min_lat: minLat,
-        min_lng: minLng,
-        max_lat: maxLat,
-        max_lng: maxLng,
-    });
+    const centerLat = (minLat + maxLat) / 2;
+    const centerLng = (minLng + maxLng) / 2;
 
-    if (error || !data) {
-        console.warn('Envelope bounding lookup failed:', error);
-        return [];
+    const fetchDbSpots = async (): Promise<DynamicMapSpot[]> => {
+        try {
+            const { data, error } = await supabase.rpc('get_spots_in_envelope', {
+                min_lat: minLat,
+                min_lng: minLng,
+                max_lat: maxLat,
+                max_lng: maxLng,
+            });
+            // Strictly filter out custom/personal spots from ambient discovery queries.
+            // Personal spots are only rendered from the user's active personal spots pool.
+            return data
+                .filter((item: any) => !item.is_custom && item.tag !== 'Personal Spot' && !(typeof item.id === 'string' && (item.id.startsWith('custom-') || item.id.startsWith('test-spot-'))))
+                .map((item: any) => ({
+                    id: item.id,
+                    name: item.name,
+                    category: item.category,
+                    color: item.color,
+                    coords: [item.lat, item.lng] as [number, number],
+                    svgSnippet: item.svg_snippet,
+                    tag: item.tag,
+                    desc: item.description,
+                    audioNote: item.audio_note,
+                    isCustom: false,
+                }));
+        } catch {
+            return [];
+        }
+    };
+
+    const dLat = ((maxLat - minLat) * 111000) / 2;
+    const dLng = ((maxLng - minLng) * 111000 * Math.cos((centerLat * Math.PI) / 180)) / 2;
+    const dynamicRadius = Math.min(Math.max(Math.round(Math.sqrt(dLat * dLat + dLng * dLng)), 600), 1200);
+
+    const [dbResult, ambientPois] = await Promise.all([
+        fetchDbSpots(),
+        fetchAmbientPOIsInRadius(centerLat, centerLng, dynamicRadius),
+    ]);
+
+    // Database custom spots take priority, then ambient POIs fill in
+    const seenNames = new Set(dbResult.map((s: DynamicMapSpot) => s.name.toLowerCase()));
+    const seenIds = new Set(dbResult.map((s: DynamicMapSpot) => s.id));
+    const merged: DynamicMapSpot[] = [...dbResult];
+
+    for (const poi of ambientPois) {
+        if (!seenIds.has(poi.id) && !seenNames.has(poi.name.toLowerCase())) {
+            seenIds.add(poi.id);
+            seenNames.add(poi.name.toLowerCase());
+            merged.push(poi);
+        }
     }
 
-    return data.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        category: item.category,
-        color: item.color,
-        coords: [item.lat, item.lng] as [number, number],
-        svgSnippet: item.svg_snippet,
-        tag: item.tag,
-        desc: item.description,
-        audioNote: item.audio_note,
-        isCustom: Boolean(item.is_custom),
-    }));
+    return merged;
 }
 
 // -----------------------------------------------------------------------------
