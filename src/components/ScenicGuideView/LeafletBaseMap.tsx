@@ -13,6 +13,9 @@ import {
     BoundingCircle,
 } from '@/lib/geoMask';
 import { isCommercialChain } from '@/lib/chainBrands';
+import { CITY_PACKS } from '@/data/cityPacks';
+import { DiscoveryCategory, getLandmarkCategoryGroup } from '@/lib/landmarkCategories';
+import { playChime } from '@/lib/audio';
 
 interface LeafletBaseMapProps {
     zone: ScenicZone;
@@ -33,6 +36,8 @@ interface LeafletBaseMapProps {
     onDeletePersonalSpot?: (spotId: string) => void;
     onMapClick?: (coords: [number, number]) => void;
     mapDiscoveryMode?: string;
+    categoryFilter?: DiscoveryCategory;
+    onCategoryCountChange?: (count: number) => void;
 }
 
 export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
@@ -54,6 +59,8 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
     onDeletePersonalSpot,
     onMapClick,
     mapDiscoveryMode,
+    categoryFilter = 'all',
+    onCategoryCountChange,
 }) => {
     const {
         currentItineraryDays,
@@ -587,12 +594,64 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
 
         const zoom = map.getZoom();
         const itineraryIndexMap = new Map(activeStopIds.map((id, index) => [id, index + 1]));
+        const activeCat = categoryFilter || 'all';
+
+        // 1. Filter landmarks by active category (always preserving route stops & personal spots)
+        const candidateLandmarks = landmarks.filter((lm) => {
+            const isStop = itineraryIndexMap.has(lm.id);
+            const isPersonal = Boolean(lm.isCustom || lm.tag === 'Personal Spot' || (typeof lm.id === 'string' && lm.id.startsWith('custom-')));
+            if (isStop || isPersonal) return true;
+            if (activeCat === 'all') return true;
+            return getLandmarkCategoryGroup(lm) === activeCat;
+        });
+
+        // 2. Macro Territorial View (zoom <= 12): ZERO ambient icons! Render Illustrated District Badges instead.
+        if (zoom <= 12) {
+            const uniquePacks = Array.from(new Set(Object.values(CITY_PACKS)));
+            const viewBounds = map.getBounds();
+            for (const pack of uniquePacks) {
+                if (!pack.center || !pack.districtName) continue;
+                if (!viewBounds.contains(L.latLng(pack.center[0], pack.center[1]))) continue;
+
+                const count = pack.landmarks?.length || 0;
+                const shortName = pack.districtName.replace('Hong Kong • ', '');
+                const badgeHtml = `
+                    <div class="cursor-pointer group flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-paper-50/95 border-2 border-paper-900 shadow-stamp transition-transform hover:scale-110 active:scale-95 select-none backdrop-blur-xs">
+                        <span class="text-sm">🏮</span>
+                        <span class="text-xs font-serif font-black text-paper-900 whitespace-nowrap">${shortName}</span>
+                        <span class="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full bg-amber-200 text-amber-950">${count} spots</span>
+                    </div>
+                `;
+                const icon = L.divIcon({
+                    className: 'custom-district-badge-pin',
+                    html: badgeHtml,
+                    iconSize: [140, 36],
+                    iconAnchor: [70, 18],
+                });
+                const marker = L.marker(pack.center, { icon, zIndexOffset: 500 });
+                marker.on('click', () => {
+                    playChime('stamp');
+                    map.flyTo(pack.center, 15, { duration: 1.2 });
+                });
+                layer.addLayer(marker);
+            }
+        }
 
         // Screen-space collision avoidance points (container coordinates [x, y])
         const placedScreenPoints: { x: number; y: number }[] = [];
 
+        // Max ambient spots allowed on screen based on zoom and category
+        const maxAmbientAllowed =
+            zoom <= 12
+                ? 0 // ZERO ambient spots at macro overview
+                : zoom <= 14
+                ? (activeCat === 'all' ? 8 : 16) // Sub-region / District view (top anchors only)
+                : (activeCat === 'all' ? 18 : 28); // Neighborhood walk (max 18-28 spots)
+
+        let renderedAmbientCount = 0;
+
         // Prioritize itinerary stops first, then personal spots, then sort by importance score descending, and chains last
-        const sortedLandmarks = [...landmarks].sort((a, b) => {
+        const sortedLandmarks = [...candidateLandmarks].sort((a, b) => {
             const aIsStop = itineraryIndexMap.has(a.id);
             const bIsStop = itineraryIndexMap.has(b.id);
             if (aIsStop && !bIsStop) return -1;
@@ -628,42 +687,28 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
             );
             const isChain = isCommercialChain(lm.name);
 
-            // --- 1. Level of Detail (LOD) Zoom Gating by Importance ---
+            // --- 1. Level of Detail (LOD) & Density Capping ---
             if (!isItineraryStop && !isPersonalSpot) {
-                const isDining =
-                    lm.category === 'craft' ||
-                    lm.tag === 'CAFE' ||
-                    lm.tag === 'COFFEE' ||
-                    lm.tag === 'BAKERY' ||
-                    lm.tag === 'RESTAURANT' ||
-                    lm.tag === 'FAST FOOD' ||
-                    lm.tag === 'DINING';
-
-                // Regional overview (zoom <= 14): HIDE ambient dining/cafes completely!
-                // Keep the macro illustrated map clean and focused on anchor destinations (malls, museums, temples, parks)
-                if (zoom <= 14 && isDining) {
+                // At macro zoom <= 12: hide ALL ambient spots completely!
+                if (zoom <= 12) {
                     return;
                 }
 
-                const tier =
-                    lm.prominenceTier ||
-                    (lm.importanceScore && lm.importanceScore >= 68
-                        ? 1
-                        : lm.importanceScore && lm.importanceScore >= 42
-                        ? 2
-                        : 3);
+                // Strict budget cap: don't overwhelm canvas
+                if (renderedAmbientCount >= maxAmbientAllowed) {
+                    return;
+                }
 
-                // Regional overview (zoom <= 13): ONLY show Tier 1 major landmarks & icons
-                if (zoom <= 13 && tier > 1) {
-                    return;
-                }
-                // Neighborhood walk (zoom 14-15): Show Tier 1 + Tier 2 (hide minor street amenities)
-                if (zoom <= 15 && tier > 2) {
-                    return;
-                }
-                // Ambient chain venues: Do not show at mid-zoom (zoom <= 14) to avoid canvas clutter.
-                if (isChain && zoom <= 14) {
-                    return;
+                if (activeCat === 'all') {
+                    const tier = lm.prominenceTier || (lm.importanceScore && lm.importanceScore >= 85 ? 1 : 2);
+                    // Regional overview (zoom <= 14): ONLY show Tier 1 flagship anchors
+                    if (zoom <= 14 && tier > 1) {
+                        return;
+                    }
+                    // Ambient chain venues: Do not show at mid-zoom
+                    if (isChain && zoom <= 15) {
+                        return;
+                    }
                 }
             }
 
@@ -672,27 +717,16 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
 
             // --- 2. Screen-Space Collision Avoidance ---
             if (!isItineraryStop) {
-                const isDining =
-                    lm.category === 'craft' ||
-                    lm.tag === 'CAFE' ||
-                    lm.tag === 'COFFEE' ||
-                    lm.tag === 'BAKERY' ||
-                    lm.tag === 'RESTAURANT' ||
-                    lm.tag === 'FAST FOOD' ||
-                    lm.tag === 'DINING';
-
-                const tier =
-                    lm.prominenceTier ||
-                    (lm.importanceScore && lm.importanceScore >= 68 ? 1 : 2);
                 const collisionRadius = isPersonalSpot
                     ? 28
-                    : isDining
-                    ? 38 // Wider spacing for dining to prevent cafes clumping together on the same block
-                    : isChain
-                    ? 18
-                    : tier === 1
-                    ? (zoom >= 16 ? 24 : zoom === 15 ? 18 : 22)
-                    : (zoom >= 16 ? 22 : zoom === 15 ? 18 : 22);
+                    : activeCat !== 'all'
+                    ? (zoom >= 16 ? 24 : zoom === 15 ? 28 : 34)
+                    : zoom >= 16
+                    ? 24
+                    : zoom === 15
+                    ? 32
+                    : 40; // Generous 40px spacing at mid-zoom
+
                 const hasCollision = placedScreenPoints.some((p) => {
                     const dx = p.x - pt.x;
                     const dy = p.y - pt.y;
@@ -704,6 +738,9 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
             }
 
             placedScreenPoints.push({ x: pt.x, y: pt.y });
+            if (!isItineraryStop && !isPersonalSpot) {
+                renderedAmbientCount++;
+            }
 
             // --- 3. Marker Visual Presentation ---
             let markerHtml = '';
@@ -800,19 +837,37 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
                     </div>
                 `;
             } else {
-                // State C2: Standard Ambient Locations: NO huge white square! Compact circular stamp coin with clean label
-                iconSize = [36, 46];
-                iconAnchor = [18, 20];
-                popupOffset = [0, -22];
+                // State C2: Standard Ambient Locations: Compact circular stamp coin
                 const emoji = getCategoryEmoji(lm);
+                // Suppress permanent text pill at zoom <= 14 to avoid overlapping text pills!
+                const showLabelAlways = zoom >= 15;
+                iconSize = showLabelAlways ? [36, 46] : [30, 30];
+                iconAnchor = showLabelAlways ? [18, 20] : [15, 15];
+                popupOffset = [0, -18];
+
+                // Use category color if active category filter
+                let pinColor = lm.color || '#f4c568';
+                if (activeCat === 'restaurant') pinColor = '#dc2626';
+                else if (activeCat === 'cafe') pinColor = '#ea580c';
+                else if (activeCat === 'hotel') pinColor = '#6366f1';
+                else if (activeCat === 'shopping') pinColor = '#9333ea';
+                else if (activeCat === 'nature') pinColor = '#15803d';
+                else if (activeCat === 'attraction') pinColor = '#0284c7';
+
+                const labelHtml = showLabelAlways
+                    ? `<div class="mt-0.5 px-1.5 py-0.2 rounded-md bg-paper-50/95 border border-paper-900/80 shadow-2xs text-[10px] font-bold text-paper-900 whitespace-nowrap max-w-[110px] truncate font-serif text-center group-hover:bg-amber-100" title="${lm.name}">
+                           ${formatPinLabel(lm.name)}
+                       </div>`
+                    : `<div class="hidden group-hover:block absolute bottom-8 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md bg-paper-50/95 border border-paper-900 shadow-sm text-[10px] font-bold text-paper-900 whitespace-nowrap z-30 font-serif pointer-events-none">
+                           ${formatPinLabel(lm.name)}
+                       </div>`;
+
                 markerHtml = `
                     <div class="relative flex flex-col items-center select-none cursor-pointer group transition-transform ${isSelected ? 'scale-120 -translate-y-1' : 'hover:scale-115 hover:-translate-y-1'}">
-                        <div class="w-8.5 h-8.5 rounded-full border-2 border-paper-900 shadow-stamp flex items-center justify-center text-sm transition-transform" style="background-color: ${lm.color || '#f4c568'}">
+                        <div class="w-8 h-8 rounded-full border-2 border-paper-900 shadow-stamp flex items-center justify-center text-sm transition-transform" style="background-color: ${pinColor}">
                             <span class="drop-shadow-xs">${emoji}</span>
                         </div>
-                        <div class="mt-0.5 px-1.5 py-0.2 rounded-md bg-paper-50/95 border border-paper-900/80 shadow-2xs text-[10px] font-bold text-paper-900 whitespace-nowrap max-w-[110px] truncate font-serif text-center group-hover:bg-amber-100" title="${lm.name}">
-                            ${formatPinLabel(lm.name)}
-                        </div>
+                        ${labelHtml}
                     </div>
                 `;
             }
@@ -943,8 +998,12 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
             marker.addTo(layer);
         });
 
+        if (onCategoryCountChange) {
+            onCategoryCountChange(renderedAmbientCount);
+        }
+
         redrawSketchedPaths();
-    }, [landmarks, activeLandmark, activeStopIds, activeItineraryLandmarks, appMode, activeDay, onRecordExpense, currentZoom]);
+    }, [landmarks, activeLandmark, activeStopIds, activeItineraryLandmarks, appMode, activeDay, onRecordExpense, currentZoom, categoryFilter, onCategoryCountChange]);
 
     useEffect(() => {
         const layer = facilitiesLayerRef.current;

@@ -223,7 +223,55 @@ function assembleRings(ways) {
 function categorizePoi(tags, name = '', districtName = '') {
     const lowerName = name.toLowerCase();
 
-    // 1. Temples, Shrines & Sacred Worship
+    // 1. Dining & Restaurants
+    if (tags.amenity === 'restaurant' || tags.amenity === 'fast_food' || tags.amenity === 'food_court') {
+        const isFastFood = tags.amenity === 'fast_food';
+        const hasWiki = Boolean(tags.wikipedia || tags.wikidata);
+        return {
+            category: 'craft',
+            color: '#dc2626',
+            tag: isFastFood ? 'FAST FOOD' : 'RESTAURANT',
+            emoji: isFastFood ? '🍔' : '🍽️',
+            desc: tags.description || tags.cuisine ? `Renowned cuisine (${tags.cuisine || 'local specialties'}) in ${districtName}.` : `Local dining and authentic cuisine in ${districtName}.`,
+            importanceScore: hasWiki ? 85 : 68,
+            prominenceTier: hasWiki ? 1 : 2,
+            categoryGroup: 'restaurant',
+        };
+    }
+
+    // 2. Cafes, Bakeries & Ice Cream
+    if (tags.amenity === 'cafe' || tags.shop === 'bakery' || tags.shop === 'pastry' || tags.amenity === 'ice_cream') {
+        const isBakery = tags.shop === 'bakery' || tags.shop === 'pastry';
+        const isIceCream = tags.amenity === 'ice_cream';
+        return {
+            category: 'craft',
+            color: '#ea580c',
+            tag: isBakery ? 'BAKERY' : isIceCream ? 'ICE CREAM' : 'CAFE',
+            emoji: isBakery ? '🥐' : isIceCream ? '🍦' : '☕',
+            desc: tags.description || `Artisanal cafe, fresh roasts, and refreshments in ${districtName}.`,
+            importanceScore: tags.wikipedia || tags.wikidata ? 82 : 64,
+            prominenceTier: 2,
+            categoryGroup: 'cafe',
+        };
+    }
+
+    // 3. Hotels & Accommodations
+    if (tags.tourism === 'hotel' || tags.tourism === 'hostel' || tags.tourism === 'guest_house') {
+        const hasWiki = Boolean(tags.wikipedia || tags.wikidata);
+        const stars = parseInt(tags.stars || '0', 10);
+        return {
+            category: 'landmark',
+            color: '#6366f1',
+            tag: 'HOTEL',
+            emoji: '🏨',
+            desc: tags.description || `Premier visitor accommodations and hospitality in ${districtName}.`,
+            importanceScore: hasWiki || stars >= 4 ? 90 : 75,
+            prominenceTier: hasWiki || stars >= 4 ? 1 : 2,
+            categoryGroup: 'hotel',
+        };
+    }
+
+    // 4. Temples, Shrines & Sacred Worship
     if (
         tags.amenity === 'place_of_worship' ||
         tags.historic === 'temple' ||
@@ -240,79 +288,106 @@ function categorizePoi(tags, name = '', districtName = '') {
             tag = 'MOSQUE';
             emoji = '🕌';
         }
+        const hasWiki = Boolean(tags.wikipedia || tags.wikidata);
         return {
             category: 'culture',
             color: '#c2410c',
             tag,
             emoji,
             desc: tags.description || `Historic ${tag.toLowerCase()} and sacred landmark in ${districtName}.`,
-            importanceScore: tags.wikipedia || tags.wikidata ? 92 : 82,
-            prominenceTier: 1,
+            importanceScore: hasWiki ? 94 : 78,
+            prominenceTier: hasWiki ? 1 : 2,
+            categoryGroup: 'culture',
         };
     }
 
-    // 2. Museums & Heritage
+    // 5. Museums & Heritage
     if (tags.tourism === 'museum' || tags.tourism === 'gallery' || tags.historic) {
+        const hasWiki = Boolean(tags.wikipedia || tags.wikidata);
         return {
             category: 'history',
             color: '#b23b23',
             tag: tags.tourism === 'museum' ? 'MUSEUM' : 'HERITAGE',
             emoji: '🏛️',
             desc: tags.description || `Historic cultural exhibition and heritage landmark in ${districtName}.`,
-            importanceScore: tags.wikipedia || tags.wikidata ? 94 : 85,
-            prominenceTier: 1,
+            importanceScore: hasWiki ? 96 : 82,
+            prominenceTier: hasWiki ? 1 : 2,
+            categoryGroup: 'culture',
         };
     }
 
-    // 3. Malls & Department Stores
+    // 6. Malls & Department Stores
     if (tags.shop === 'mall' || tags.shop === 'department_store') {
+        const hasWiki = Boolean(tags.wikipedia || tags.wikidata);
         return {
             category: 'landmark',
             color: '#9333ea',
             tag: tags.shop === 'department_store' ? 'DEPT STORE' : 'MALL',
             emoji: '🛍️',
             desc: tags.description || `Major shopping, dining, and retail complex in ${districtName}.`,
-            importanceScore: 86,
-            prominenceTier: 1,
+            importanceScore: hasWiki ? 90 : 79,
+            prominenceTier: hasWiki ? 1 : 2,
+            categoryGroup: 'shopping',
         };
     }
 
-    // 4. Parks & Gardens
+    // 7. Parks & Gardens
     if (tags.leisure === 'park' || tags.leisure === 'garden' || tags.leisure === 'nature_reserve') {
+        const hasWiki = Boolean(tags.wikipedia || tags.wikidata);
         return {
             category: 'nature',
-            color: '#3d7a42',
+            color: '#15803d',
             tag: 'PARK',
             emoji: '🌿',
             desc: tags.description || `Scenic public gardens and greenery in ${districtName}.`,
-            importanceScore: 80,
-            prominenceTier: 2,
+            importanceScore: hasWiki ? 90 : 76,
+            prominenceTier: hasWiki ? 1 : 2,
+            categoryGroup: 'nature',
         };
     }
 
-    // 5. Viewpoints & Scenic Lookouts
+    // 8. Viewpoints & Scenic Lookouts
     if (tags.tourism === 'viewpoint') {
+        const hasWiki = Boolean(tags.wikipedia || tags.wikidata);
         return {
             category: 'nature',
             color: '#0284c7',
             tag: 'VIEW',
             emoji: '📷',
             desc: tags.description || `Panoramic viewpoint and scenic vantage in ${districtName}.`,
-            importanceScore: 84,
-            prominenceTier: 2,
+            importanceScore: hasWiki ? 92 : 78,
+            prominenceTier: hasWiki ? 1 : 2,
+            categoryGroup: 'nature',
         };
     }
 
-    // 6. Theatres & Civic Arts
+    // 9. Attractions, Theme Parks, Zoos
+    if (tags.tourism === 'attraction' || tags.tourism === 'theme_park' || tags.tourism === 'zoo' || tags.tourism === 'aquarium') {
+        const hasWiki = Boolean(tags.wikipedia || tags.wikidata);
+        return {
+            category: 'landmark',
+            color: '#0284c7',
+            tag: 'ATTRACTION',
+            emoji: tags.tourism === 'aquarium' ? '🐬' : tags.tourism === 'zoo' ? '🦁' : '🎡',
+            desc: tags.description || `Major visitor attraction and landmark in ${districtName}.`,
+            importanceScore: hasWiki ? 96 : 82,
+            prominenceTier: hasWiki ? 1 : 2,
+            categoryGroup: 'attraction',
+        };
+    }
+
+    // 10. Theatres & Civic Arts
     if (tags.amenity === 'theatre' || tags.amenity === 'arts_centre' || tags.amenity === 'library' || tags.amenity === 'townhall') {
+        const hasWiki = Boolean(tags.wikipedia || tags.wikidata);
         return {
             category: 'history',
             color: '#b23b23',
             tag: 'CULTURE',
             emoji: '🎭',
             desc: tags.description || `Civic arts, performance, and cultural venue in ${districtName}.`,
-            importanceScore: 78,
-            prominenceTier: 2,
+            importanceScore: hasWiki ? 88 : 74,
+            prominenceTier: hasWiki ? 1 : 2,
+            categoryGroup: 'culture',
         };
     }
 
@@ -323,8 +398,9 @@ function categorizePoi(tags, name = '', districtName = '') {
         tag: 'ATTRACTION',
         emoji: '✨',
         desc: tags.description || `Prominent landmark and visitor destination in ${districtName}.`,
-        importanceScore: 72,
-        prominenceTier: 2,
+        importanceScore: 65,
+        prominenceTier: 3,
+        categoryGroup: 'attraction',
     };
 }
 
@@ -379,9 +455,17 @@ async function main() {
                             it.refs.forEach((n) => boundaryNodeIds.add(n));
                         }
 
-                        // Check if POI way (e.g. malls, parks, temples mapped as buildings/areas)
+                        // Check if POI way (e.g. malls, parks, temples, hotels mapped as buildings/areas)
                         const t = it.tags || {};
-                        const isPoi = t.tourism || t.historic || (t.shop === 'mall' || t.shop === 'department_store') || (t.leisure === 'park' || t.leisure === 'garden') || (t.amenity === 'place_of_worship' || t.amenity === 'arts_centre' || t.amenity === 'theatre' || t.amenity === 'library');
+                        const isPoi = Boolean(
+                            t.tourism ||
+                            t.historic ||
+                            (t.shop === 'mall' || t.shop === 'department_store' || t.shop === 'supermarket') ||
+                            (t.leisure === 'park' || t.leisure === 'garden' || t.leisure === 'nature_reserve') ||
+                            (t.amenity === 'place_of_worship' || t.amenity === 'arts_centre' || t.amenity === 'theatre' || t.amenity === 'library') ||
+                            (t.amenity === 'restaurant' || t.amenity === 'cafe' || t.amenity === 'fast_food') ||
+                            (t.tourism === 'hotel' || t.tourism === 'hostel' || t.tourism === 'guest_house')
+                        );
                         const name = t['name:en'] || t['name:zh'] || t.name;
                         if (isPoi && name && it.refs && it.refs.length >= 3) {
                             poiWaysList.push({ id: it.id, tags: t, refs: it.refs });
@@ -414,7 +498,15 @@ async function main() {
 
                         // Check if POI node
                         const t = it.tags || {};
-                        const isPoi = t.tourism || t.historic || (t.shop === 'mall' || t.shop === 'department_store') || (t.leisure === 'park' || t.leisure === 'garden') || (t.amenity === 'place_of_worship' || t.amenity === 'arts_centre' || t.amenity === 'theatre' || t.amenity === 'library');
+                        const isPoi = Boolean(
+                            t.tourism ||
+                            t.historic ||
+                            (t.shop === 'mall' || t.shop === 'department_store' || t.shop === 'supermarket') ||
+                            (t.leisure === 'park' || t.leisure === 'garden' || t.leisure === 'nature_reserve') ||
+                            (t.amenity === 'place_of_worship' || t.amenity === 'arts_centre' || t.amenity === 'theatre' || t.amenity === 'library') ||
+                            (t.amenity === 'restaurant' || t.amenity === 'cafe' || t.amenity === 'fast_food') ||
+                            (t.tourism === 'hotel' || t.tourism === 'hostel' || t.tourism === 'guest_house')
+                        );
                         const name = t['name:en'] || t['name:zh'] || t.name;
                         if (isPoi && name && it.lat && it.lon) {
                             rawPoiList.push({
@@ -554,14 +646,55 @@ async function main() {
                 tips: tags['opening_hours'] ? `Opening hours: ${tags['opening_hours']}` : '',
                 importanceScore: cat.importanceScore,
                 prominenceTier: cat.prominenceTier,
+                _categoryGroup: cat.categoryGroup,
             });
         }
 
-        // Sort by importance score
-        landmarks.sort((a, b) => b.importanceScore - a.importanceScore);
+        // Group by categoryGroup to ensure rich diversity across all discovery filters
+        const byCategory = {
+            culture: [],
+            shopping: [],
+            attraction: [],
+            restaurant: [],
+            cafe: [],
+            hotel: [],
+            nature: [],
+        };
+        for (const lm of landmarks) {
+            const grp = lm._categoryGroup || 'attraction';
+            if (byCategory[grp]) byCategory[grp].push(lm);
+            else byCategory.attraction.push(lm);
+        }
+        for (const grp of Object.keys(byCategory)) {
+            byCategory[grp].sort((a, b) => b.importanceScore - a.importanceScore);
+        }
 
-        // Keep top 40 curated landmarks per district
-        const curatedLandmarks = landmarks.slice(0, 40);
+        // Curate balanced quota per category:
+        const curatedLandmarks = [
+            ...byCategory.culture.slice(0, 10),
+            ...byCategory.shopping.slice(0, 10),
+            ...byCategory.attraction.slice(0, 8),
+            ...byCategory.restaurant.slice(0, 12),
+            ...byCategory.cafe.slice(0, 8),
+            ...byCategory.hotel.slice(0, 6),
+            ...byCategory.nature.slice(0, 8),
+        ];
+        curatedLandmarks.forEach((lm) => delete lm._categoryGroup);
+        curatedLandmarks.sort((a, b) => b.importanceScore - a.importanceScore);
+
+        // Calibrate prominence tiers strictly to guarantee zero visual clutter:
+        // Top 4 flagship anchors -> Tier 1 (visible at mid-zoom 13-14)
+        // Next 25 district highlights -> Tier 2 (visible at zoom 15+)
+        // Remainder -> Tier 3 (unlocked via category discovery filters like "Restaurants", "Hotels")
+        curatedLandmarks.forEach((lm, idx) => {
+            if (idx < 4) {
+                lm.prominenceTier = 1;
+            } else if (idx < 30) {
+                lm.prominenceTier = 2;
+            } else {
+                lm.prominenceTier = 3;
+            }
+        });
 
         // Compute exact bounding box with breathing room
         const bounds = curatedLandmarks.length > 0

@@ -644,6 +644,546 @@ export const HONG_KONG_SHA_TIN_PACK: CityPack = {
                 "tips": "",
                 "importanceScore": 86,
                 "prominenceTier": 1
+        },
+        {
+                "id": "hk-shaTin-node-4472119947",
+                "name": "Tai Po Road Lookout (大埔道瞭望處)",
+                "category": "nature",
+                "color": "#0284c7",
+                "coords": [
+                        22.359824,
+                        114.161625
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#0284c7\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">📷</text>\n</svg>",
+                "tag": "VIEW",
+                "desc": "Panoramic viewpoint and scenic vantage in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to Tai Po Road Lookout, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 92,
+                "prominenceTier": 1
+        },
+        {
+                "id": "hk-shaTin-way-156336198",
+                "name": "We Go Mall",
+                "category": "landmark",
+                "color": "#9333ea",
+                "coords": [
+                        22.414232,
+                        114.22382
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
+                "tag": "MALL",
+                "desc": "Major shopping, dining, and retail complex in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to We Go Mall, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 90,
+                "prominenceTier": 1
+        },
+        {
+                "id": "hk-shaTin-way-157655584",
+                "name": "Sha Tin Centre (沙田中心)",
+                "category": "landmark",
+                "color": "#9333ea",
+                "coords": [
+                        22.382651,
+                        114.19006
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
+                "tag": "MALL",
+                "desc": "Major shopping, dining, and retail complex in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to Sha Tin Centre, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 90,
+                "prominenceTier": 1
+        },
+        {
+                "id": "hk-shaTin-way-157655586",
+                "name": "Sha Tin Plaza (沙田廣場)",
+                "category": "landmark",
+                "color": "#9333ea",
+                "coords": [
+                        22.383267,
+                        114.189187
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
+                "tag": "MALL",
+                "desc": "Major shopping, dining, and retail complex in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to Sha Tin Plaza, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 90,
+                "prominenceTier": 1
+        },
+        {
+                "id": "hk-shaTin-way-169669027",
+                "name": "Lee On Shopping Centre (利安商場)",
+                "category": "landmark",
+                "color": "#9333ea",
+                "coords": [
+                        22.426576,
+                        114.24095
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
+                "tag": "MALL",
+                "desc": "Major shopping, dining, and retail complex in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to Lee On Shopping Centre, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 90,
+                "prominenceTier": 1
+        },
+        {
+                "id": "hk-shaTin-way-174682547",
+                "name": "Chung On Shopping Centre (頌安商場)",
+                "category": "landmark",
+                "color": "#9333ea",
+                "coords": [
+                        22.421864,
+                        114.22654
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
+                "tag": "MALL",
+                "desc": "Major shopping, dining, and retail complex in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to Chung On Shopping Centre, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 90,
+                "prominenceTier": 1
+        },
+        {
+                "id": "hk-shaTin-way-218817219",
+                "name": "Ma On Shan Plaza (馬鞍山廣場)",
+                "category": "landmark",
+                "color": "#9333ea",
+                "coords": [
+                        22.425321,
+                        114.231439
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
+                "tag": "MALL",
+                "desc": "Major shopping, dining, and retail complex in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to Ma On Shan Plaza, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 90,
+                "prominenceTier": 1
+        },
+        {
+                "id": "hk-shaTin-way-185266977",
+                "name": "Hyatt Regency Hong Kong, Sha Tin (香港沙田凱悅酒店)",
+                "category": "landmark",
+                "color": "#6366f1",
+                "coords": [
+                        22.411651,
+                        114.211235
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#6366f1\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🏨</text>\n</svg>",
+                "tag": "HOTEL",
+                "desc": "Premier visitor accommodations and hospitality in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to Hyatt Regency Hong Kong, Sha Tin, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 90,
+                "prominenceTier": 1
+        },
+        {
+                "id": "hk-shaTin-way-1467369750",
+                "name": "Royal Park Hotel (帝都酒店)",
+                "category": "landmark",
+                "color": "#6366f1",
+                "coords": [
+                        22.379756,
+                        114.188525
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#6366f1\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🏨</text>\n</svg>",
+                "tag": "HOTEL",
+                "desc": "Premier visitor accommodations and hospitality in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to Royal Park Hotel, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 90,
+                "prominenceTier": 1
+        },
+        {
+                "id": "hk-shaTin-way-37518291",
+                "name": "Hin Tin Playground (顯田遊樂場)",
+                "category": "nature",
+                "color": "#15803d",
+                "coords": [
+                        22.364772,
+                        114.171568
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#15803d\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🌿</text>\n</svg>",
+                "tag": "PARK",
+                "desc": "Scenic public gardens and greenery in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to Hin Tin Playground, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 90,
+                "prominenceTier": 1
+        },
+        {
+                "id": "hk-shaTin-way-86248163",
+                "name": "Wong Uk Garden (王屋花園)",
+                "category": "nature",
+                "color": "#15803d",
+                "coords": [
+                        22.382788,
+                        114.197405
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#15803d\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🌿</text>\n</svg>",
+                "tag": "PARK",
+                "desc": "Scenic public gardens and greenery in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to Wong Uk Garden, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 90,
+                "prominenceTier": 1
+        },
+        {
+                "id": "hk-shaTin-way-86329008",
+                "name": "Yuen Chau Kok Park (圓洲角公園)",
+                "category": "nature",
+                "color": "#15803d",
+                "coords": [
+                        22.383013,
+                        114.199345
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#15803d\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🌿</text>\n</svg>",
+                "tag": "PARK",
+                "desc": "Scenic public gardens and greenery in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to Yuen Chau Kok Park, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "Opening hours: Mo-Su 06:30-23:00",
+                "importanceScore": 90,
+                "prominenceTier": 1
+        },
+        {
+                "id": "hk-shaTin-way-136461577",
+                "name": "Shing Mun River Promenade Garden No.1 (城門河第一海濱公園)",
+                "category": "nature",
+                "color": "#15803d",
+                "coords": [
+                        22.377196,
+                        114.190113
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#15803d\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🌿</text>\n</svg>",
+                "tag": "PARK",
+                "desc": "Scenic public gardens and greenery in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to Shing Mun River Promenade Garden No.1, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 90,
+                "prominenceTier": 1
+        },
+        {
+                "id": "hk-shaTin-way-138461184",
+                "name": "Hung Mui Kuk Road Playground (紅梅谷路遊樂場)",
+                "category": "nature",
+                "color": "#15803d",
+                "coords": [
+                        22.370271,
+                        114.179304
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#15803d\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🌿</text>\n</svg>",
+                "tag": "PARK",
+                "desc": "Scenic public gardens and greenery in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to Hung Mui Kuk Road Playground, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 90,
+                "prominenceTier": 1
+        },
+        {
+                "id": "hk-shaTin-way-145662000",
+                "name": "A Kung Kok Playground (亞公角遊樂場)",
+                "category": "nature",
+                "color": "#15803d",
+                "coords": [
+                        22.401681,
+                        114.216595
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#15803d\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🌿</text>\n</svg>",
+                "tag": "PARK",
+                "desc": "Scenic public gardens and greenery in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to A Kung Kok Playground, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 90,
+                "prominenceTier": 1
+        },
+        {
+                "id": "hk-shaTin-way-1077659336",
+                "name": "ClubONE Riviera (會所1號 水中天)",
+                "category": "craft",
+                "color": "#dc2626",
+                "coords": [
+                        22.389883,
+                        114.203156
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#dc2626\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🍽️</text>\n</svg>",
+                "tag": "RESTAURANT",
+                "desc": "Renowned cuisine (cantonese) in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to ClubONE Riviera, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 85,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-shaTin-node-2130611963",
+                "name": "Canoe Rock (獨木舟石)",
+                "category": "landmark",
+                "color": "#0284c7",
+                "coords": [
+                        22.396418,
+                        114.246236
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#0284c7\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🎡</text>\n</svg>",
+                "tag": "ATTRACTION",
+                "desc": "Major visitor attraction and landmark in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to Canoe Rock, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 82,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-shaTin-node-3151878479",
+                "name": "陽元石",
+                "category": "landmark",
+                "color": "#0284c7",
+                "coords": [
+                        22.389534,
+                        114.22756
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#0284c7\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🎡</text>\n</svg>",
+                "tag": "ATTRACTION",
+                "desc": "Major visitor attraction and landmark in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to 陽元石, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 82,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-shaTin-node-4436569965",
+                "name": "花心石",
+                "category": "landmark",
+                "color": "#0284c7",
+                "coords": [
+                        22.382522,
+                        114.222145
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#0284c7\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🎡</text>\n</svg>",
+                "tag": "ATTRACTION",
+                "desc": "Major visitor attraction and landmark in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to 花心石, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 82,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-shaTin-node-4828151922",
+                "name": "Pig Rock (真肥豬石)",
+                "category": "landmark",
+                "color": "#0284c7",
+                "coords": [
+                        22.400898,
+                        114.237884
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#0284c7\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🎡</text>\n</svg>",
+                "tag": "ATTRACTION",
+                "desc": "Major visitor attraction and landmark in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to Pig Rock, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 82,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-shaTin-node-4839613216",
+                "name": "Frog Rock (青蛙石)",
+                "category": "landmark",
+                "color": "#0284c7",
+                "coords": [
+                        22.410333,
+                        114.232538
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#0284c7\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🎡</text>\n</svg>",
+                "tag": "ATTRACTION",
+                "desc": "Major visitor attraction and landmark in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to Frog Rock, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 82,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-shaTin-node-4839621573",
+                "name": "鱷魚張口",
+                "category": "landmark",
+                "color": "#0284c7",
+                "coords": [
+                        22.396385,
+                        114.246163
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#0284c7\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🎡</text>\n</svg>",
+                "tag": "ATTRACTION",
+                "desc": "Major visitor attraction and landmark in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to 鱷魚張口, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 82,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-shaTin-node-9259959494",
+                "name": "中尉石室",
+                "category": "landmark",
+                "color": "#0284c7",
+                "coords": [
+                        22.392815,
+                        114.244703
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#0284c7\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🎡</text>\n</svg>",
+                "tag": "ATTRACTION",
+                "desc": "Major visitor attraction and landmark in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to 中尉石室, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 82,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-shaTin-way-135190719",
+                "name": "University Guest House (Chiangs Bldg.) (大學賓館 (曙光樓))",
+                "category": "landmark",
+                "color": "#6366f1",
+                "coords": [
+                        22.420077,
+                        114.21067
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#6366f1\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🏨</text>\n</svg>",
+                "tag": "HOTEL",
+                "desc": "Premier visitor accommodations and hospitality in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to University Guest House (Chiangs Bldg.), one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 75,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-shaTin-way-135190720",
+                "name": "Yali Guest House (雅禮賓館)",
+                "category": "landmark",
+                "color": "#6366f1",
+                "coords": [
+                        22.419718,
+                        114.210788
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#6366f1\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🏨</text>\n</svg>",
+                "tag": "HOTEL",
+                "desc": "Premier visitor accommodations and hospitality in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to Yali Guest House, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 75,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-shaTin-way-157655576",
+                "name": "Regal Riverside Hotel (麗豪酒店)",
+                "category": "landmark",
+                "color": "#6366f1",
+                "coords": [
+                        22.38231,
+                        114.196535
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#6366f1\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🏨</text>\n</svg>",
+                "tag": "HOTEL",
+                "desc": "Premier visitor accommodations and hospitality in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to Regal Riverside Hotel, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 75,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-shaTin-way-162813703",
+                "name": "Ascension House (昇天屋)",
+                "category": "landmark",
+                "color": "#6366f1",
+                "coords": [
+                        22.383636,
+                        114.184489
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#6366f1\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🏨</text>\n</svg>",
+                "tag": "HOTEL",
+                "desc": "Premier visitor accommodations and hospitality in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to Ascension House, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 75,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-shaTin-node-1704060211",
+                "name": "McDonald's (麥當勞)",
+                "category": "craft",
+                "color": "#dc2626",
+                "coords": [
+                        22.375355,
+                        114.193489
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#dc2626\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🍔</text>\n</svg>",
+                "tag": "FAST FOOD",
+                "desc": "Renowned cuisine (burger) in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to McDonald's, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 68,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-shaTin-node-1746335683",
+                "name": "新光酒樓",
+                "category": "craft",
+                "color": "#dc2626",
+                "coords": [
+                        22.385104,
+                        114.1992
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#dc2626\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🍽️</text>\n</svg>",
+                "tag": "RESTAURANT",
+                "desc": "Renowned cuisine (chinese) in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to 新光酒樓, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 68,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-shaTin-node-2036810031",
+                "name": "Subway",
+                "category": "craft",
+                "color": "#dc2626",
+                "coords": [
+                        22.419546,
+                        114.208551
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#dc2626\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🍔</text>\n</svg>",
+                "tag": "FAST FOOD",
+                "desc": "Renowned cuisine (sandwich) in Hong Kong • Sha Tin & Ma On Shan.",
+                "audioNote": "Welcome to Subway, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 68,
+                "prominenceTier": 3
         }
 ],
 };

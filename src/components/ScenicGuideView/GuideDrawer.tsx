@@ -34,6 +34,7 @@ import {
     FolderOpen,
     AirplaneTakeoff,
 } from '@phosphor-icons/react';
+import { DiscoveryCategory, DISCOVERY_CATEGORIES } from '@/lib/landmarkCategories';
 
 interface GuideDrawerProps {
     onSelectLandmark: (landmark: Landmark) => void;
@@ -48,6 +49,9 @@ interface GuideDrawerProps {
     onDeletePersonalSpot?: (spotId: string) => void;
     isMobileOpen?: boolean;
     onCloseMobile?: () => void;
+    categoryFilter?: DiscoveryCategory;
+    onSelectCategoryFilter?: (cat: DiscoveryCategory) => void;
+    categoryLandmarks?: Landmark[];
 }
 
 export const GuideDrawer: React.FC<GuideDrawerProps> = ({
@@ -63,6 +67,9 @@ export const GuideDrawer: React.FC<GuideDrawerProps> = ({
     onDeletePersonalSpot,
     isMobileOpen = false,
     onCloseMobile,
+    categoryFilter = 'all',
+    onSelectCategoryFilter,
+    categoryLandmarks = [],
 }) => {
     const {
         appMode,
@@ -306,6 +313,65 @@ export const GuideDrawer: React.FC<GuideDrawerProps> = ({
                     </button>
                 </div>
             </div>
+
+            {/* ======================================================== */}
+            {/* Quick Category Discovery Results (Google Maps style)     */}
+            {/* ======================================================== */}
+            {categoryFilter && categoryFilter !== 'all' && (
+                <div className="mx-4 mt-2 p-3 bg-amber-50/95 border-2 border-paper-900 rounded-2xl shadow-stamp space-y-2 shrink-0">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 font-serif font-black text-xs text-paper-900">
+                            <span>{DISCOVERY_CATEGORIES.find((c) => c.id === categoryFilter)?.emoji}</span>
+                            <span>{DISCOVERY_CATEGORIES.find((c) => c.id === categoryFilter)?.label}</span>
+                            <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full bg-amber-200 text-amber-950">
+                                {categoryLandmarks.length} in view
+                            </span>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => onSelectCategoryFilter?.('all')}
+                            className="text-[10px] font-bold text-paper-600 hover:text-paper-900 hover:underline cursor-pointer"
+                        >
+                            ✕ Clear Filter
+                        </button>
+                    </div>
+
+                    <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1 no-scrollbar">
+                        {categoryLandmarks.length === 0 ? (
+                            <p className="text-[11px] text-paper-600 py-2 text-center italic">
+                                No {DISCOVERY_CATEGORIES.find((c) => c.id === categoryFilter)?.label.toLowerCase()} found in current view. Pan or zoom map to discover more.
+                            </p>
+                        ) : (
+                            categoryLandmarks.slice(0, 25).map((lm) => (
+                                <div
+                                    key={lm.id}
+                                    onClick={() => onSelectLandmark(lm)}
+                                    className="flex items-center justify-between p-2 rounded-xl bg-paper-50 hover:bg-white border border-paper-300 hover:border-paper-900 transition cursor-pointer group shadow-2xs"
+                                >
+                                    <div className="min-w-0 pr-2">
+                                        <h6 className="font-serif font-bold text-xs text-paper-900 truncate group-hover:text-watercolor-brick">
+                                            {lm.name}
+                                        </h6>
+                                        <p className="text-[10px] text-paper-600 truncate">{lm.desc || lm.tag}</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            addStopToRouteBuffer(lm.id);
+                                            playChime('stamp');
+                                        }}
+                                        className="px-2 py-1 rounded-lg bg-watercolor-brick hover:bg-red-800 text-white font-extrabold text-[10px] shrink-0 shadow-2xs transition active:scale-95 cursor-pointer"
+                                        title="Add to route"
+                                    >
+                                        + Add
+                                    </button>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* ======================================================== */}
             {/* TAB 1: CURATE ROUTE MODE (Embedded Map Curator)          */}

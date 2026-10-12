@@ -30,7 +30,7 @@ export const HONG_KONG_EASTERN_PACK: CityPack = {
                 "audioNote": "Welcome to rock carving at Cape Collinson, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
                 "panoUrl": "",
                 "tips": "",
-                "importanceScore": 94,
+                "importanceScore": 96,
                 "prominenceTier": 1
         },
         {
@@ -48,7 +48,7 @@ export const HONG_KONG_EASTERN_PACK: CityPack = {
                 "audioNote": "Welcome to Hong Kong Museum of the War of Resistance and Coastal Defence, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
                 "panoUrl": "",
                 "tips": "Opening hours: Fr-We 10:00-18:00; Oct-Feb Fr-We 10:00-17:00 open \"LNY D1-2 off\"",
-                "importanceScore": 94,
+                "importanceScore": 96,
                 "prominenceTier": 1
         },
         {
@@ -66,7 +66,7 @@ export const HONG_KONG_EASTERN_PACK: CityPack = {
                 "audioNote": "Welcome to Hong Kong Film Archive, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
                 "panoUrl": "",
                 "tips": "Opening hours: We-Su,PH 10:00-20:00 open \"LNY eve -17:00, LNY D1-2 off\"; Dec 24 10:00-17:00",
-                "importanceScore": 94,
+                "importanceScore": 96,
                 "prominenceTier": 1
         },
         {
@@ -84,7 +84,7 @@ export const HONG_KONG_EASTERN_PACK: CityPack = {
                 "audioNote": "Welcome to Fireboat Alexander Grantham Exhibition Gallery, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
                 "panoUrl": "",
                 "tips": "",
-                "importanceScore": 94,
+                "importanceScore": 96,
                 "prominenceTier": 1
         },
         {
@@ -102,8 +102,8 @@ export const HONG_KONG_EASTERN_PACK: CityPack = {
                 "audioNote": "Welcome to Alexander Grantham, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
                 "panoUrl": "",
                 "tips": "",
-                "importanceScore": 94,
-                "prominenceTier": 1
+                "importanceScore": 96,
+                "prominenceTier": 2
         },
         {
                 "id": "hk-eastern-way-405675016",
@@ -120,8 +120,8 @@ export const HONG_KONG_EASTERN_PACK: CityPack = {
                 "audioNote": "Welcome to Law Uk Folk Museum, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
                 "panoUrl": "",
                 "tips": "Opening hours: Mo-We,Fr-Su 10:00-18:00; PH Th 10:00-18:00; Th off",
-                "importanceScore": 94,
-                "prominenceTier": 1
+                "importanceScore": 96,
+                "prominenceTier": 2
         },
         {
                 "id": "hk-eastern-way-557930264",
@@ -138,8 +138,8 @@ export const HONG_KONG_EASTERN_PACK: CityPack = {
                 "audioNote": "Welcome to Lei Yue Mun Park and Holiday Village, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
                 "panoUrl": "",
                 "tips": "",
-                "importanceScore": 94,
-                "prominenceTier": 1
+                "importanceScore": 96,
+                "prominenceTier": 2
         },
         {
                 "id": "hk-eastern-way-152494866",
@@ -156,8 +156,8 @@ export const HONG_KONG_EASTERN_PACK: CityPack = {
                 "audioNote": "Welcome to Shau Kei Wan Tin Hau Temple, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
                 "panoUrl": "",
                 "tips": "",
-                "importanceScore": 92,
-                "prominenceTier": 1
+                "importanceScore": 94,
+                "prominenceTier": 2
         },
         {
                 "id": "hk-eastern-way-228655423",
@@ -174,8 +174,8 @@ export const HONG_KONG_EASTERN_PACK: CityPack = {
                 "audioNote": "Welcome to Chinese Methodist Church (North Point), one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
                 "panoUrl": "",
                 "tips": "",
-                "importanceScore": 92,
-                "prominenceTier": 1
+                "importanceScore": 94,
+                "prominenceTier": 2
         },
         {
                 "id": "hk-eastern-way-296724450",
@@ -192,206 +192,8 @@ export const HONG_KONG_EASTERN_PACK: CityPack = {
                 "audioNote": "Welcome to Holy Cross Catholic Church, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
                 "panoUrl": "",
                 "tips": "",
-                "importanceScore": 92,
-                "prominenceTier": 1
-        },
-        {
-                "id": "hk-eastern-way-344083354",
-                "name": "Chai Wan Masjid (柴灣清真寺)",
-                "category": "culture",
-                "color": "#c2410c",
-                "coords": [
-                        22.259306,
-                        114.233283
-                ],
-                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#c2410c\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🕌</text>\n</svg>",
-                "tag": "MOSQUE",
-                "desc": "Historic mosque and sacred landmark in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "audioNote": "Welcome to Chai Wan Masjid, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "panoUrl": "",
-                "tips": "",
-                "importanceScore": 92,
-                "prominenceTier": 1
-        },
-        {
-                "id": "hk-eastern-way-764099765",
-                "name": "St. Jude's Catholic Church (天主教聖猶達聖堂)",
-                "category": "culture",
-                "color": "#c2410c",
-                "coords": [
-                        22.289259,
-                        114.197779
-                ],
-                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#c2410c\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">⛪</text>\n</svg>",
-                "tag": "CHURCH",
-                "desc": "Historic church and sacred landmark in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "audioNote": "Welcome to St. Jude's Catholic Church, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "panoUrl": "",
-                "tips": "",
-                "importanceScore": 92,
-                "prominenceTier": 1
-        },
-        {
-                "id": "hk-eastern-way-777207947",
-                "name": "玉皇寶殿",
-                "category": "culture",
-                "color": "#c2410c",
-                "coords": [
-                        22.282231,
-                        114.233251
-                ],
-                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#c2410c\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">⛩️</text>\n</svg>",
-                "tag": "TEMPLE",
-                "desc": "Historic temple and sacred landmark in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "audioNote": "Welcome to 玉皇寶殿, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "panoUrl": "",
-                "tips": "",
-                "importanceScore": 92,
-                "prominenceTier": 1
-        },
-        {
-                "id": "hk-eastern-way-982391872",
-                "name": "Fuk Tak Temple (福德祠)",
-                "category": "culture",
-                "color": "#c2410c",
-                "coords": [
-                        22.275852,
-                        114.228207
-                ],
-                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#c2410c\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">⛩️</text>\n</svg>",
-                "tag": "TEMPLE",
-                "desc": "Historic temple and sacred landmark in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "audioNote": "Welcome to Fuk Tak Temple, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "panoUrl": "",
-                "tips": "",
-                "importanceScore": 92,
-                "prominenceTier": 1
-        },
-        {
-                "id": "hk-eastern-node-1162046743",
-                "name": "AEON STYLE",
-                "category": "landmark",
-                "color": "#9333ea",
-                "coords": [
-                        22.284149,
-                        114.216174
-                ],
-                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
-                "tag": "DEPT STORE",
-                "desc": "Major shopping, dining, and retail complex in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "audioNote": "Welcome to AEON STYLE, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "panoUrl": "",
-                "tips": "Opening hours: Mo-Su 08:30-22:00",
-                "importanceScore": 86,
-                "prominenceTier": 1
-        },
-        {
-                "id": "hk-eastern-node-4265737641",
-                "name": "New Trend Plaza (新時代廣場)",
-                "category": "landmark",
-                "color": "#9333ea",
-                "coords": [
-                        22.28947,
-                        114.194874
-                ],
-                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
-                "tag": "MALL",
-                "desc": "Major shopping, dining, and retail complex in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "audioNote": "Welcome to New Trend Plaza, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "panoUrl": "",
-                "tips": "",
-                "importanceScore": 86,
-                "prominenceTier": 1
-        },
-        {
-                "id": "hk-eastern-node-4855848382",
-                "name": "APITA",
-                "category": "landmark",
-                "color": "#9333ea",
-                "coords": [
-                        22.287068,
-                        114.217876
-                ],
-                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
-                "tag": "DEPT STORE",
-                "desc": "Major shopping, dining, and retail complex in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "audioNote": "Welcome to APITA, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "panoUrl": "",
-                "tips": "Opening hours: 09:30-22:00",
-                "importanceScore": 86,
-                "prominenceTier": 1
-        },
-        {
-                "id": "hk-eastern-node-4860761063",
-                "name": "Metropole",
-                "category": "landmark",
-                "color": "#9333ea",
-                "coords": [
-                        22.290699,
-                        114.199184
-                ],
-                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
-                "tag": "DEPT STORE",
-                "desc": "Major shopping, dining, and retail complex in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "audioNote": "Welcome to Metropole, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "panoUrl": "",
-                "tips": "",
-                "importanceScore": 86,
-                "prominenceTier": 1
-        },
-        {
-                "id": "hk-eastern-node-4985316462",
-                "name": "Worfu (和富)",
-                "category": "landmark",
-                "color": "#9333ea",
-                "coords": [
-                        22.292346,
-                        114.196596
-                ],
-                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
-                "tag": "MALL",
-                "desc": "Major shopping, dining, and retail complex in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "audioNote": "Welcome to Worfu, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "panoUrl": "",
-                "tips": "",
-                "importanceScore": 86,
-                "prominenceTier": 1
-        },
-        {
-                "id": "hk-eastern-node-7249404759",
-                "name": "Smiling Shau Kei Wan Plaza (天悅筲箕灣廣場)",
-                "category": "landmark",
-                "color": "#9333ea",
-                "coords": [
-                        22.277713,
-                        114.226338
-                ],
-                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
-                "tag": "MALL",
-                "desc": "Major shopping, dining, and retail complex in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "audioNote": "Welcome to Smiling Shau Kei Wan Plaza, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "panoUrl": "",
-                "tips": "",
-                "importanceScore": 86,
-                "prominenceTier": 1
-        },
-        {
-                "id": "hk-eastern-way-99981690",
-                "name": "Oi Tung Shopping Centre (愛東商場)",
-                "category": "landmark",
-                "color": "#9333ea",
-                "coords": [
-                        22.280861,
-                        114.227773
-                ],
-                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
-                "tag": "MALL",
-                "desc": "Major shopping, dining, and retail complex in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "audioNote": "Welcome to Oi Tung Shopping Centre, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "panoUrl": "",
-                "tips": "",
-                "importanceScore": 86,
-                "prominenceTier": 1
+                "importanceScore": 94,
+                "prominenceTier": 2
         },
         {
                 "id": "hk-eastern-way-100103871",
@@ -408,206 +210,8 @@ export const HONG_KONG_EASTERN_PACK: CityPack = {
                 "audioNote": "Welcome to Yiu Tung Shopping Centre, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
                 "panoUrl": "",
                 "tips": "",
-                "importanceScore": 86,
-                "prominenceTier": 1
-        },
-        {
-                "id": "hk-eastern-way-100227831",
-                "name": "Hing Tung Shopping Centre (興東商場)",
-                "category": "landmark",
-                "color": "#9333ea",
-                "coords": [
-                        22.280786,
-                        114.220097
-                ],
-                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
-                "tag": "MALL",
-                "desc": "Major shopping, dining, and retail complex in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "audioNote": "Welcome to Hing Tung Shopping Centre, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "panoUrl": "",
-                "tips": "Opening hours: Mo-Su,PH 00:00-24:00",
-                "importanceScore": 86,
-                "prominenceTier": 1
-        },
-        {
-                "id": "hk-eastern-way-100850653",
-                "name": "Fullview Shopping Centre (富景花園商場)",
-                "category": "landmark",
-                "color": "#9333ea",
-                "coords": [
-                        22.262446,
-                        114.251427
-                ],
-                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
-                "tag": "MALL",
-                "desc": "Major shopping, dining, and retail complex in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "audioNote": "Welcome to Fullview Shopping Centre, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "panoUrl": "",
-                "tips": "",
-                "importanceScore": 86,
-                "prominenceTier": 1
-        },
-        {
-                "id": "hk-eastern-way-100984433",
-                "name": "Siu Sai Wan Plaza (小西灣廣場)",
-                "category": "landmark",
-                "color": "#9333ea",
-                "coords": [
-                        22.263058,
-                        114.248602
-                ],
-                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
-                "tag": "MALL",
-                "desc": "Major shopping, dining, and retail complex in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "audioNote": "Welcome to Siu Sai Wan Plaza, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "panoUrl": "",
-                "tips": "",
-                "importanceScore": 86,
-                "prominenceTier": 1
-        },
-        {
-                "id": "hk-eastern-way-101036520",
-                "name": "Wan Tsui Commercial Centre (環翠商場)",
-                "category": "landmark",
-                "color": "#9333ea",
-                "coords": [
-                        22.262794,
-                        114.237735
-                ],
-                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
-                "tag": "MALL",
-                "desc": "Major shopping, dining, and retail complex in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "audioNote": "Welcome to Wan Tsui Commercial Centre, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "panoUrl": "",
-                "tips": "",
-                "importanceScore": 86,
-                "prominenceTier": 1
-        },
-        {
-                "id": "hk-eastern-way-101077287",
-                "name": "Hing Man Shopping Centre (興民商場)",
-                "category": "landmark",
-                "color": "#9333ea",
-                "coords": [
-                        22.267663,
-                        114.232964
-                ],
-                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
-                "tag": "MALL",
-                "desc": "Major shopping, dining, and retail complex in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "audioNote": "Welcome to Hing Man Shopping Centre, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "panoUrl": "",
-                "tips": "",
-                "importanceScore": 86,
-                "prominenceTier": 1
-        },
-        {
-                "id": "hk-eastern-way-112908160",
-                "name": "Cloudview Road Dairy Farm Shopping Centre (雲景道牛奶公司購物中心)",
-                "category": "landmark",
-                "color": "#9333ea",
-                "coords": [
-                        22.285695,
-                        114.196306
-                ],
-                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
-                "tag": "MALL",
-                "desc": "Major shopping, dining, and retail complex in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "audioNote": "Welcome to Cloudview Road Dairy Farm Shopping Centre, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "panoUrl": "",
-                "tips": "",
-                "importanceScore": 86,
-                "prominenceTier": 1
-        },
-        {
-                "id": "hk-eastern-way-148214072",
-                "name": "N.S.K. Plaza (成坤廣場)",
-                "category": "landmark",
-                "color": "#9333ea",
-                "coords": [
-                        22.29102,
-                        114.202299
-                ],
-                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
-                "tag": "MALL",
-                "desc": "Major shopping, dining, and retail complex in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "audioNote": "Welcome to N.S.K. Plaza, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "panoUrl": "",
-                "tips": "",
-                "importanceScore": 86,
-                "prominenceTier": 1
-        },
-        {
-                "id": "hk-eastern-way-200000223",
-                "name": "Olympia Plaza (國都廣場)",
-                "category": "landmark",
-                "color": "#9333ea",
-                "coords": [
-                        22.28979,
-                        114.194407
-                ],
-                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
-                "tag": "MALL",
-                "desc": "Major shopping, dining, and retail complex in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "audioNote": "Welcome to Olympia Plaza, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "panoUrl": "",
-                "tips": "",
-                "importanceScore": 86,
-                "prominenceTier": 1
-        },
-        {
-                "id": "hk-eastern-way-205358846",
-                "name": "Paradise Mall East (杏花新城東翼)",
-                "category": "landmark",
-                "color": "#9333ea",
-                "coords": [
-                        22.275984,
-                        114.240616
-                ],
-                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
-                "tag": "MALL",
-                "desc": "Major shopping, dining, and retail complex in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "audioNote": "Welcome to Paradise Mall East, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "panoUrl": "",
-                "tips": "",
-                "importanceScore": 86,
-                "prominenceTier": 1
-        },
-        {
-                "id": "hk-eastern-way-205358847",
-                "name": "Paradise Mall (Central Commercial Block) (杏花新城 (中商場))",
-                "category": "landmark",
-                "color": "#9333ea",
-                "coords": [
-                        22.277261,
-                        114.240207
-                ],
-                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
-                "tag": "MALL",
-                "desc": "Major shopping, dining, and retail complex in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "audioNote": "Welcome to Paradise Mall (Central Commercial Block), one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "panoUrl": "",
-                "tips": "",
-                "importanceScore": 86,
-                "prominenceTier": 1
-        },
-        {
-                "id": "hk-eastern-way-205358848",
-                "name": "Paradise Mall West (杏花新城西翼)",
-                "category": "landmark",
-                "color": "#9333ea",
-                "coords": [
-                        22.27739,
-                        114.239456
-                ],
-                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
-                "tag": "MALL",
-                "desc": "Major shopping, dining, and retail complex in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "audioNote": "Welcome to Paradise Mall West, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "panoUrl": "",
-                "tips": "",
-                "importanceScore": 86,
-                "prominenceTier": 1
+                "importanceScore": 90,
+                "prominenceTier": 2
         },
         {
                 "id": "hk-eastern-way-205358850",
@@ -624,116 +228,908 @@ export const HONG_KONG_EASTERN_PACK: CityPack = {
                 "audioNote": "Welcome to Paradise Mall, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
                 "panoUrl": "",
                 "tips": "",
-                "importanceScore": 86,
-                "prominenceTier": 1
+                "importanceScore": 90,
+                "prominenceTier": 2
         },
         {
-                "id": "hk-eastern-way-228769731",
-                "name": "Harbour North (北角匯)",
+                "id": "hk-eastern-node-2637705579",
+                "name": "Y-Loft (Y旅舍)",
+                "category": "landmark",
+                "color": "#6366f1",
+                "coords": [
+                        22.26282,
+                        114.23683
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#6366f1\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🏨</text>\n</svg>",
+                "tag": "HOTEL",
+                "desc": "Premier visitor accommodations and hospitality in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Y-Loft, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 90,
+                "prominenceTier": 2
+        },
+        {
+                "id": "hk-eastern-node-11365302869",
+                "name": "Homy Inn North Point",
+                "category": "landmark",
+                "color": "#6366f1",
+                "coords": [
+                        22.290859,
+                        114.198157
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#6366f1\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🏨</text>\n</svg>",
+                "tag": "HOTEL",
+                "desc": "Premier visitor accommodations and hospitality in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Homy Inn North Point, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 90,
+                "prominenceTier": 2
+        },
+        {
+                "id": "hk-eastern-way-231112671",
+                "name": "Ibis Hong Kong North Point Hotel (宜必思香港北角酒店)",
+                "category": "landmark",
+                "color": "#6366f1",
+                "coords": [
+                        22.29227,
+                        114.200769
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#6366f1\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🏨</text>\n</svg>",
+                "tag": "HOTEL",
+                "desc": "Premier visitor accommodations and hospitality in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Ibis Hong Kong North Point Hotel, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 90,
+                "prominenceTier": 2
+        },
+        {
+                "id": "hk-eastern-way-296724402",
+                "name": "EAST, Hong Kong (東隅)",
+                "category": "landmark",
+                "color": "#6366f1",
+                "coords": [
+                        22.285972,
+                        114.216222
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#6366f1\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🏨</text>\n</svg>",
+                "tag": "HOTEL",
+                "desc": "Premier visitor accommodations and hospitality in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to EAST, Hong Kong, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 90,
+                "prominenceTier": 2
+        },
+        {
+                "id": "hk-eastern-way-296724426",
+                "name": "Harbour Plaza North Point (北角海逸酒店)",
+                "category": "landmark",
+                "color": "#6366f1",
+                "coords": [
+                        22.291588,
+                        114.208706
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#6366f1\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🏨</text>\n</svg>",
+                "tag": "HOTEL",
+                "desc": "Premier visitor accommodations and hospitality in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Harbour Plaza North Point, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 90,
+                "prominenceTier": 2
+        },
+        {
+                "id": "hk-eastern-way-427345023",
+                "name": "M1 Hotel North Point (北角M1酒店)",
+                "category": "landmark",
+                "color": "#6366f1",
+                "coords": [
+                        22.291177,
+                        114.198156
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#6366f1\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🏨</text>\n</svg>",
+                "tag": "HOTEL",
+                "desc": "Premier visitor accommodations and hospitality in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to M1 Hotel North Point, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 90,
+                "prominenceTier": 2
+        },
+        {
+                "id": "hk-eastern-way-28808224",
+                "name": "Heng Fa Chuen Playground (杏花邨遊樂場)",
+                "category": "nature",
+                "color": "#15803d",
+                "coords": [
+                        22.274442,
+                        114.242015
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#15803d\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🌿</text>\n</svg>",
+                "tag": "PARK",
+                "desc": "Scenic public gardens and greenery in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Heng Fa Chuen Playground, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 90,
+                "prominenceTier": 2
+        },
+        {
+                "id": "hk-eastern-way-86463847",
+                "name": "Aldrich Bay Park (愛秩序灣公園)",
+                "category": "nature",
+                "color": "#15803d",
+                "coords": [
+                        22.282806,
+                        114.224799
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#15803d\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🌿</text>\n</svg>",
+                "tag": "PARK",
+                "desc": "Scenic public gardens and greenery in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Aldrich Bay Park, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 90,
+                "prominenceTier": 2
+        },
+        {
+                "id": "hk-eastern-way-95206019",
+                "name": "Tong Shui Road Garden (糖水道花園)",
+                "category": "nature",
+                "color": "#15803d",
+                "coords": [
+                        22.29291,
+                        114.198145
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#15803d\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🌿</text>\n</svg>",
+                "tag": "PARK",
+                "desc": "Scenic public gardens and greenery in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Tong Shui Road Garden, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 90,
+                "prominenceTier": 2
+        },
+        {
+                "id": "hk-eastern-way-100652814",
+                "name": "King's Road Playground (英皇道遊樂場)",
+                "category": "nature",
+                "color": "#15803d",
+                "coords": [
+                        22.292148,
+                        114.203357
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#15803d\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🌿</text>\n</svg>",
+                "tag": "PARK",
+                "desc": "Scenic public gardens and greenery in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to King's Road Playground, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 90,
+                "prominenceTier": 2
+        },
+        {
+                "id": "hk-eastern-way-100788611",
+                "name": "Sai Wan Ho Playground (西灣河遊樂場)",
+                "category": "nature",
+                "color": "#15803d",
+                "coords": [
+                        22.285905,
+                        114.222797
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#15803d\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🌿</text>\n</svg>",
+                "tag": "PARK",
+                "desc": "Scenic public gardens and greenery in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Sai Wan Ho Playground, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 90,
+                "prominenceTier": 2
+        },
+        {
+                "id": "hk-eastern-way-100851910",
+                "name": "Siu Sai Wan Road Garden (小西灣道花園)",
+                "category": "nature",
+                "color": "#15803d",
+                "coords": [
+                        22.266023,
+                        114.24794
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#15803d\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🌿</text>\n</svg>",
+                "tag": "PARK",
+                "desc": "Scenic public gardens and greenery in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Siu Sai Wan Road Garden, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 90,
+                "prominenceTier": 2
+        },
+        {
+                "id": "hk-eastern-way-102226212",
+                "name": "Java Road Playground (渣華道遊樂場)",
+                "category": "nature",
+                "color": "#15803d",
+                "coords": [
+                        22.29091,
+                        114.209536
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#15803d\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🌿</text>\n</svg>",
+                "tag": "PARK",
+                "desc": "Scenic public gardens and greenery in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Java Road Playground, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 90,
+                "prominenceTier": 2
+        },
+        {
+                "id": "hk-eastern-way-113279489",
+                "name": "Cloud View Road Service Reservoir Playground (雲景道配水庫遊樂場)",
+                "category": "nature",
+                "color": "#15803d",
+                "coords": [
+                        22.284999,
+                        114.195112
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#15803d\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🌿</text>\n</svg>",
+                "tag": "PARK",
+                "desc": "Scenic public gardens and greenery in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Cloud View Road Service Reservoir Playground, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 90,
+                "prominenceTier": 2
+        },
+        {
+                "id": "hk-eastern-node-4860735951",
+                "name": "Dicos (德克士)",
+                "category": "craft",
+                "color": "#dc2626",
+                "coords": [
+                        22.290899,
+                        114.198185
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#dc2626\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🍔</text>\n</svg>",
+                "tag": "FAST FOOD",
+                "desc": "Renowned cuisine (burger;chicken) in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Dicos, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 85,
+                "prominenceTier": 2
+        },
+        {
+                "id": "hk-eastern-node-5040215422",
+                "name": "鯉魚門渡口砲台",
+                "category": "landmark",
+                "color": "#0284c7",
+                "coords": [
+                        22.281779,
+                        114.235646
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#0284c7\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🎡</text>\n</svg>",
+                "tag": "ATTRACTION",
+                "desc": "Major visitor attraction and landmark in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to 鯉魚門渡口砲台, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 82,
+                "prominenceTier": 2
+        },
+        {
+                "id": "hk-eastern-node-7235040655",
+                "name": "SoHo East (蘇豪東)",
+                "category": "landmark",
+                "color": "#0284c7",
+                "coords": [
+                        22.286615,
+                        114.223567
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#0284c7\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🎡</text>\n</svg>",
+                "tag": "ATTRACTION",
+                "desc": "Major visitor attraction and landmark in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to SoHo East, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 82,
+                "prominenceTier": 2
+        },
+        {
+                "id": "hk-eastern-way-880770767",
+                "name": "Chun Yeung Street Market (春秧街街市)",
+                "category": "landmark",
+                "color": "#0284c7",
+                "coords": [
+                        22.291239,
+                        114.197471
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#0284c7\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🎡</text>\n</svg>",
+                "tag": "ATTRACTION",
+                "desc": "Major visitor attraction and landmark in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Chun Yeung Street Market, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 82,
+                "prominenceTier": 2
+        },
+        {
+                "id": "hk-eastern-node-1162046743",
+                "name": "AEON STYLE",
                 "category": "landmark",
                 "color": "#9333ea",
                 "coords": [
-                        22.292877,
-                        114.200573
+                        22.284149,
+                        114.216174
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
+                "tag": "DEPT STORE",
+                "desc": "Major shopping, dining, and retail complex in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to AEON STYLE, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "Opening hours: Mo-Su 08:30-22:00",
+                "importanceScore": 79,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-eastern-node-4265737641",
+                "name": "New Trend Plaza (新時代廣場)",
+                "category": "landmark",
+                "color": "#9333ea",
+                "coords": [
+                        22.28947,
+                        114.194874
                 ],
                 "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
                 "tag": "MALL",
                 "desc": "Major shopping, dining, and retail complex in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "audioNote": "Welcome to Harbour North, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to New Trend Plaza, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
                 "panoUrl": "",
                 "tips": "",
-                "importanceScore": 86,
-                "prominenceTier": 1
+                "importanceScore": 79,
+                "prominenceTier": 3
         },
         {
-                "id": "hk-eastern-way-258413483",
-                "name": "Hing Wah Plaza (興華廣場)",
+                "id": "hk-eastern-node-4855848382",
+                "name": "APITA",
                 "category": "landmark",
                 "color": "#9333ea",
                 "coords": [
-                        22.262615,
-                        114.235706
+                        22.287068,
+                        114.217876
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
+                "tag": "DEPT STORE",
+                "desc": "Major shopping, dining, and retail complex in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to APITA, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "Opening hours: 09:30-22:00",
+                "importanceScore": 79,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-eastern-node-4860761063",
+                "name": "Metropole",
+                "category": "landmark",
+                "color": "#9333ea",
+                "coords": [
+                        22.290699,
+                        114.199184
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
+                "tag": "DEPT STORE",
+                "desc": "Major shopping, dining, and retail complex in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Metropole, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 79,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-eastern-node-4985316462",
+                "name": "Worfu (和富)",
+                "category": "landmark",
+                "color": "#9333ea",
+                "coords": [
+                        22.292346,
+                        114.196596
                 ],
                 "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
                 "tag": "MALL",
                 "desc": "Major shopping, dining, and retail complex in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "audioNote": "Welcome to Hing Wah Plaza, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Worfu, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
                 "panoUrl": "",
                 "tips": "",
-                "importanceScore": 86,
-                "prominenceTier": 1
+                "importanceScore": 79,
+                "prominenceTier": 3
         },
         {
-                "id": "hk-eastern-way-648015242",
-                "name": "Neptune Shopping Centre (樂翠商場)",
+                "id": "hk-eastern-node-7249404759",
+                "name": "Smiling Shau Kei Wan Plaza (天悅筲箕灣廣場)",
                 "category": "landmark",
                 "color": "#9333ea",
                 "coords": [
-                        22.267938,
-                        114.234479
+                        22.277713,
+                        114.226338
                 ],
                 "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
                 "tag": "MALL",
                 "desc": "Major shopping, dining, and retail complex in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "audioNote": "Welcome to Neptune Shopping Centre, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Smiling Shau Kei Wan Plaza, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
                 "panoUrl": "",
                 "tips": "",
-                "importanceScore": 86,
-                "prominenceTier": 1
+                "importanceScore": 79,
+                "prominenceTier": 3
         },
         {
-                "id": "hk-eastern-way-659362695",
-                "name": "Galaxy Plaza (銀河廣場)",
+                "id": "hk-eastern-way-99981690",
+                "name": "Oi Tung Shopping Centre (愛東商場)",
                 "category": "landmark",
                 "color": "#9333ea",
                 "coords": [
-                        22.277466,
-                        114.229623
+                        22.280861,
+                        114.227773
                 ],
                 "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
                 "tag": "MALL",
                 "desc": "Major shopping, dining, and retail complex in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "audioNote": "Welcome to Galaxy Plaza, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Oi Tung Shopping Centre, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
                 "panoUrl": "",
                 "tips": "",
-                "importanceScore": 86,
-                "prominenceTier": 1
+                "importanceScore": 79,
+                "prominenceTier": 3
         },
         {
-                "id": "hk-eastern-way-820899449",
-                "name": "Maximall (城市中心商場)",
+                "id": "hk-eastern-way-100227831",
+                "name": "Hing Tung Shopping Centre (興東商場)",
                 "category": "landmark",
                 "color": "#9333ea",
                 "coords": [
-                        22.291038,
-                        114.194802
+                        22.280786,
+                        114.220097
                 ],
                 "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
                 "tag": "MALL",
                 "desc": "Major shopping, dining, and retail complex in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "audioNote": "Welcome to Maximall, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Hing Tung Shopping Centre, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
                 "panoUrl": "",
-                "tips": "",
-                "importanceScore": 86,
-                "prominenceTier": 1
+                "tips": "Opening hours: Mo-Su,PH 00:00-24:00",
+                "importanceScore": 79,
+                "prominenceTier": 3
         },
         {
-                "id": "hk-eastern-way-904134714",
-                "name": "Island Resort Mall (藍灣廣場)",
-                "category": "landmark",
-                "color": "#9333ea",
+                "id": "hk-eastern-node-339050630",
+                "name": "Yoshinoya (吉野家)",
+                "category": "craft",
+                "color": "#dc2626",
                 "coords": [
-                        22.265977,
-                        114.25078
+                        22.282927,
+                        114.221485
                 ],
-                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
-                "tag": "MALL",
-                "desc": "Major shopping, dining, and retail complex in Hong Kong • Eastern (North Point & Quarry Bay).",
-                "audioNote": "Welcome to Island Resort Mall, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#dc2626\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🍔</text>\n</svg>",
+                "tag": "FAST FOOD",
+                "desc": "Renowned cuisine (beef_bowl) in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Yoshinoya, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
                 "panoUrl": "",
                 "tips": "",
-                "importanceScore": 86,
-                "prominenceTier": 1
+                "importanceScore": 68,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-eastern-node-660415716",
+                "name": "Merci Minnie (摩司餐廳)",
+                "category": "craft",
+                "color": "#dc2626",
+                "coords": [
+                        22.280136,
+                        114.230269
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#dc2626\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🍽️</text>\n</svg>",
+                "tag": "RESTAURANT",
+                "desc": "Local dining and authentic cuisine in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Merci Minnie, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "Opening hours: Su-Th,PH 11:30-22:00; Fr,Sa 11:30-22:30",
+                "importanceScore": 68,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-eastern-node-1298704514",
+                "name": "Sushi Express (爭鮮)",
+                "category": "craft",
+                "color": "#dc2626",
+                "coords": [
+                        22.288271,
+                        114.193305
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#dc2626\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🍽️</text>\n</svg>",
+                "tag": "RESTAURANT",
+                "desc": "Renowned cuisine (sushi) in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Sushi Express, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 68,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-eastern-node-1298704623",
+                "name": "McDonald's (麥當勞)",
+                "category": "craft",
+                "color": "#dc2626",
+                "coords": [
+                        22.28809,
+                        114.193754
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#dc2626\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🍔</text>\n</svg>",
+                "tag": "FAST FOOD",
+                "desc": "Renowned cuisine (burger) in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to McDonald's, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 68,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-eastern-node-1299465455",
+                "name": "Café de Coral (大家樂)",
+                "category": "craft",
+                "color": "#dc2626",
+                "coords": [
+                        22.288731,
+                        114.194333
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#dc2626\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🍔</text>\n</svg>",
+                "tag": "FAST FOOD",
+                "desc": "Renowned cuisine (cantonese;western) in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Café de Coral, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "Opening hours: Mo-Su 06:30-21:30",
+                "importanceScore": 68,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-eastern-node-1299465480",
+                "name": "Fairwood (大快活)",
+                "category": "craft",
+                "color": "#dc2626",
+                "coords": [
+                        22.289106,
+                        114.194548
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#dc2626\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🍔</text>\n</svg>",
+                "tag": "FAST FOOD",
+                "desc": "Renowned cuisine (cantonese;western) in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Fairwood, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 68,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-eastern-node-1722029190",
+                "name": "Tai Hing (太興)",
+                "category": "craft",
+                "color": "#dc2626",
+                "coords": [
+                        22.27781,
+                        114.227047
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#dc2626\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🍽️</text>\n</svg>",
+                "tag": "RESTAURANT",
+                "desc": "Local dining and authentic cuisine in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Tai Hing, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 68,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-eastern-node-1797947187",
+                "name": "Maxim's MX (美心MX)",
+                "category": "craft",
+                "color": "#dc2626",
+                "coords": [
+                        22.284924,
+                        114.215709
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#dc2626\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🍔</text>\n</svg>",
+                "tag": "FAST FOOD",
+                "desc": "Renowned cuisine (cantonese;western) in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Maxim's MX, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 68,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-eastern-node-1894990486",
+                "name": "Twelveflavors (十二味)",
+                "category": "craft",
+                "color": "#dc2626",
+                "coords": [
+                        22.292456,
+                        114.196662
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#dc2626\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🍽️</text>\n</svg>",
+                "tag": "RESTAURANT",
+                "desc": "Renowned cuisine (chinese) in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Twelveflavors, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "Opening hours: Mo-Fr 11:30-16:00,17:00-22:00; Sa-Su,PH 11:30-22:00",
+                "importanceScore": 68,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-eastern-node-2014724317",
+                "name": "Simple Life",
+                "category": "craft",
+                "color": "#dc2626",
+                "coords": [
+                        22.28707,
+                        114.212261
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#dc2626\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🍽️</text>\n</svg>",
+                "tag": "RESTAURANT",
+                "desc": "Renowned cuisine (international) in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Simple Life, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 68,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-eastern-node-2194386772",
+                "name": "Three Virtues Vegetarian Restaurant (三德素食館)",
+                "category": "craft",
+                "color": "#dc2626",
+                "coords": [
+                        22.291175,
+                        114.199429
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#dc2626\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🍽️</text>\n</svg>",
+                "tag": "RESTAURANT",
+                "desc": "Renowned cuisine (chinese) in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Three Virtues Vegetarian Restaurant, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 68,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-eastern-node-624020195",
+                "name": "C4303",
+                "category": "landmark",
+                "color": "#d97706",
+                "coords": [
+                        22.270988,
+                        114.216765
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#d97706\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">✨</text>\n</svg>",
+                "tag": "ATTRACTION",
+                "desc": "Prominent landmark and visitor destination in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to C4303, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 65,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-eastern-node-624020197",
+                "name": "C4301",
+                "category": "landmark",
+                "color": "#d97706",
+                "coords": [
+                        22.272032,
+                        114.212676
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#d97706\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">✨</text>\n</svg>",
+                "tag": "ATTRACTION",
+                "desc": "Prominent landmark and visitor destination in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to C4301, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 65,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-eastern-node-1279888084",
+                "name": "Wellcome (惠康)",
+                "category": "landmark",
+                "color": "#d97706",
+                "coords": [
+                        22.27867,
+                        114.22896
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#d97706\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">✨</text>\n</svg>",
+                "tag": "ATTRACTION",
+                "desc": "Prominent landmark and visitor destination in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Wellcome, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 65,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-eastern-node-1282179145",
+                "name": "Market Place by Jasons",
+                "category": "landmark",
+                "color": "#d97706",
+                "coords": [
+                        22.285719,
+                        114.196313
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#d97706\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">✨</text>\n</svg>",
+                "tag": "ATTRACTION",
+                "desc": "Prominent landmark and visitor destination in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Market Place by Jasons, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 65,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-eastern-node-1298704546",
+                "name": "Vanguard (華潤萬家)",
+                "category": "landmark",
+                "color": "#d97706",
+                "coords": [
+                        22.286856,
+                        114.195138
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#d97706\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">✨</text>\n</svg>",
+                "tag": "ATTRACTION",
+                "desc": "Prominent landmark and visitor destination in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Vanguard, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 65,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-eastern-node-1107019729",
+                "name": "Starbucks (星巴克)",
+                "category": "craft",
+                "color": "#ea580c",
+                "coords": [
+                        22.288083,
+                        114.192379
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#ea580c\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">☕</text>\n</svg>",
+                "tag": "CAFE",
+                "desc": "Artisanal cafe, fresh roasts, and refreshments in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Starbucks, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 64,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-eastern-node-1797945684",
+                "name": "A nice gift (賞茶)",
+                "category": "craft",
+                "color": "#ea580c",
+                "coords": [
+                        22.284837,
+                        114.215987
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#ea580c\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">☕</text>\n</svg>",
+                "tag": "CAFE",
+                "desc": "Artisanal cafe, fresh roasts, and refreshments in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to A nice gift, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 64,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-eastern-node-3005302586",
+                "name": "Pacific Coffee (太平洋咖啡)",
+                "category": "craft",
+                "color": "#ea580c",
+                "coords": [
+                        22.284839,
+                        114.21375
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#ea580c\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">☕</text>\n</svg>",
+                "tag": "CAFE",
+                "desc": "Artisanal cafe, fresh roasts, and refreshments in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Pacific Coffee, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "Opening hours: Mo-Fr 07:00-20:00; Sa 08:00-20:00; Su,PH 08:30-20:00",
+                "importanceScore": 64,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-eastern-node-4234054890",
+                "name": "新釗記",
+                "category": "craft",
+                "color": "#ea580c",
+                "coords": [
+                        22.292076,
+                        114.199411
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#ea580c\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">☕</text>\n</svg>",
+                "tag": "CAFE",
+                "desc": "Artisanal cafe, fresh roasts, and refreshments in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to 新釗記, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 64,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-eastern-node-4265740931",
+                "name": "翠苑甜品專家",
+                "category": "craft",
+                "color": "#ea580c",
+                "coords": [
+                        22.290984,
+                        114.196505
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#ea580c\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">☕</text>\n</svg>",
+                "tag": "CAFE",
+                "desc": "Artisanal cafe, fresh roasts, and refreshments in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to 翠苑甜品專家, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 64,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-eastern-node-4265740940",
+                "name": "香港仔魚蛋王",
+                "category": "craft",
+                "color": "#ea580c",
+                "coords": [
+                        22.291076,
+                        114.196485
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#ea580c\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">☕</text>\n</svg>",
+                "tag": "CAFE",
+                "desc": "Artisanal cafe, fresh roasts, and refreshments in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to 香港仔魚蛋王, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 64,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-eastern-node-4450031328",
+                "name": "Black Bear",
+                "category": "craft",
+                "color": "#ea580c",
+                "coords": [
+                        22.286438,
+                        114.21585
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#ea580c\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">☕</text>\n</svg>",
+                "tag": "CAFE",
+                "desc": "Artisanal cafe, fresh roasts, and refreshments in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Black Bear, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 64,
+                "prominenceTier": 3
+        },
+        {
+                "id": "hk-eastern-node-4537643792",
+                "name": "Alchemy Espresso",
+                "category": "craft",
+                "color": "#ea580c",
+                "coords": [
+                        22.288059,
+                        114.211499
+                ],
+                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#ea580c\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">☕</text>\n</svg>",
+                "tag": "CAFE",
+                "desc": "Artisanal cafe, fresh roasts, and refreshments in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "audioNote": "Welcome to Alchemy Espresso, one of the key landmarks in Hong Kong • Eastern (North Point & Quarry Bay).",
+                "panoUrl": "",
+                "tips": "",
+                "importanceScore": 64,
+                "prominenceTier": 3
         }
 ],
 };

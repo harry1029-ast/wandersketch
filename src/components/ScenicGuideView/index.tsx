@@ -15,6 +15,7 @@ import { LandmarkDetailModal } from '@/components/Modals/LandmarkDetailModal';
 import { QuickExpenseModal } from '@/components/Modals/QuickExpenseModal';
 import { CitySearchModal } from '@/components/Modals/CitySearchModal';
 import { Palette, ArrowsOut, NavigationArrow, Crosshair, Sparkle, CalendarBlank, Compass, AirplaneTakeoff } from '@phosphor-icons/react';
+import { DiscoveryCategory, DISCOVERY_CATEGORIES, getLandmarkCategoryGroup } from '@/lib/landmarkCategories';
 
 const DynamicIslandModal = dynamic(
     () => import('@/components/Modals/ContainedIslandModal').then((mod) => mod.ContainedIslandModal),
@@ -148,6 +149,8 @@ export const ScenicGuideView: React.FC = () => {
     const [isExpenseModalOpen, setIsExpenseModalOpen] = useState<boolean>(false);
     const [expenseModalItem, setExpenseModalItem] = useState<ItineraryItem | null>(null);
     const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState<boolean>(false);
+    const [activeCategoryFilter, setActiveCategoryFilter] = useState<DiscoveryCategory>('all');
+    const [activeCategoryCount, setActiveCategoryCount] = useState<number>(0);
 
     const handleRecordExpense = (item: ItineraryItem) => {
         setExpenseModalItem(item);
@@ -395,6 +398,13 @@ export const ScenicGuideView: React.FC = () => {
             }));
         return [...allKnown, ...envelopeExtras];
     }, [orderedLandmarks, zone.landmarksPool, envelopeSpots]);
+
+    const categoryMatchedLandmarks = React.useMemo(() => {
+        if (activeCategoryFilter === 'all') return [];
+        return displayedLandmarks.filter(
+            (lm) => getLandmarkCategoryGroup(lm) === activeCategoryFilter
+        );
+    }, [displayedLandmarks, activeCategoryFilter]);
 
     const { coords: liveGpsCoords, heading: liveHeading, accuracy: liveAccuracy } = useGeolocationTracker({
         landmarks: displayedLandmarks,
@@ -669,6 +679,9 @@ export const ScenicGuideView: React.FC = () => {
                 onDeletePersonalSpot={handleDeletePersonalSpot}
                 isMobileOpen={isMobileDrawerOpen}
                 onCloseMobile={() => setIsMobileDrawerOpen(false)}
+                categoryFilter={activeCategoryFilter}
+                onSelectCategoryFilter={setActiveCategoryFilter}
+                categoryLandmarks={categoryMatchedLandmarks}
             />
 
             <div className="flex-1 h-full relative">
@@ -727,6 +740,8 @@ export const ScenicGuideView: React.FC = () => {
                     onDeletePersonalSpot={handleDeletePersonalSpot}
                     onMapClick={handleMapClick}
                     mapDiscoveryMode={mapDiscoveryMode}
+                    categoryFilter={activeCategoryFilter}
+                    onCategoryCountChange={setActiveCategoryCount}
                     onMapReady={(map) => {
                         mapRef.current = map;
                     }}
@@ -867,6 +882,36 @@ export const ScenicGuideView: React.FC = () => {
                         </div>
                     )
                 )}
+
+                {/* Google Maps-Style Quick Category Discovery Pills Bar */}
+                <div className="absolute top-16 left-4 z-20 max-w-[calc(100%-120px)] sm:max-w-[calc(100%-140px)] flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 select-none">
+                    {DISCOVERY_CATEGORIES.map((cat) => {
+                        const isActive = activeCategoryFilter === cat.id;
+                        return (
+                            <button
+                                key={cat.id}
+                                onClick={() => {
+                                    playChime('tap');
+                                    setActiveCategoryFilter((prev) => (prev === cat.id ? 'all' : cat.id));
+                                }}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl text-xs font-serif font-bold transition-all shadow-sm border shrink-0 cursor-pointer select-none active:scale-95 ${
+                                    isActive
+                                        ? `${cat.activeBg} ${cat.activeText} ${cat.borderColor} border-2 shadow-stamp font-black scale-102 ring-1 ring-white/50`
+                                        : 'bg-paper-50/95 hover:bg-paper-100 text-paper-900 border-paper-400/80 hover:border-paper-900'
+                                }`}
+                                title={`Filter canvas to show ${cat.label}`}
+                            >
+                                <span className="text-sm">{cat.emoji}</span>
+                                <span>{cat.label}</span>
+                                {isActive && activeCategoryCount > 0 && (
+                                    <span className="ml-1 text-[10px] font-mono font-black px-1.5 py-0.2 rounded-full bg-white/20 text-white">
+                                        {activeCategoryCount}
+                                    </span>
+                                )}
+                            </button>
+                        );
+                    })}
+                </div>
 
                 {/* Floating Map Controls */}
                 <div className="absolute top-4 right-4 z-20 flex flex-col gap-2">
