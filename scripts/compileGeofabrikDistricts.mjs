@@ -718,8 +718,20 @@ async function main() {
                 if (match) {
                     try {
                         const existingShaTin = eval(`(${match[1]})`);
-                        const existingNames = new Set(existingShaTin.map((l) => l.name.toLowerCase()));
-                        const additions = curatedLandmarks.filter((l) => !existingNames.has(l.name.toLowerCase()));
+                        // Build normalized lookup keys (ignoring punctuation, spaces, and matching Chinese names)
+                        const normKey = (str) => (str || '').toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, '');
+                        const zhKey = (str) => (str || '').match(/[\u4e00-\u9fa5]+/g)?.join('') || '';
+
+                        const existingKeys = new Set(existingShaTin.map((l) => normKey(l.name)));
+                        const existingZh = new Set(existingShaTin.map((l) => zhKey(l.name)).filter(Boolean));
+
+                        const additions = curatedLandmarks.filter((l) => {
+                            const n = normKey(l.name);
+                            const z = zhKey(l.name);
+                            if (existingKeys.has(n)) return false;
+                            if (z && existingZh.has(z)) return false;
+                            return true;
+                        });
                         finalLandmarks = [...existingShaTin, ...additions.slice(0, 15)];
                     } catch {}
                 }

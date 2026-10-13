@@ -20,6 +20,10 @@
   filter: saturate(185%) hue-rotate(4deg) contrast(118%) brightness(104%);
 }
 
+.eco-island-tiles {
+  filter: saturate(220%) hue-rotate(-22deg) contrast(124%) brightness(108%);
+}
+
 @keyframes spinSlow {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }

@@ -18,6 +18,27 @@ interface SpotSearchAutocompleteProps {
     onSelectSpot: (name: string, coords: [number, number], address: string) => Promise<void>;
 }
 
+function normalizeSpotName(name: string): string {
+    return name
+        .replace(/[\(\（][^\)\）]*[\)\）]/g, '') // remove parentheticals
+        .replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '') // remove symbols/spaces
+        .toLowerCase();
+}
+
+function getChinesePart(str: string): string {
+    return str.match(/[\u4e00-\u9fa5]+/g)?.join('') || '';
+}
+
+function getDistanceMeters(c1: [number, number], c2: [number, number]): number {
+    const R = 6371e3;
+    const dLat = ((c2[0] - c1[0]) * Math.PI) / 180;
+    const dLon = ((c2[1] - c1[1]) * Math.PI) / 180;
+    const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos((c1[0] * Math.PI) / 180) * Math.cos((c2[0] * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 export const SpotSearchAutocomplete: React.FC<SpotSearchAutocompleteProps> = ({
     currentZone,
     onSelectSpot,
@@ -86,12 +107,44 @@ export const SpotSearchAutocomplete: React.FC<SpotSearchAutocompleteProps> = ({
                         isCurated: false,
                     }));
 
-                    // Deduplicate results
-                    const seenNames = new Set(localMatches.map((m) => m.name.toLowerCase()));
+                    // Deduplicate results against local curated matches and previous fetched items
+                    const seenNormalized = new Set<string>();
+                    for (const m of localMatches) {
+                        const norm = normalizeSpotName(m.name);
+                        if (norm) seenNormalized.add(norm);
+                        const zh = getChinesePart(m.name);
+                        if (zh) seenNormalized.add(zh);
+                    }
+
                     const merged = [...localMatches];
                     for (const item of fetchedResults) {
-                        if (!seenNames.has(item.name.toLowerCase())) {
-                            seenNames.add(item.name.toLowerCase());
+                        const itemNorm = normalizeSpotName(item.name);
+                        const itemZh = getChinesePart(item.name) || getChinesePart(item.displayName);
+
+                        // Check name matches
+                        const matchesCuratedName =
+                            (itemNorm && seenNormalized.has(itemNorm)) ||
+                            (itemZh && seenNormalized.has(itemZh));
+
+                        // Check proximity against local curated spots
+                        const isCloseToCurated = localMatches.some((local) => {
+                            if (!local.coords || !item.coords) return false;
+                            const dist = getDistanceMeters(local.coords, item.coords);
+                            if (dist < 180) {
+                                const normLocal = normalizeSpotName(local.name);
+                                if (
+                                    (normLocal && itemNorm && (normLocal.includes(itemNorm) || itemNorm.includes(normLocal))) ||
+                                    (itemZh && getChinesePart(local.name) === itemZh)
+                                ) {
+                                    return true;
+                                }
+                            }
+                            return false;
+                        });
+
+                        if (!matchesCuratedName && !isCloseToCurated) {
+                            if (itemNorm) seenNormalized.add(itemNorm);
+                            if (itemZh) seenNormalized.add(itemZh);
                             merged.push(item);
                         }
                     }

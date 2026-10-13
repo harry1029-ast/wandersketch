@@ -879,6 +879,13 @@ export const ScenicGuideView: React.FC = () => {
                                 <span className="hidden sm:inline">Explore Around Me</span>
                                 <span className="sm:hidden">Explore</span>
                             </button>
+                            {appMode === 'on-trip' && (
+                                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-800 text-white border-2 border-emerald-950 rounded-2xl shadow-stamp text-xs font-black shrink-0 select-none animate-fade-in">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse shrink-0"></span>
+                                    <span className="hidden sm:inline">🌿 Eco-Island Theme Active</span>
+                                    <span className="sm:hidden">🌿 Eco Theme</span>
+                                </div>
+                            )}
                         </div>
                     )
                 )}

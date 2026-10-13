@@ -21,8 +21,8 @@ export const HONG_KONG_SHA_TIN_PACK: CityPack = {
                 "category": "landmark",
                 "color": "#9333ea",
                 "coords": [
-                        22.3812,
-                        114.189
+                        22.380975,
+                        114.188243
                 ],
                 "svgSnippet": "\n        <svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n          <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n          <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n        </svg>\n      ",
                 "tag": "MALL",
@@ -39,8 +39,8 @@ export const HONG_KONG_SHA_TIN_PACK: CityPack = {
                 "category": "landmark",
                 "color": "#9333ea",
                 "coords": [
-                        22.3803,
-                        114.1882
+                        22.37982,
+                        114.186879
                 ],
                 "svgSnippet": "\n        <svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n          <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n          <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n        </svg>\n      ",
                 "tag": "MALL",
@@ -57,8 +57,8 @@ export const HONG_KONG_SHA_TIN_PACK: CityPack = {
                 "category": "landmark",
                 "color": "#9333ea",
                 "coords": [
-                        22.3814,
-                        114.1878
+                        22.381176,
+                        114.187255
                 ],
                 "svgSnippet": "\n        <svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n          <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n          <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n        </svg>\n      ",
                 "tag": "MALL",
@@ -75,8 +75,8 @@ export const HONG_KONG_SHA_TIN_PACK: CityPack = {
                 "category": "landmark",
                 "color": "#9333ea",
                 "coords": [
-                        22.3798,
-                        114.1888
+                        22.379622,
+                        114.187807
                 ],
                 "svgSnippet": "\n        <svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n          <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n          <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n        </svg>\n      ",
                 "tag": "DEPT STORE",
@@ -93,8 +93,8 @@ export const HONG_KONG_SHA_TIN_PACK: CityPack = {
                 "category": "landmark",
                 "color": "#9333ea",
                 "coords": [
-                        22.3826,
-                        114.1895
+                        22.38302,
+                        114.190733
                 ],
                 "svgSnippet": "\n        <svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n          <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n          <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n        </svg>\n      ",
                 "tag": "MALL",
@@ -107,12 +107,12 @@ export const HONG_KONG_SHA_TIN_PACK: CityPack = {
         },
         {
                 "id": "st-shatin-centre",
-                "name": "Shatin Centre (沙田中心)",
+                "name": "Sha Tin Centre (沙田中心)",
                 "category": "landmark",
                 "color": "#9333ea",
                 "coords": [
-                        22.382,
-                        114.1887
+                        22.382651,
+                        114.19006
                 ],
                 "svgSnippet": "\n        <svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n          <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n          <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n        </svg>\n      ",
                 "tag": "MALL",
@@ -129,8 +129,8 @@ export const HONG_KONG_SHA_TIN_PACK: CityPack = {
                 "category": "landmark",
                 "color": "#9333ea",
                 "coords": [
-                        22.3828,
-                        114.1876
+                        22.382449,
+                        114.187683
                 ],
                 "svgSnippet": "\n        <svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n          <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n          <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n        </svg>\n      ",
                 "tag": "MALL",
@@ -147,8 +147,8 @@ export const HONG_KONG_SHA_TIN_PACK: CityPack = {
                 "category": "history",
                 "color": "#b23b23",
                 "coords": [
-                        22.3768,
-                        114.1861
+                        22.377317,
+                        114.185763
                 ],
                 "svgSnippet": "\n        <svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n          <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#b23b23\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n          <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🏛️</text>\n        </svg>\n      ",
                 "tag": "MUSEUM",
@@ -165,8 +165,8 @@ export const HONG_KONG_SHA_TIN_PACK: CityPack = {
                 "category": "culture",
                 "color": "#c2410c",
                 "coords": [
-                        22.3732,
-                        114.1828
+                        22.373311,
+                        114.183001
                 ],
                 "svgSnippet": "\n        <svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n          <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#c2410c\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n          <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">⛩️</text>\n        </svg>\n      ",
                 "tag": "TEMPLE",
@@ -183,8 +183,8 @@ export const HONG_KONG_SHA_TIN_PACK: CityPack = {
                 "category": "culture",
                 "color": "#c2410c",
                 "coords": [
-                        22.3875,
-                        114.1848
+                        22.387905,
+                        114.185083
                 ],
                 "svgSnippet": "\n        <svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n          <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#c2410c\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n          <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">⛩️</text>\n        </svg>\n      ",
                 "tag": "TEMPLE",
@@ -201,8 +201,8 @@ export const HONG_KONG_SHA_TIN_PACK: CityPack = {
                 "category": "landmark",
                 "color": "#0284c7",
                 "coords": [
-                        22.3822,
-                        114.1901
+                        22.382022,
+                        114.189315
                 ],
                 "svgSnippet": "\n        <svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n          <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#0284c7\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n          <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🎡</text>\n        </svg>\n      ",
                 "tag": "ATTRACTION",
@@ -219,8 +219,8 @@ export const HONG_KONG_SHA_TIN_PACK: CityPack = {
                 "category": "nature",
                 "color": "#3d7a42",
                 "coords": [
-                        22.38,
-                        114.1915
+                        22.380437,
+                        114.190301
                 ],
                 "svgSnippet": "\n        <svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n          <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#3d7a42\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n          <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🌿</text>\n        </svg>\n      ",
                 "tag": "PARK",
@@ -237,8 +237,8 @@ export const HONG_KONG_SHA_TIN_PACK: CityPack = {
                 "category": "culture",
                 "color": "#b23b23",
                 "coords": [
-                        22.3812,
-                        114.1902
+                        22.381108,
+                        114.189803
                 ],
                 "svgSnippet": "\n        <svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n          <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#b23b23\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n          <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🎭</text>\n        </svg>\n      ",
                 "tag": "CULTURE",
@@ -255,8 +255,8 @@ export const HONG_KONG_SHA_TIN_PACK: CityPack = {
                 "category": "culture",
                 "color": "#b23b23",
                 "coords": [
-                        22.3815,
-                        114.1911
+                        22.380651,
+                        114.189263
                 ],
                 "svgSnippet": "\n        <svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n          <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#b23b23\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n          <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">📚</text>\n        </svg>\n      ",
                 "tag": "CULTURE",
@@ -273,8 +273,8 @@ export const HONG_KONG_SHA_TIN_PACK: CityPack = {
                 "category": "history",
                 "color": "#4f46e5",
                 "coords": [
-                        22.3827,
-                        114.1872
+                        22.383271,
+                        114.187589
                 ],
                 "svgSnippet": "\n        <svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n          <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#4f46e5\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n          <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🚇</text>\n        </svg>\n      ",
                 "tag": "TRANSIT",
@@ -291,8 +291,8 @@ export const HONG_KONG_SHA_TIN_PACK: CityPack = {
                 "category": "history",
                 "color": "#c14937",
                 "coords": [
-                        22.3752,
-                        114.1918
+                        22.373948,
+                        114.190532
                 ],
                 "svgSnippet": "\n        <svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n          <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#c14937\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n          <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🏰</text>\n        </svg>\n      ",
                 "tag": "HERITAGE",
@@ -309,8 +309,8 @@ export const HONG_KONG_SHA_TIN_PACK: CityPack = {
                 "category": "culture",
                 "color": "#c2410c",
                 "coords": [
-                        22.3865,
-                        114.1845
+                        22.384334,
+                        114.182538
                 ],
                 "svgSnippet": "\n        <svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n          <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#c2410c\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n          <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">⛪</text>\n        </svg>\n      ",
                 "tag": "CHURCH",
@@ -327,8 +327,8 @@ export const HONG_KONG_SHA_TIN_PACK: CityPack = {
                 "category": "nature",
                 "color": "#0284c7",
                 "coords": [
-                        22.3835,
-                        114.1935
+                        22.3808,
+                        114.1915
                 ],
                 "svgSnippet": "\n        <svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n          <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#0284c7\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n          <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🌊</text>\n        </svg>\n      ",
                 "tag": "RIVERSIDE",
@@ -345,8 +345,8 @@ export const HONG_KONG_SHA_TIN_PACK: CityPack = {
                 "category": "landmark",
                 "color": "#0284c7",
                 "coords": [
-                        22.3838,
-                        114.1928
+                        22.379328,
+                        114.191267
                 ],
                 "svgSnippet": "\n        <svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n          <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#0284c7\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n          <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🌉</text>\n        </svg>\n      ",
                 "tag": "BRIDGE",
@@ -363,8 +363,8 @@ export const HONG_KONG_SHA_TIN_PACK: CityPack = {
                 "category": "nature",
                 "color": "#3d7a42",
                 "coords": [
-                        22.4002,
-                        114.2055
+                        22.399779,
+                        114.206985
                 ],
                 "svgSnippet": "\n        <svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n          <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#3d7a42\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n          <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🌳</text>\n        </svg>\n      ",
                 "tag": "PARK",
@@ -592,24 +592,6 @@ export const HONG_KONG_SHA_TIN_PACK: CityPack = {
                 "prominenceTier": 1
         },
         {
-                "id": "hk-shaTin-way-916943187",
-                "name": "Ten Thousand Buddha's Monastery (萬佛寺)",
-                "category": "culture",
-                "color": "#c2410c",
-                "coords": [
-                        22.387905,
-                        114.185083
-                ],
-                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#c2410c\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">⛩️</text>\n</svg>",
-                "tag": "TEMPLE",
-                "desc": "Historic temple and sacred landmark in Hong Kong • Sha Tin & Ma On Shan.",
-                "audioNote": "Welcome to Ten Thousand Buddha's Monastery, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
-                "panoUrl": "",
-                "tips": "Opening hours: Mo-Su 09:00-17:00",
-                "importanceScore": 92,
-                "prominenceTier": 1
-        },
-        {
                 "id": "hk-shaTin-node-3017941122",
                 "name": "Shatin Park Phase 1 (花園城第1期)",
                 "category": "landmark",
@@ -676,24 +658,6 @@ export const HONG_KONG_SHA_TIN_PACK: CityPack = {
                 "tag": "MALL",
                 "desc": "Major shopping, dining, and retail complex in Hong Kong • Sha Tin & Ma On Shan.",
                 "audioNote": "Welcome to We Go Mall, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
-                "panoUrl": "",
-                "tips": "",
-                "importanceScore": 90,
-                "prominenceTier": 1
-        },
-        {
-                "id": "hk-shaTin-way-157655584",
-                "name": "Sha Tin Centre (沙田中心)",
-                "category": "landmark",
-                "color": "#9333ea",
-                "coords": [
-                        22.382651,
-                        114.19006
-                ],
-                "svgSnippet": "<svg viewBox=\"0 0 100 100\" class=\"w-full h-full drop-shadow-md\">\n  <circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#9333ea\" stroke=\"#2b261b\" stroke-width=\"3\"/>\n  <text x=\"50\" y=\"58\" font-size=\"22\" text-anchor=\"middle\">🛍️</text>\n</svg>",
-                "tag": "MALL",
-                "desc": "Major shopping, dining, and retail complex in Hong Kong • Sha Tin & Ma On Shan.",
-                "audioNote": "Welcome to Sha Tin Centre, one of the key landmarks in Hong Kong • Sha Tin & Ma On Shan.",
                 "panoUrl": "",
                 "tips": "",
                 "importanceScore": 90,
