@@ -9,11 +9,7 @@ export const HONG_KONG_WTS_PACK: CityPack = {
     zoom: 15,
     userOrigin: [22.343, 114.2031],
     bounds: [[22.3225,114.1751],[22.3636,114.2311]],
-    facilities: [
-        { type: 'info', name: 'Wong Tai Sin & Diamond Hill Visitor Information', coords: [22.343, 114.2031], emoji: 'ℹ️' },
-        { type: 'restroom', name: 'Public Restroom Facilities', coords: [22.345, 114.2051], emoji: '🚻' },
-        { type: 'photo', name: 'Scenic Photography Spot', coords: [22.341, 114.2011], emoji: '📷' },
-    ],
+    facilities: [],
     landmarks: [
         {
                 "id": "hk-wongTaiSin-way-135630191",

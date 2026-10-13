@@ -9,11 +9,7 @@ export const HONG_KONG_EASTERN_PACK: CityPack = {
     zoom: 15,
     userOrigin: [22.2734, 114.224],
     bounds: [[22.2453,114.1834],[22.3015,114.2646]],
-    facilities: [
-        { type: 'info', name: 'Eastern (North Point & Quarry Bay) Visitor Information', coords: [22.2734, 114.224], emoji: 'ℹ️' },
-        { type: 'restroom', name: 'Public Restroom Facilities', coords: [22.2754, 114.226], emoji: '🚻' },
-        { type: 'photo', name: 'Scenic Photography Spot', coords: [22.2714, 114.222], emoji: '📷' },
-    ],
+    facilities: [],
     landmarks: [
         {
                 "id": "hk-eastern-node-9626292673",

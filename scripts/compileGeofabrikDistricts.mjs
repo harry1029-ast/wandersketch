@@ -753,11 +753,7 @@ export const ${config.exportVar}: CityPack = {
     zoom: 15,
     userOrigin: [${centerLat}, ${centerLng}],
     bounds: ${JSON.stringify(bounds)},
-    facilities: [
-        { type: 'info', name: '${config.districtName.split('•')[1]?.trim() || 'District'} Visitor Information', coords: [${centerLat}, ${centerLng}], emoji: 'ℹ️' },
-        { type: 'restroom', name: 'Public Restroom Facilities', coords: [${parseFloat((centerLat + 0.002).toFixed(4))}, ${parseFloat((centerLng + 0.002).toFixed(4))}], emoji: '🚻' },
-        { type: 'photo', name: 'Scenic Photography Spot', coords: [${parseFloat((centerLat - 0.002).toFixed(4))}, ${parseFloat((centerLng - 0.002).toFixed(4))}], emoji: '📷' },
-    ],
+    facilities: [],
     landmarks: ${JSON.stringify(finalLandmarks, null, 8)},
 };
 

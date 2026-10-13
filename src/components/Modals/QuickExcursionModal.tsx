@@ -24,12 +24,12 @@ interface QuickExcursionModalProps {
 export const QuickExcursionModal: React.FC<QuickExcursionModalProps> = ({ isOpen, onClose }) => {
     const { createQuickExcursion, zones } = useItineraryStore();
     const allZones = zones || MASTER_ZONES;
-    const [selectedZone, setSelectedZone] = useState<ScenicZoneKey>('kyoto_higashiyama');
+    const [selectedZone, setSelectedZone] = useState<ScenicZoneKey>('sha_tin_district');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     if (!isOpen) return null;
 
-    const zone = allZones[selectedZone] || allZones.toronto_distillery || Object.values(allZones)[0];
+    const zone = allZones[selectedZone] || allZones.sha_tin_district || Object.values(allZones)[0];
 
     const handleCreate = async () => {
         setIsSubmitting(true);

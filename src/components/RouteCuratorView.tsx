@@ -36,7 +36,7 @@ export const RouteCuratorView: React.FC = () => {
     const [isConverting, setIsConverting] = useState(false);
 
     const allZones = zones || MASTER_ZONES;
-    const zone = allZones[plannerBuffer.zoneKey] || allZones.toronto_distillery || Object.values(allZones)[0];
+    const zone = allZones[plannerBuffer.zoneKey] || allZones.sha_tin_district || Object.values(allZones)[0];
     const orderedLandmarks = plannerBuffer.spotIds
         .map((id) => zone.landmarksPool.find((l) => l.id === id))
         .filter(Boolean);

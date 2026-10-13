@@ -37,9 +37,11 @@
 .custom-island-facility-pin,
 .custom-scenic-building-pin,
 .custom-amenity-pin,
-.custom-user-gps-marker {
+.custom-user-gps-marker,
+.custom-district-badge-pin {
   background: transparent !important;
   border: none !important;
+  overflow: visible !important;
 }
 
 /* Mobile Touch & Safe Area Inset Helpers */

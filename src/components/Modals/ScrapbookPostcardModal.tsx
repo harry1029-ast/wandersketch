@@ -16,7 +16,7 @@ export const ScrapbookPostcardModal: React.FC<ScrapbookPostcardModalProps> = ({ 
     const cardRef = useRef<HTMLDivElement>(null);
     const [isExporting, setIsExporting] = useState(false);
 
-    const zone = MASTER_ZONES[plan.zoneKey] || MASTER_ZONES.toronto_distillery;
+    const zone = MASTER_ZONES[plan.zoneKey] || MASTER_ZONES.sha_tin_district || Object.values(MASTER_ZONES)[0];
     const planLandmarks = (plan.spotIds || [])
         .map((id) => zone.landmarksPool.find((l) => l.id === id))
         .filter(Boolean) as Landmark[];

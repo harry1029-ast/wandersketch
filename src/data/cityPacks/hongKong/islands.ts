@@ -9,11 +9,7 @@ export const HONG_KONG_ISLANDS_PACK: CityPack = {
     zoom: 15,
     userOrigin: [22.2384, 114.0482],
     bounds: [[22.1495,113.8294],[22.3273,114.267]],
-    facilities: [
-        { type: 'info', name: 'Islands (Lantau, Lamma & Cheung Chau) Visitor Information', coords: [22.2384, 114.0482], emoji: 'ℹ️' },
-        { type: 'restroom', name: 'Public Restroom Facilities', coords: [22.2404, 114.0502], emoji: '🚻' },
-        { type: 'photo', name: 'Scenic Photography Spot', coords: [22.2364, 114.0462], emoji: '📷' },
-    ],
+    facilities: [],
     landmarks: [
         {
                 "id": "hk-islands-node-1167836696",

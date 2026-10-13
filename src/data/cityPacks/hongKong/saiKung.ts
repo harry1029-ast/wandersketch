@@ -9,11 +9,7 @@ export const HONG_KONG_SAI_KUNG_PACK: CityPack = {
     zoom: 15,
     userOrigin: [22.3458, 114.3127],
     bounds: [[22.245,114.2135],[22.4466,114.412]],
-    facilities: [
-        { type: 'info', name: 'Sai Kung & Tseung Kwan O Visitor Information', coords: [22.3458, 114.3127], emoji: 'ℹ️' },
-        { type: 'restroom', name: 'Public Restroom Facilities', coords: [22.3478, 114.3147], emoji: '🚻' },
-        { type: 'photo', name: 'Scenic Photography Spot', coords: [22.3438, 114.3107], emoji: '📷' },
-    ],
+    facilities: [],
     landmarks: [
         {
                 "id": "hk-saiKung-node-2528904734",

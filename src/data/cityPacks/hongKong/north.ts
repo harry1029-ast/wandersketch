@@ -9,11 +9,7 @@ export const HONG_KONG_NORTH_PACK: CityPack = {
     zoom: 15,
     userOrigin: [22.5123, 114.215],
     bounds: [[22.4595,114.0862],[22.5651,114.3438]],
-    facilities: [
-        { type: 'info', name: 'North (Sheung Shui & Fanling) Visitor Information', coords: [22.5123, 114.215], emoji: 'ℹ️' },
-        { type: 'restroom', name: 'Public Restroom Facilities', coords: [22.5143, 114.217], emoji: '🚻' },
-        { type: 'photo', name: 'Scenic Photography Spot', coords: [22.5103, 114.213], emoji: '📷' },
-    ],
+    facilities: [],
     landmarks: [
         {
                 "id": "hk-north-node-1184175876",

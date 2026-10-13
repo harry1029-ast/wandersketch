@@ -9,11 +9,7 @@ export const HONG_KONG_TSUEN_WAN_PACK: CityPack = {
     zoom: 15,
     userOrigin: [22.3623, 114.0849],
     bounds: [[22.3052,114.0038],[22.4194,114.1659]],
-    facilities: [
-        { type: 'info', name: 'Tsuen Wan & Sham Tseng Visitor Information', coords: [22.3623, 114.0849], emoji: 'ℹ️' },
-        { type: 'restroom', name: 'Public Restroom Facilities', coords: [22.3643, 114.0869], emoji: '🚻' },
-        { type: 'photo', name: 'Scenic Photography Spot', coords: [22.3603, 114.0829], emoji: '📷' },
-    ],
+    facilities: [],
     landmarks: [
         {
                 "id": "hk-tsuenWan-node-8266367332",

@@ -9,11 +9,7 @@ export const HONG_KONG_TUEN_MUN_PACK: CityPack = {
     zoom: 15,
     userOrigin: [22.3812, 113.9762],
     bounds: [[22.3224,113.8788],[22.4401,114.0736]],
-    facilities: [
-        { type: 'info', name: 'Tuen Mun & Gold Coast Visitor Information', coords: [22.3812, 113.9762], emoji: 'ℹ️' },
-        { type: 'restroom', name: 'Public Restroom Facilities', coords: [22.3832, 113.9782], emoji: '🚻' },
-        { type: 'photo', name: 'Scenic Photography Spot', coords: [22.3792, 113.9742], emoji: '📷' },
-    ],
+    facilities: [],
     landmarks: [
         {
                 "id": "hk-tuenMun-node-2631948274",

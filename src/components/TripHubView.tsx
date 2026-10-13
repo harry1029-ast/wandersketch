@@ -83,7 +83,7 @@ export const TripHubView: React.FC = () => {
 
     const allZones = zones || MASTER_ZONES;
     const activePlan = savedPlans.find((p) => p.id === (selectedTripViewId || activePlanId)) || savedPlans[0];
-    const zone = allZones[activePlan?.zoneKey] || allZones.toronto_distillery || Object.values(allZones)[0];
+    const zone = allZones[activePlan?.zoneKey] || allZones.sha_tin_district || Object.values(allZones)[0];
 
     const activeDay =
         currentItineraryDays.find((d) => d.dayNumber === activeDayNumber) ||
@@ -254,7 +254,7 @@ export const TripHubView: React.FC = () => {
                         {/* Plans & Trips Grid */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                             {savedPlans.map((plan) => {
-                                const planZone = allZones[plan.zoneKey] || allZones.toronto_distillery || Object.values(allZones)[0];
+                                const planZone = allZones[plan.zoneKey] || allZones.sha_tin_district || Object.values(allZones)[0];
                                 const isExcursion = plan.isExcursion || plan.tag?.toLowerCase().includes('excursion') || plan.tag?.includes('1-Day');
 
                                 return (
@@ -656,7 +656,7 @@ export const TripHubView: React.FC = () => {
                                             >
                                                 <input
                                                     type="text"
-                                                    placeholder="Item name (e.g. Kyoto Tea Ceremony)"
+                                                    placeholder="Item name (e.g. Peak Tram Sky Pass)"
                                                     value={newItemName}
                                                     onChange={(e) => setNewItemName(e.target.value)}
                                                     required

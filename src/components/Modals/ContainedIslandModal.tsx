@@ -39,7 +39,7 @@ export const ContainedIslandModal: React.FC<ContainedIslandModalProps> = ({
     const [activeSpeechTip, setActiveSpeechTip] = useState<string | null>(null);
 
     const plan = savedPlans.find((p) => p.id === activePlanId) || savedPlans[0];
-    const zone = MASTER_ZONES[plan?.zoneKey] || MASTER_ZONES.toronto_distillery;
+    const zone = MASTER_ZONES[plan?.zoneKey] || MASTER_ZONES.sha_tin_district || Object.values(MASTER_ZONES)[0];
     const orderedLandmarks = useMemo(() => {
         return (plan?.spotIds || [])
             .map((id) => zone.landmarksPool.find((l) => l.id === id))

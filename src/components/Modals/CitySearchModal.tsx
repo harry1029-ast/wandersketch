@@ -25,18 +25,15 @@ interface CitySearchModalProps {
     }) => void;
 }
 
-const POPULAR_WORLD_CITIES = [
-    { name: 'Hong Kong', country: 'Hong Kong', coords: [22.3812, 114.1888] as [number, number], emoji: '🏙️' },
-    { name: 'New York', country: 'United States', coords: [40.7128, -74.006] as [number, number], emoji: '🗽' },
-    { name: 'London', country: 'United Kingdom', coords: [51.5074, -0.1278] as [number, number], emoji: '🇬🇧' },
-    { name: 'Tokyo', country: 'Japan', coords: [35.6762, 139.6503] as [number, number], emoji: '🗼' },
-    { name: 'Rome', country: 'Italy', coords: [41.9028, 12.4964] as [number, number], emoji: '🏛️' },
-    { name: 'Paris', country: 'France', coords: [48.8566, 2.3522] as [number, number], emoji: '🥐' },
-    { name: 'Kyoto', country: 'Japan', coords: [35.0116, 135.7681] as [number, number], emoji: '⛩️' },
-    { name: 'Toronto', country: 'Canada', coords: [43.6532, -79.3832] as [number, number], emoji: '🍁' },
-    { name: 'Barcelona', country: 'Spain', coords: [41.3879, 2.1699] as [number, number], emoji: '🏰' },
-    { name: 'Sydney', country: 'Australia', coords: [-33.8688, 151.2093] as [number, number], emoji: '⛵' },
-    { name: 'Seoul', country: 'South Korea', coords: [37.5665, 126.978] as [number, number], emoji: '🏯' },
+const POPULAR_HONG_KONG_DISTRICTS = [
+    { name: 'Sha Tin & Ma On Shan', country: 'Hong Kong', coords: [22.3812, 114.1888] as [number, number], emoji: '🏙️' },
+    { name: 'Central & Western', country: 'Hong Kong', coords: [22.2820, 114.1550] as [number, number], emoji: '🏛️' },
+    { name: 'Tsim Sha Tsui & Mong Kok', country: 'Hong Kong', coords: [22.2988, 114.1722] as [number, number], emoji: '🛍️' },
+    { name: 'Wan Chai & Causeway Bay', country: 'Hong Kong', coords: [22.2783, 114.1747] as [number, number], emoji: '✨' },
+    { name: 'Sai Kung & Geopark', country: 'Hong Kong', coords: [22.3820, 114.2740] as [number, number], emoji: '🌊' },
+    { name: 'Islands (Lantau & Lamma)', country: 'Hong Kong', coords: [22.2550, 113.9050] as [number, number], emoji: '🏝️' },
+    { name: 'Eastern (North Point)', country: 'Hong Kong', coords: [22.2850, 114.2050] as [number, number], emoji: '🚋' },
+    { name: 'Southern (Aberdeen & Stanley)', country: 'Hong Kong', coords: [22.2470, 114.1580] as [number, number], emoji: '⛵' },
 ];
 
 export const CitySearchModal: React.FC<CitySearchModalProps> = ({
@@ -83,7 +80,7 @@ export const CitySearchModal: React.FC<CitySearchModalProps> = ({
 
     if (!isOpen) return null;
 
-    const handlePickPreset = (c: typeof POPULAR_WORLD_CITIES[0]) => {
+    const handlePickPreset = (c: typeof POPULAR_HONG_KONG_DISTRICTS[0]) => {
         playChime('stamp');
         onSelectCity({
             name: `${c.name} Exploration`,
@@ -138,7 +135,7 @@ export const CitySearchModal: React.FC<CitySearchModalProps> = ({
                         type="text"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Search city, town, or capital (e.g. Barcelona, Seoul, Sydney)..."
+                        placeholder="Search district, area, or landmark (e.g. Sha Tin, Central, Tsim Sha Tsui)..."
                         className="w-full pl-10 pr-10 py-3 bg-paper-50 border-2 border-paper-900 rounded-2xl text-sm font-serif font-bold text-paper-900 placeholder:text-paper-700/60 focus:outline-none focus:ring-2 focus:ring-watercolor-brick"
                     />
                     <MagnifyingGlass
@@ -159,10 +156,10 @@ export const CitySearchModal: React.FC<CitySearchModalProps> = ({
                     <div className="space-y-2 pt-1">
                         <div className="flex items-center gap-1.5 text-xs font-black uppercase text-paper-700 tracking-wider">
                             <Sparkle size={14} weight="fill" className="text-amber-600" />
-                            <span>Popular Global Destinations</span>
+                            <span>Popular Hong Kong Districts</span>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                            {POPULAR_WORLD_CITIES.map((c) => (
+                            {POPULAR_HONG_KONG_DISTRICTS.map((c) => (
                                 <button
                                     key={c.name}
                                     type="button"

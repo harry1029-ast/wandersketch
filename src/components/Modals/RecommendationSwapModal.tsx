@@ -38,315 +38,133 @@ interface AlternativeOption {
 
 // Curated alternatives dataset tailored to WanderSketch destinations
 const CURATED_ALTERNATIVES: Record<string, Record<ExpenseCategory, AlternativeOption[]>> = {
-    toronto: {
+    hong_kong: {
         lodging: [
             {
-                name: 'The Omni King Edward Historic Hotel',
-                description: 'Classic Victorian luxury near King St & St. Lawrence Market',
-                price: 180,
-                tag: 'Heritage Luxury',
+                name: 'The Peninsula Hong Kong (香港半島酒店)',
+                description: 'Legendary Grande Dame of the Far East with colonial luxury on Salisbury Road',
+                price: 320,
+                tag: 'Colonial 5★',
             },
             {
-                name: 'Broadview Hotel Boutique East',
-                description: 'Restored 1891 heritage landmark with rooftop river views',
-                price: 150,
-                tag: 'Boutique Rooftop',
-            },
-            {
-                name: 'Gladstone House Art Hotel',
-                description: 'Queen West creative hub with curated local artist murals',
-                price: 135,
-                tag: 'Creative / Arts',
-            },
-            {
-                name: 'The Anndore House Yorkville',
-                description: 'Intimate boutique hotel with in-room vinyl turntables',
-                price: 145,
-                tag: 'Boutique Vibe',
-            },
-            {
-                name: 'Fairmont Royal York',
-                description: 'Historic grand railway hotel facing Union Station',
-                price: 215,
-                tag: '5★ Historic Landmark',
-            },
-        ],
-        dining: [
-            {
-                name: "Balzac's Parisian Style Roastery",
-                description: 'Distillery 19th-century pump house serving artisanal espresso & croissants',
-                price: 18,
-                tag: 'Morning Cafe',
-            },
-            {
-                name: 'El Catrin Distileria Mexican Cantina',
-                description: 'Vibrant outdoor patio with Canada’s largest mezcal collection & street tacos',
-                price: 45,
-                tag: 'Mexican / Patio',
-            },
-            {
-                name: 'Pai Northern Thai Comfort Kitchen',
-                description: 'Chef Nuit Regular’s famous khao soi curry noodles & street-style platters',
-                price: 36,
-                tag: 'Thai Comfort',
-            },
-            {
-                name: 'Cluny French Bistro & Boulangerie',
-                description: 'Neo-bistro with fresh daily baguettes, steak frites, and lavender butter',
-                price: 68,
-                tag: 'French Neo-Bistro',
-            },
-            {
-                name: 'St. Lawrence Market Peameal Sandwich Hall',
-                description: 'Legendary Carousel Bakery peameal bacon on warm country roll',
-                price: 15,
-                tag: 'Market Classic',
-            },
-            {
-                name: 'Canoe Regional Canadian Dining',
-                description: '54th floor sky-high views featuring wild game and Ontario terroir',
-                price: 110,
-                tag: 'Skyline Fine Dining',
-            },
-        ],
-        ticket: [
-            {
-                name: 'Distillery District Historic Red Brick Walk',
-                description: 'Guided architectural tour through Victorian whiskey distillation history',
-                price: 25,
-                tag: 'Architecture Tour',
-            },
-            {
-                name: 'Royal Ontario Museum & Crystal Wings',
-                description: 'Daniel Libeskind crystal gallery with world art and cultural treasures',
-                price: 32,
-                tag: 'Art & Culture',
-            },
-            {
-                name: 'Toronto Island Scenic Sunset Ferry Tour',
-                description: 'Cruise over Lake Ontario for iconic skyline reflections at dusk',
-                price: 20,
-                tag: 'Scenic Skyline',
-            },
-            {
-                name: 'Bata Shoe Museum & Yorkville Gallery Stroll',
-                description: 'Unique global footwear history and fashion design exhibition',
-                price: 18,
-                tag: 'Specialty Museum',
-            },
-        ],
-        transit: [
-            {
-                name: 'TTC Historic 504 King Streetcar Pass',
-                description: 'All-day unlimited streetcar pass linking the east and west downtown corridors',
-                price: 14,
-                tag: 'Streetcar Pass',
-            },
-            {
-                name: 'Water Taxi Harbourfront Shuttle',
-                description: 'Vintage wooden boat crossing between Toronto waterfront and the Islands',
-                price: 18,
-                tag: 'Scenic Boat',
-            },
-            {
-                name: 'Bike Share Toronto 24h Cruiser Pass',
-                description: 'Pedal along the Lakefront Martin Goodman paved trail network',
-                price: 12,
-                tag: 'Bicycle Pass',
-            },
-        ],
-    },
-    kyoto: {
-        lodging: [
-            {
-                name: 'The Celestine Kyoto Gion Ryokan',
-                description: 'Tranquil Japanese garden courtyard steps from Yasaka Shrine',
-                price: 195,
-                tag: 'Modern Ryokan',
-            },
-            {
-                name: 'Hoshinoya Kyoto Riverfront Pavilion',
-                description: 'Wood-timbered traditional pavilions along the romantic Oi River',
+                name: 'Mandarin Oriental Hong Kong (香港文華東方酒店)',
+                description: 'Iconic flagship luxury hotel facing Victoria Harbour in the heart of Central',
                 price: 280,
-                tag: 'Luxury Retreat',
+                tag: 'Harbour Luxury',
             },
             {
-                name: 'Sowaka Heritage Machiya Townhouse',
-                description: '100-year-old preserved Japanese townhouse with cedar soaking tub',
-                price: 165,
-                tag: 'Historic Machiya',
+                name: 'Royal Park Hotel (帝都酒店)',
+                description: 'Riverside hotel overlooking Sha Tin Central Park & Shing Mun River',
+                price: 195,
+                tag: 'Riverside Comfort',
             },
             {
-                name: 'Kyoto Granbell Hotel Gion',
-                description: 'Sleek contemporary design fusing Edo aesthetic with modern comfort',
-                price: 125,
-                tag: 'Design Boutique',
+                name: 'Hyatt Regency Hong Kong, Sha Tin (香港沙田凱悅酒店)',
+                description: 'Tranquil resort-style accommodations with Tolo Harbour & mountain views',
+                price: 175,
+                tag: 'Scenic Resort',
+            },
+            {
+                name: 'The Upper House (奕居)',
+                description: 'Intimate contemporary design haven perched above Pacific Place, Admiralty',
+                price: 360,
+                tag: 'Design Luxury',
             },
         ],
         dining: [
             {
-                name: 'Inoda Coffee Traditional Salon Morning Set',
-                description: '1940 landmark retro salon serving velvety drip brew and fluffy omelets',
-                price: 18,
-                tag: 'Heritage Morning',
-            },
-            {
-                name: 'Nishiki Market Skewer & Dashi Crawl',
-                description: '400-year-old food lane with baby octopus, tamagoyaki, and matcha mochi',
-                price: 26,
-                tag: 'Street Market',
-            },
-            {
-                name: 'Gion Duck Noodles & Broth Bar',
-                description: 'Steaming duck dashi ramen served in an atmospheric paper-lantern alley',
-                price: 28,
-                tag: 'Craft Ramen',
-            },
-            {
-                name: 'Omen Ginkakuji Handmade Udon',
-                description: 'Chilled or hot artisanal noodles with sesame broth and mountain vegetables',
+                name: 'Tim Ho Wan Dim Sum (添好運點心專門店)',
+                description: 'World-renowned baked BBQ pork buns and steamed shrimp dumplings',
                 price: 22,
-                tag: 'Traditional Udon',
+                tag: 'Michelin Dim Sum',
             },
             {
-                name: 'Pontocho Alley Riverfront Kaiseki',
-                description: 'Multi-course seasonal Kyoto feast overlooking the Kamogawa River',
-                price: 95,
-                tag: 'Kaiseki Dining',
-            },
-        ],
-        ticket: [
-            {
-                name: 'Kiyomizu-dera Wooden Stage & Otowa Waterfall',
-                description: 'Centuries-old cliffside temple with sweeping panoramas of Kyoto basin',
-                price: 22,
-                tag: 'World Heritage',
-            },
-            {
-                name: 'Sannenzaka Stone Lantern & Tea Ceremony',
-                description: 'Traditional tatami tea preparation ceremony in a private garden pavilion',
-                price: 35,
-                tag: 'Cultural Workshop',
-            },
-            {
-                name: 'Arashiyama Whispering Bamboo Sanctuary Walk',
-                description: 'Early-morning walking pass through towering emerald bamboo stalks',
-                price: 15,
-                tag: 'Nature Walk',
-            },
-        ],
-        transit: [
-            {
-                name: 'Kyoto City Bus & Subway Combo Day Pass',
-                description: 'Hop-on hop-off pass covering all central temples and scenic districts',
+                name: 'Sing Heung Yuen Open-air Dai Pai Dong (勝香園)',
+                description: 'Historic central food stall famous for tomato beef noodles and crispy lemon buns',
                 price: 12,
-                tag: 'City Transit',
+                tag: 'Dai Pai Dong',
             },
             {
-                name: 'Sagano Romantic Scenic Train Ticket',
-                description: 'Open-air vintage diesel locomotive tracing the Hozugawa River gorge',
-                price: 18,
-                tag: 'Scenic Railway',
-            },
-        ],
-    },
-    paris: {
-        lodging: [
-            {
-                name: 'Pavillon de la Reine Marais Palace',
-                description: '17th-century aristocratic courtyard facing historic Place des Vosges',
-                price: 245,
-                tag: 'Palace Heritage',
-            },
-            {
-                name: 'Hôtel des Grands Boulevards',
-                description: 'French Revolution era manor with canopy beds and secret rooftop',
-                price: 190,
-                tag: 'Romantic Boutique',
-            },
-            {
-                name: 'Le Marais Courtyard Artisan Hotel',
-                description: 'Charming stone-walled townhouse steps from Musée Picasso',
-                price: 155,
-                tag: 'Artisan Boutique',
-            },
-            {
-                name: 'Hôtel Fabric Oberkampf',
-                description: 'Vibrant converted textile mill with industrial high ceilings',
-                price: 135,
-                tag: 'Industrial Chic',
-            },
-        ],
-        dining: [
-            {
-                name: 'Carette Place des Vosges Tearoom',
-                description: 'Silky whipped-cream hot chocolate & toasted brioche under stone arches',
-                price: 22,
-                tag: 'Historic Tearoom',
-            },
-            {
-                name: "L'As du Fallafel Rue des Rosiers",
-                description: 'Legendary pita packed with crispy chickpea falafel, roasted eggplant & tahini',
+                name: 'Kau Kee Beef Brisket (九記牛腩)',
+                description: 'Legendary Gough Street braised beef brisket in clear spiced medicinal broth',
                 price: 16,
-                tag: 'Street Food Icon',
+                tag: 'Heritage Noodles',
             },
             {
-                name: 'Chez Janou Provençal Bistro',
-                description: 'Lively corner bistro famous for ratatouille and bottomless chocolate mousse',
-                price: 52,
-                tag: 'Bistro Terrace',
+                name: 'Tai Cheong Bakery (泰昌餅家)',
+                description: 'Fresh-baked traditional warm cookie-crust egg tarts on Lyndhurst Terrace',
+                price: 6,
+                tag: 'Pastry / Bakery',
             },
             {
-                name: 'Breizh Café Savory Buckwheat Galettes',
-                description: 'Organic Brittany buckwheat galettes paired with artisanal farmhouse cider',
+                name: 'Yat Lok Roast Goose (一樂燒鵝)',
+                description: 'Crispy charcoal-roasted goose seasoned with five-spice and plum sauce',
                 price: 28,
-                tag: 'Artisan Galette',
-            },
-            {
-                name: 'Septime Seasonal Natural Wine Dining',
-                description: 'Creative Michelin-starred neo-bistro tasting featuring small French growers',
-                price: 90,
-                tag: 'Michelin Star',
+                tag: 'Roast Goose',
             },
         ],
         ticket: [
             {
-                name: 'Musée Carnavalet Paris History Mansion',
-                description: 'Renaissance courtyard mansion exhibiting centuries of Parisian artifacts',
-                price: 20,
-                tag: 'Historic Mansion',
+                name: 'Peak Tram & Sky Terrace 428 (山頂纜車)',
+                description: 'Historic funicular railway ascent to panoramic 360-degree Victoria Peak views',
+                price: 25,
+                tag: 'Peak Funicular',
             },
             {
-                name: 'Sainte-Chapelle Radiant Stained Glass',
-                description: '13th-century Gothic royal chapel with 1,113 luminous stained-glass panels',
-                price: 24,
-                tag: 'Gothic Marvel',
+                name: 'Star Ferry Harbour Tour (天星小輪海港遊)',
+                description: 'Heritage double-decker ferry crossing with classic skyline vistas',
+                price: 10,
+                tag: 'Harbour Cruise',
             },
             {
-                name: 'Musée de l’Orangerie Water Lilies',
-                description: 'Custom curved oval rooms showcasing Monet’s serene water lily murals',
+                name: 'M+ Museum of Visual Culture (M+ 視覺文化博物館)',
+                description: 'Asia’s premier global museum of contemporary visual culture at West Kowloon',
                 price: 22,
-                tag: 'Impressionist Art',
+                tag: 'Modern Art',
+            },
+            {
+                name: 'Hong Kong Heritage Museum (香港文化博物館)',
+                description: 'Sha Tin museum featuring Bruce Lee, Jin Yong, and Cantonese opera galleries',
+                price: 15,
+                tag: 'Cultural Heritage',
+            },
+            {
+                name: 'Ngong Ping 360 Crystal Cable Car (昂坪360纜車)',
+                description: 'Spectacular glass-floor cable car across Lantau hills to the Big Buddha',
+                price: 34,
+                tag: 'Scenic Cable Car',
             },
         ],
         transit: [
             {
-                name: 'Paris Métro & RER Zone 1-2 Pass',
-                description: 'Unlimited 1-day pass for underground rail and scenic surface buses',
-                price: 12,
-                tag: 'Métro Pass',
+                name: 'Tourist Octopus Card with HKD $50 Deposit (遊客八達通卡)',
+                description: 'Tap-and-go contactless card for MTR, buses, Star Ferries, and trams',
+                price: 15,
+                tag: 'Octopus Transit',
             },
             {
-                name: 'Batobus Seine River Water Shuttle Pass',
-                description: 'Hop-on river ferry stopping at Eiffel Tower, Louvre, and Notre-Dame',
-                price: 19,
-                tag: 'River Shuttle',
+                name: 'Airport Express Round-trip Ticket (機場快綫來回票)',
+                description: 'High-speed 24-minute bullet train connecting Chek Lap Kok to Hong Kong Station',
+                price: 26,
+                tag: 'Airport Express',
+            },
+            {
+                name: 'Hong Kong Tramways "Ding Ding" Day Ride (香港電車叮叮車)',
+                description: 'Vintage double-decker streetcar traversing Hong Kong Island since 1904',
+                price: 4,
+                tag: 'Heritage Tram',
+            },
+            {
+                name: 'Star Ferry Crossing Token (天星小輪渡輪)',
+                description: 'Charming cross-harbour transit linking Tsim Sha Tsui and Central piers',
+                price: 5,
+                tag: 'Scenic Ferry',
             },
         ],
     },
 };
 
-// Generic fallback alternatives if outside Toronto, Kyoto, or Paris
+// Generic fallback alternatives
 const GENERIC_ALTERNATIVES: Record<ExpenseCategory, AlternativeOption[]> = {
     lodging: [
         {
@@ -450,16 +268,8 @@ export const RecommendationSwapModal: React.FC<RecommendationSwapModalProps> = (
     const currentPrice = itemToSwap.estimatedCost || 0;
     const currentName = itemToSwap.name || '';
 
-    // Determine target city dataset
-    const zoneKey = (plannerBuffer.zoneKey || '').toLowerCase();
-    let cityKey: 'toronto' | 'kyoto' | 'paris' | null = null;
-    if (zoneKey.includes('toronto')) cityKey = 'toronto';
-    else if (zoneKey.includes('kyoto')) cityKey = 'kyoto';
-    else if (zoneKey.includes('paris')) cityKey = 'paris';
-
-    const cityAlternatives = cityKey
-        ? CURATED_ALTERNATIVES[cityKey]?.[category] || []
-        : GENERIC_ALTERNATIVES[category] || [];
+    // Target Hong Kong curated alternatives dataset
+    const cityAlternatives = CURATED_ALTERNATIVES['hong_kong']?.[category] || GENERIC_ALTERNATIVES[category] || [];
 
     // Filter out the option if it matches current item name closely
     const alternatives = cityAlternatives.filter(

@@ -9,11 +9,7 @@ export const HONG_KONG_SHA_TIN_PACK: CityPack = {
     zoom: 15,
     userOrigin: [22.3898, 114.2002],
     bounds: [[22.3384,114.1382],[22.4412,114.2622]],
-    facilities: [
-        { type: 'info', name: 'Sha Tin & Ma On Shan Visitor Information', coords: [22.3898, 114.2002], emoji: 'ℹ️' },
-        { type: 'restroom', name: 'Public Restroom Facilities', coords: [22.3918, 114.2022], emoji: '🚻' },
-        { type: 'photo', name: 'Scenic Photography Spot', coords: [22.3878, 114.1982], emoji: '📷' },
-    ],
+    facilities: [],
     landmarks: [
         {
                 "id": "st-newtown",

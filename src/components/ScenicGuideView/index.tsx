@@ -104,7 +104,7 @@ export const ScenicGuideView: React.FC = () => {
     const allZones = zones || MASTER_ZONES;
     const plan = savedPlans.find((p) => p.id === activePlanId) || savedPlans[0];
     const currentZoneKey = mapDiscoveryMode === 'ambient' ? plannerBuffer.zoneKey : (plan?.zoneKey || plannerBuffer.zoneKey);
-    const rawZone = allZones[currentZoneKey] || allZones.sha_tin_district || allZones.toronto_distillery || Object.values(allZones)[0];
+    const rawZone = allZones[currentZoneKey] || allZones.sha_tin_district || Object.values(allZones)[0];
     const zone: ScenicZone = React.useMemo(() => {
         const pack = getCityPack(currentZoneKey) || (rawZone.city ? getCityPack(rawZone.city) : null);
         let landmarksPool = rawZone.landmarksPool || [];
@@ -582,16 +582,11 @@ export const ScenicGuideView: React.FC = () => {
 
     const getCityEmoji = (cityName: string): string => {
         const c = cityName.toLowerCase();
-        if (c.includes('toronto')) return '🍁';
-        if (c.includes('kyoto')) return '⛩️';
-        if (c.includes('paris')) return '🥐';
+        if (c.includes('hong') || c.includes('sha tin') || c.includes('central') || c.includes('kowloon') || c.includes('sai kung')) return '🏙️';
         if (c.includes('york') || c.includes('nyc')) return '🗽';
         if (c.includes('london')) return '🇬🇧';
         if (c.includes('tokyo')) return '🗼';
         if (c.includes('rome') || c.includes('roma')) return '🏛️';
-        if (c.includes('barcelona')) return '🏰';
-        if (c.includes('sydney')) return '⛵';
-        if (c.includes('seoul')) return '🏯';
         return '🌍';
     };
 
@@ -775,19 +770,20 @@ export const ScenicGuideView: React.FC = () => {
                                 <span>{getCityEmoji(zone.city)} {zone.city || zone.name}</span>
                             </button>
 
-                            {/* Slot 3: Quick Alternate City */}
+                            {/* Slot 3: Quick Alternate District */}
                             {(() => {
-                                const fallbackKey = zone.id === 'kyoto_higashiyama' ? 'toronto_distillery' : 'kyoto_higashiyama';
+                                const fallbackKey = zone.id === 'hong_kong_central' ? 'sha_tin_district' : 'hong_kong_central';
                                 const altZone = allZones[fallbackKey] || Object.values(allZones).find((z) => z.id !== zone.id);
                                 if (!altZone) return null;
+                                const altLabel = altZone.name.split('•')[1]?.trim() || altZone.name;
                                 return (
                                     <button
                                         key={altZone.id}
                                         onClick={() => handleJumpToZone(altZone.id)}
                                         className="px-2.5 py-1 rounded-xl text-xs font-bold bg-paper-50 hover:bg-paper-200 text-paper-900 border border-paper-300 transition flex items-center gap-1 shrink-0 cursor-pointer"
-                                        title={`Quick switch to ${altZone.city}`}
+                                        title={`Quick switch to ${altLabel}`}
                                     >
-                                        <span>{getCityEmoji(altZone.city)} {altZone.city}</span>
+                                        <span>🏙️ {altLabel}</span>
                                     </button>
                                 );
                             })()}

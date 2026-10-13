@@ -86,32 +86,32 @@ export function synthesizeDaysForPlan(plan: TravelPlan, zone: ScenicZone): Itine
     const dayId = `day_1_${planId}`;
 
     const defaultHotels: Record<ScenicZoneKey, { name: string; notes: string; price: number; coords: [number, number] }> = {
-        toronto_distillery: {
-            name: 'The Omni King Edward Historic Hotel',
-            notes: 'Classic Victorian luxury near King St & St. Lawrence Market',
-            price: 215,
-            coords: [43.6496, -79.3764],
+        sha_tin_district: {
+            name: 'Royal Park Hotel (帝都酒店)',
+            notes: 'Riverside luxury hotel overlooking Sha Tin Central Park & Shing Mun River',
+            price: 195,
+            coords: [22.379756, 114.188525],
         },
-        kyoto_higashiyama: {
-            name: 'The Celestine Kyoto Gion Ryokan',
-            notes: 'Tranquil Japanese garden courtyard steps from Yasaka Shrine',
-            price: 190,
-            coords: [34.9995, 135.7745],
+        hong_kong_central: {
+            name: 'Mandarin Oriental Hong Kong (香港文華東方酒店)',
+            notes: 'Legendary flagship heritage hotel facing Victoria Harbour in Central',
+            price: 280,
+            coords: [22.2818, 114.1594],
         },
-        paris_marais: {
-            name: 'Pavillon de la Reine Historic Hotel',
-            notes: '17th-century ivy-covered residence tucked in Place des Vosges',
-            price: 240,
-            coords: [48.8558, 2.3662],
+        hong_kong_tsim_sha_tsui: {
+            name: 'The Peninsula Hong Kong (香港半島酒店)',
+            notes: 'Grande Dame of the Far East with timeless colonial luxury on Salisbury Road',
+            price: 320,
+            coords: [22.2952, 114.1718],
         },
     };
 
     const hotel = (zone && (defaultHotels as any)[zone.id]) || (defaultHotels as any)[plan.zoneKey] || (zone ? {
-        name: `${zone.city} Heritage Central Hotel`,
-        notes: `Historic boutique accommodations near ${zone.name}`,
-        price: 215,
+        name: `${zone.name.split('•')[1]?.trim() || zone.name} Heritage Hotel`,
+        notes: `Historic boutique accommodations in ${zone.name}`,
+        price: 210,
         coords: zone.center,
-    } : defaultHotels.toronto_distillery);
+    } : defaultHotels.sha_tin_district);
 
     const items: ItineraryItem[] = (plan.spotIds || []).map((sid, idx) => {
         const landmark = zone?.landmarksPool?.find((l) => l.id === sid);
@@ -126,7 +126,7 @@ export function synthesizeDaysForPlan(plan: TravelPlan, zone: ScenicZone): Itine
             category,
             estimatedCost: cost,
             actualCost: 0,
-            location: landmark ? landmark.coords : (zone ? zone.center : [43.65, -79.38]),
+            location: landmark ? landmark.coords : (zone ? zone.center : [22.3812, 114.1888]),
             orderIndex: idx,
         };
     });
@@ -369,7 +369,7 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
 
     plannerBuffer: {
         title: 'Custom Walking Route',
-        zoneKey: 'toronto_distillery',
+        zoneKey: 'sha_tin_district',
         spotIds: [],
     },
 
@@ -587,7 +587,7 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
         const plan = savedPlans.find((p) => p.id === planId) || savedPlans[0];
         if (!plan) return;
 
-        const zone = zones[plan.zoneKey] || MASTER_ZONES[plan.zoneKey] || MASTER_ZONES.toronto_distillery;
+        const zone = zones[plan.zoneKey] || MASTER_ZONES[plan.zoneKey] || MASTER_ZONES.sha_tin_district;
 
         // Check cache first
         let days = daysCacheByPlanId[planId];
@@ -633,9 +633,9 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
         });
     },
 
-    createQuickExcursion: async (zoneKey = 'kyoto_higashiyama', customTitle) => {
+    createQuickExcursion: async (zoneKey = 'sha_tin_district', customTitle) => {
         const { zones } = get();
-        const zone = zones[zoneKey] || MASTER_ZONES[zoneKey] || MASTER_ZONES.toronto_distillery;
+        const zone = zones[zoneKey] || MASTER_ZONES[zoneKey] || MASTER_ZONES.sha_tin_district;
         const newId = `excursion_${Date.now()}`;
         const todayStr = new Date().toISOString().split('T')[0];
 
@@ -789,8 +789,8 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
     createTripWithDays: async (planData, days, totalBudget) => {
         const { zones } = get();
         const planId = planData.id || `trip_${Date.now()}`;
-        const zoneKey = planData.zoneKey || 'toronto_distillery';
-        const zone = zones[zoneKey] || MASTER_ZONES[zoneKey];
+        const zoneKey = planData.zoneKey || 'sha_tin_district';
+        const zone = zones[zoneKey] || MASTER_ZONES[zoneKey] || MASTER_ZONES.sha_tin_district;
         const ceiling = totalBudget ?? 1500;
 
         const spotIds = planData.spotIds || (zone?.landmarksPool ? zone.landmarksPool.slice(0, 4).map((l) => l.id) : []);
@@ -894,7 +894,11 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
         if (existingKey) {
             const existingZone = currentZones[existingKey];
             const sanitizedFacilities = (existingZone.facilities || []).filter(
-                (f) => !f.name.toLowerCase().includes('artisan cafe')
+                (f) =>
+                    !f.name.toLowerCase().includes('artisan cafe') &&
+                    !f.name.toLowerCase().includes('visitor information') &&
+                    !f.name.toLowerCase().includes('public restroom facilities') &&
+                    !f.name.toLowerCase().includes('scenic photography spot')
             );
             const isAmbient = get().mapDiscoveryMode === 'ambient';
             const masterFallback = MASTER_ZONES[existingKey] || (pack ? { landmarksPool: pack.landmarks } : null);
@@ -944,7 +948,13 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
             zoom: (pack && pack.zoom) || 15,
             userOrigin: (pack && pack.userOrigin) || cityData.coords,
             bounds,
-            facilities: pack ? pack.facilities : [],
+            facilities: (pack ? pack.facilities : []).filter(
+                (f) =>
+                    !f.name.toLowerCase().includes('artisan cafe') &&
+                    !f.name.toLowerCase().includes('visitor information') &&
+                    !f.name.toLowerCase().includes('public restroom facilities') &&
+                    !f.name.toLowerCase().includes('scenic photography spot')
+            ),
             landmarksPool: pack ? pack.landmarks : [],
         };
 

@@ -9,11 +9,7 @@ export const HONG_KONG_KWAI_TSING_PACK: CityPack = {
     zoom: 15,
     userOrigin: [22.3525, 114.1147],
     bounds: [[22.3125,114.073],[22.3925,114.1564]],
-    facilities: [
-        { type: 'info', name: 'Kwai Tsing (Kwai Chung & Tsing Yi) Visitor Information', coords: [22.3525, 114.1147], emoji: 'ℹ️' },
-        { type: 'restroom', name: 'Public Restroom Facilities', coords: [22.3545, 114.1167], emoji: '🚻' },
-        { type: 'photo', name: 'Scenic Photography Spot', coords: [22.3505, 114.1127], emoji: '📷' },
-    ],
+    facilities: [],
     landmarks: [
         {
                 "id": "hk-kwaiTsing-node-2194771243",

@@ -9,11 +9,7 @@ export const HONG_KONG_SSP_PACK: CityPack = {
     zoom: 15,
     userOrigin: [22.3343, 114.155],
     bounds: [[22.3151,114.1265],[22.3536,114.1835]],
-    facilities: [
-        { type: 'info', name: 'Sham Shui Po Visitor Information', coords: [22.3343, 114.155], emoji: 'ℹ️' },
-        { type: 'restroom', name: 'Public Restroom Facilities', coords: [22.3363, 114.157], emoji: '🚻' },
-        { type: 'photo', name: 'Scenic Photography Spot', coords: [22.3323, 114.153], emoji: '📷' },
-    ],
+    facilities: [],
     landmarks: [
         {
                 "id": "hk-shamShuiPo-way-103426538",

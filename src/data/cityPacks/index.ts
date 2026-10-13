@@ -20,15 +20,9 @@ import {
     HONG_KONG_NORTH_PACK,
     HONG_KONG_KWAI_TSING_PACK,
 } from './hongKong';
-import { KYOTO_PACK } from './kyoto';
-import { PARIS_PACK } from './paris';
-import { TORONTO_PACK } from './toronto';
 
 export * from './types';
 export * from './hongKong';
-export * from './kyoto';
-export * from './paris';
-export * from './toronto';
 
 export const CITY_PACKS: Record<string, CityPack> = {
     // Hong Kong - Primary Default
@@ -154,25 +148,6 @@ export const CITY_PACKS: Record<string, CityPack> = {
     kwai_tsing: HONG_KONG_KWAI_TSING_PACK,
     kwai_chung: HONG_KONG_KWAI_TSING_PACK,
     tsing_yi: HONG_KONG_KWAI_TSING_PACK,
-
-
-    // Kyoto
-    kyoto_higashiyama: KYOTO_PACK,
-    dest_kyoto: KYOTO_PACK,
-    kyoto: KYOTO_PACK,
-    higashiyama: KYOTO_PACK,
-
-    // Paris
-    paris_marais: PARIS_PACK,
-    dest_paris: PARIS_PACK,
-    paris: PARIS_PACK,
-    marais: PARIS_PACK,
-
-    // Toronto
-    toronto_distillery: TORONTO_PACK,
-    dest_toronto: TORONTO_PACK,
-    toronto: TORONTO_PACK,
-    distillery: TORONTO_PACK,
 };
 
 /**

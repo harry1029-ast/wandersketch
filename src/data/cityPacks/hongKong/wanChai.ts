@@ -9,11 +9,7 @@ export const HONG_KONG_WAN_CHAI_PACK: CityPack = {
     zoom: 15,
     userOrigin: [22.2725, 114.1836],
     bounds: [[22.2492,114.1557],[22.2957,114.2115]],
-    facilities: [
-        { type: 'info', name: 'Wan Chai & Causeway Bay Visitor Information', coords: [22.2725, 114.1836], emoji: 'ℹ️' },
-        { type: 'restroom', name: 'Public Restroom Facilities', coords: [22.2745, 114.1856], emoji: '🚻' },
-        { type: 'photo', name: 'Scenic Photography Spot', coords: [22.2705, 114.1816], emoji: '📷' },
-    ],
+    facilities: [],
     landmarks: [
         {
                 "id": "hk-wanChai-node-650015707",

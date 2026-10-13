@@ -609,24 +609,47 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         if (zoom <= 12) {
             const uniquePacks = Array.from(new Set(Object.values(CITY_PACKS)));
             const viewBounds = map.getBounds();
+            const placedBadgePoints: { x: number; y: number }[] = [];
+
             for (const pack of uniquePacks) {
                 if (!pack.center || !pack.districtName) continue;
                 if (!viewBounds.contains(L.latLng(pack.center[0], pack.center[1]))) continue;
 
                 const count = pack.landmarks?.length || 0;
-                const shortName = pack.districtName.replace('Hong Kong • ', '');
+                const cleanName = pack.districtName.replace(/^Hong Kong\s*•\s*/i, '').trim();
+                const badgeLabel = cleanName
+                    .replace(' (Yau Tsim Mong)', '')
+                    .replace(' (Kwai Chung & Tsing Yi)', '')
+                    .replace(' (North Point & Quarry Bay)', ' (North Point)')
+                    .replace(' (Lantau, Lamma & Cheung Chau)', ' (Lantau & Lamma)')
+                    .replace(', Tai Mei Tuk & Tap Mun', ' & Tai Mei Tuk');
+
+                // Screen-space slight dynamic offset to avoid adjacent badge overlap in dense clusters (e.g. Kowloon)
+                const pt = map.latLngToContainerPoint(L.latLng(pack.center[0], pack.center[1]));
+                let offsetY = 0;
+                for (const placed of placedBadgePoints) {
+                    const dx = Math.abs(pt.x - placed.x);
+                    const dy = Math.abs(pt.y - placed.y);
+                    if (dx < 130 && dy < 28) {
+                        offsetY = pt.y >= placed.y ? 14 : -14;
+                    }
+                }
+                placedBadgePoints.push({ x: pt.x, y: pt.y + offsetY });
+
                 const badgeHtml = `
-                    <div class="cursor-pointer group flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-paper-50/95 border-2 border-paper-900 shadow-stamp transition-transform hover:scale-110 active:scale-95 select-none backdrop-blur-xs">
-                        <span class="text-sm">🏮</span>
-                        <span class="text-xs font-serif font-black text-paper-900 whitespace-nowrap">${shortName}</span>
-                        <span class="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full bg-amber-200 text-amber-950">${count} spots</span>
+                    <div class="relative pointer-events-auto" style="transform: translate(-50%, calc(-50% + ${offsetY}px));">
+                        <div class="cursor-pointer group inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-paper-50/95 border-2 border-paper-900 shadow-stamp transition-transform hover:scale-105 active:scale-95 select-none backdrop-blur-xs whitespace-nowrap">
+                            <span class="text-sm shrink-0">🏮</span>
+                            <span class="text-xs font-serif font-black text-paper-900 tracking-tight">${badgeLabel}</span>
+                            <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-amber-200 text-amber-950 border border-amber-300/80 shrink-0">${count} spots</span>
+                        </div>
                     </div>
                 `;
                 const icon = L.divIcon({
                     className: 'custom-district-badge-pin',
                     html: badgeHtml,
-                    iconSize: [140, 36],
-                    iconAnchor: [70, 18],
+                    iconSize: [0, 0],
+                    iconAnchor: [0, 0],
                 });
                 const marker = L.marker(pack.center, { icon, zIndexOffset: 500 });
                 marker.on('click', () => {
@@ -1010,9 +1033,13 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         if (!layer) return;
         layer.clearLayers();
 
-        // Filter out any synthetic dummy facilities (e.g. legacy Artisan Cafe)
+        // Filter out any synthetic dummy facilities (e.g. legacy Artisan Cafe, synthetic visitor info, restrooms, photo spots)
         const validFacilities = facilities.filter(
-            (fac) => !fac.name.toLowerCase().includes('artisan cafe')
+            (fac) =>
+                !fac.name.toLowerCase().includes('artisan cafe') &&
+                !fac.name.toLowerCase().includes('visitor information') &&
+                !fac.name.toLowerCase().includes('public restroom facilities') &&
+                !fac.name.toLowerCase().includes('scenic photography spot')
         );
 
         validFacilities.forEach((fac) => {

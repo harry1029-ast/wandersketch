@@ -9,11 +9,7 @@ export const HONG_KONG_CENTRAL_PACK: CityPack = {
     zoom: 15,
     userOrigin: [22.2743, 114.142],
     bounds: [[22.2499,114.1087],[22.2987,114.1752]],
-    facilities: [
-        { type: 'info', name: 'Central & Western Visitor Information', coords: [22.2743, 114.142], emoji: 'ℹ️' },
-        { type: 'restroom', name: 'Public Restroom Facilities', coords: [22.2763, 114.144], emoji: '🚻' },
-        { type: 'photo', name: 'Scenic Photography Spot', coords: [22.2723, 114.14], emoji: '📷' },
-    ],
+    facilities: [],
     landmarks: [
         {
                 "id": "hk-central-node-579168324",

@@ -9,11 +9,7 @@ export const HONG_KONG_YUEN_LONG_PACK: CityPack = {
     zoom: 15,
     userOrigin: [22.4578, 114.0393],
     bounds: [[22.3884,113.9461],[22.5273,114.1325]],
-    facilities: [
-        { type: 'info', name: 'Yuen Long & Tin Shui Wai Visitor Information', coords: [22.4578, 114.0393], emoji: 'ℹ️' },
-        { type: 'restroom', name: 'Public Restroom Facilities', coords: [22.4598, 114.0413], emoji: '🚻' },
-        { type: 'photo', name: 'Scenic Photography Spot', coords: [22.4558, 114.0373], emoji: '📷' },
-    ],
+    facilities: [],
     landmarks: [
         {
                 "id": "hk-yuenLong-node-1956552974",

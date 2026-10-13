@@ -9,11 +9,7 @@ export const HONG_KONG_KWUN_TONG_PACK: CityPack = {
     zoom: 15,
     userOrigin: [22.3102, 114.2239],
     bounds: [[22.2782,114.197],[22.3421,114.2508]],
-    facilities: [
-        { type: 'info', name: 'Kwun Tong & Lei Yue Mun Visitor Information', coords: [22.3102, 114.2239], emoji: 'ℹ️' },
-        { type: 'restroom', name: 'Public Restroom Facilities', coords: [22.3122, 114.2259], emoji: '🚻' },
-        { type: 'photo', name: 'Scenic Photography Spot', coords: [22.3082, 114.2219], emoji: '📷' },
-    ],
+    facilities: [],
     landmarks: [
         {
                 "id": "hk-kwunTong-way-121942627",

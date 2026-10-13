@@ -9,11 +9,7 @@ export const HONG_KONG_TST_PACK: CityPack = {
     zoom: 15,
     userOrigin: [22.3085, 114.1709],
     bounds: [[22.2826,114.1476],[22.3345,114.1943]],
-    facilities: [
-        { type: 'info', name: 'Tsim Sha Tsui & Mong Kok (Yau Tsim Mong) Visitor Information', coords: [22.3085, 114.1709], emoji: 'ℹ️' },
-        { type: 'restroom', name: 'Public Restroom Facilities', coords: [22.3105, 114.1729], emoji: '🚻' },
-        { type: 'photo', name: 'Scenic Photography Spot', coords: [22.3065, 114.1689], emoji: '📷' },
-    ],
+    facilities: [],
     landmarks: [
         {
                 "id": "hk-tsimShaTsui-node-857941650",

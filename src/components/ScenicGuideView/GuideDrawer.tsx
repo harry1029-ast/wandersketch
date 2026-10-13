@@ -107,7 +107,7 @@ export const GuideDrawer: React.FC<GuideDrawerProps> = ({
         drawerTab === 'curator' || mapDiscoveryMode === 'ambient'
             ? plannerBuffer.zoneKey
             : (plan?.zoneKey || plannerBuffer.zoneKey);
-    const zone = allZones[currentZoneKey] || allZones.toronto_distillery || Object.values(allZones)[0];
+    const zone = allZones[currentZoneKey] || allZones.sha_tin_district || Object.values(allZones)[0];
 
     const personalSpots = React.useMemo(() => {
         const pool = zone?.landmarksPool || [];

@@ -27,139 +27,54 @@ interface CityPreset {
 }
 
 const CITY_PRESETS: Record<string, CityPreset> = {
-    toronto: {
-        center: [43.6503, -79.3596],
+    hong_kong: {
+        center: [22.3812, 114.1888],
         hotels: [
-            { name: 'The Omni King Edward Historic Hotel', notes: 'Classic Victorian luxury near King St & St. Lawrence Market' },
-            { name: 'Broadview Hotel Boutique East', notes: 'Restored 1891 heritage landmark with rooftop river views' },
-            { name: 'Gladstone House Art Hotel', notes: 'Queen West creative hub with curated local artist murals' },
-            { name: 'Fairmont Royal York', notes: 'Iconic railway hotel opposite Union Station' },
+            { name: 'Royal Park Hotel (帝都酒店)', notes: 'Riverside luxury hotel overlooking Sha Tin Central Park & Shing Mun River' },
+            { name: 'The Peninsula Hong Kong (香港半島酒店)', notes: 'Grande Dame of the Far East with timeless luxury on Salisbury Road' },
+            { name: 'Mandarin Oriental Hong Kong (香港文華東方酒店)', notes: 'Harbour-front flagship luxury hotel in Central' },
+            { name: 'Hyatt Regency Hong Kong, Sha Tin (香港沙田凱悅酒店)', notes: 'Tranquil resort-style accommodations with mountain views' },
         ],
         attractions: [
-            { name: 'Distillery District Historic Red Brick Walk', category: 'ticket' },
-            { name: 'St. Lawrence Market Food & Craft Hall', category: 'ticket' },
-            { name: 'Gooderham Flatiron Architectural Landmark', category: 'ticket' },
-            { name: 'Royal Ontario Museum & Crystal Wings', category: 'ticket' },
-            { name: 'Toronto Island Ferry & Sunset Skyline View', category: 'transit' },
-            { name: 'Harbourfront WaveDecks Boardwalk', category: 'ticket' },
-            { name: 'Graffiti Alley & Queen West Gallery Stroll', category: 'ticket' },
-            { name: 'Bata Shoe Museum & Yorkville Walk', category: 'ticket' },
+            { name: 'Hong Kong Heritage Museum & Bruce Lee Exhibit', category: 'ticket' },
+            { name: 'Che Kung Temple Revolving Pinwheels', category: 'ticket' },
+            { name: 'Victoria Peak & Sky Terrace 428 Funicular', category: 'ticket' },
+            { name: 'Star Ferry Harbour Crossing & Promenade', category: 'transit' },
+            { name: 'Ten Thousand Buddhas Monastery Po Fook Hill', category: 'ticket' },
+            { name: 'M+ Museum of Visual Culture West Kowloon', category: 'ticket' },
+            { name: 'Tai Kwun Centre for Heritage and Arts', category: 'ticket' },
+            { name: 'Sai Kung Waterfront Promenade & Pier', category: 'ticket' },
         ],
         breakfastSpots: [
-            "Balzac's Parisian Style Roastery",
-            'Morning Glory Art Cafe',
-            'Dineen Coffee Co. Espresso Bar',
-            'Broadview Cafe & Morning Pastry',
+            'Sing Heung Yuen Open-air Dai Pai Dong',
+            'Tai Cheong Bakery Fresh Egg Tarts',
+            'Kam Wah Cafe & Crispy Butter Pineapple Bun',
+            'Australia Dairy Company Scrambled Eggs & Toast',
         ],
         lunchSpots: [
-            'El Catrin Distileria Mexican Cantina',
-            'St. Lawrence Peameal Bacon Sandwich Hall',
-            'Pai Northern Thai Comfort Kitchen',
-            'Khao San Road Noodle House',
+            'Tim Ho Wan Michelin Dim Sum Hall',
+            'Kau Kee Gough Street Clear Broth Beef Brisket',
+            'Yat Lok Charcoal Roast Goose',
+            'Mak’s Noodle Classic Tiger Prawn Wonton',
         ],
         dinnerSpots: [
-            'Cluny Bistro & French Boulangerie',
-            'Canoe Regional Canadian Dining',
-            'Gusto 101 Italian Trattoria',
-            'Lee Restaurant Modern Asian Plates',
+            'Under Bridge Spicy Crab Typhoon Shelter Seafood',
+            'Luk Yu Tea House Traditional Cantonese Banquet',
+            'Mott 32 Contemporary Dim Sum & Peking Duck',
+            'Lung King Heen Harbour View Cantonese Dining',
         ],
         transitModes: [
-            'TTC 504 King Streetcar Day Pass',
-            'Toronto Island Scenic Water Taxi',
-            'Downtown Union Station Subway Transfer',
-            'Spadina Historic Waterfront Tram',
-        ],
-    },
-    kyoto: {
-        center: [34.9949, 135.7850],
-        hotels: [
-            { name: 'The Celestine Kyoto Gion Ryokan', notes: 'Tranquil Japanese garden courtyard steps from Yasaka Shrine' },
-            { name: 'Hoshinoya Kyoto Riverfront Retreat', notes: 'Wood-timbered traditional pavilions along the Oi River' },
-            { name: 'Park Hyatt Higashiyama Heritage', notes: 'Sloped tile roofs overlooking Yasaka Pagoda' },
-            { name: 'Sowaka Heritage Machiya Inn', notes: 'Refined 100-year-old traditional townhouse suite' },
-        ],
-        attractions: [
-            { name: 'Kiyomizu-dera Wooden Stage & Otowa Waterfall', category: 'ticket' },
-            { name: 'Sannenzaka & Ninenzaka Stone Lantern Steps', category: 'ticket' },
-            { name: 'Yasaka Shrine & Gion Geisha District Walk', category: 'ticket' },
-            { name: 'Fushimi Inari Vermilion Torii Path', category: 'ticket' },
-            { name: 'Arashiyama Whispering Bamboo Forest', category: 'ticket' },
-            { name: 'Kennin-ji Zen Gravel & Twin Dragon Garden', category: 'ticket' },
-            { name: 'Nanzen-ji Aqueduct & Moss Sanctuary', category: 'ticket' },
-            { name: 'Philosopher’s Path Canal Stone Trail', category: 'ticket' },
-        ],
-        breakfastSpots: [
-            'Inoda Coffee Traditional Kyoto Morning Set',
-            'Maeda Coffee Historic Salon',
-            'Kishin Kyoto Seasonal Morning Congee',
-            'Smart Coffee Fluffy French Toast Bar',
-        ],
-        lunchSpots: [
-            'Nishiki Market Skewer & Dashi Crawl',
-            'Omen Ginkakuji Handmade Udon Noodles',
-            'Hisago Traditional Oyako-don Pot',
-            'Gion Tanto Crispy Savory Okonomiyaki',
-        ],
-        dinnerSpots: [
-            'Pontocho Alley Riverside Kamo Kaiseki',
-            'Gion Duck Noodles & Broth Bar',
-            'Monk Farm-to-Table Woodfire Omakase',
-            'Gion Nanba Seasonal Kyoto Delicacies',
-        ],
-        transitModes: [
-            'Kyoto City Subway & Keihan Line Pass',
-            'Sagano Romantic Scenic Train Ticket',
-            'Higashiyama Vintage Green Bus Line',
-            'Randen Arashiyama Retro Tram Pass',
-        ],
-    },
-    paris: {
-        center: [48.8566, 2.3522],
-        hotels: [
-            { name: 'Pavillon de la Reine Marais Palace', notes: 'Historic 17th-century courtyard facing Place des Vosges' },
-            { name: 'Hôtel des Grands Boulevards', notes: 'French Revolution era manor with secret rooftop bar' },
-            { name: 'Le Marais Courtyard Artisan Hotel', notes: 'Boutique townhouse steps from Musée Carnavalet' },
-            { name: 'Hôtel Fabric Oberkampf', notes: 'Converted textile mill with industrial chic decor' },
-        ],
-        attractions: [
-            { name: 'Place des Vosges Arcaded Heritage Garden', category: 'ticket' },
-            { name: 'Musée Carnavalet Paris History Mansion', category: 'ticket' },
-            { name: 'Rue des Rosiers Cobblestone Stroll', category: 'ticket' },
-            { name: 'Louvre Courtyard & Tuileries Garden Promenade', category: 'ticket' },
-            { name: 'Musée d’Orsay Impressionist Clock Gallery', category: 'ticket' },
-            { name: 'Sainte-Chapelle Stained Glass Marvel', category: 'ticket' },
-            { name: 'Montmartre Artists Square & Sacré-Cœur', category: 'ticket' },
-            { name: 'Seine Riverbank Bookseller (Bouquinistes) Walk', category: 'ticket' },
-        ],
-        breakfastSpots: [
-            'Carette Place des Vosges Hot Chocolate & Brioche',
-            'Du Pain et des Idées Snail Pastry Bakery',
-            'Café de Flore Morning Espresso & Tartine',
-            'Boot Café Miniature Cobblestone Roastery',
-        ],
-        lunchSpots: [
-            "L'As du Fallafel Rue des Rosiers Pita",
-            'Breizh Café Savory Buckwheat Galettes',
-            'Bouillon Julien Belle Époque Brasserie',
-            'Chez Alain Miam Miam Gourmet Sandwich',
-        ],
-        dinnerSpots: [
-            'Chez Janou Provençal Bistro & Chocolate Mousse',
-            "Le Relais de l'Entrecôte Secret Sauce Steak",
-            'Septime Seasonal Natural Wine Dining',
-            'Le Petit Marché Ginger Duck Breast Bar',
-        ],
-        transitModes: [
-            'Paris Métro 1 & 11 Day Pass',
-            'Batobus River Seine Water Shuttle Pass',
-            'Montmartre Funicular Railway Ticket',
-            'Velib Vintage Green Bicycle Rental',
+            'MTR East Rail & Island Line Contactless Octopus',
+            'Star Ferry Cross-Harbour Double Decker Ferry',
+            'Hong Kong Tramways "Ding Ding" Heritage Streetcar',
+            'Peak Tram Historic Scenic Funicular Railway',
         ],
     },
 };
 
 // Generic coordinates for common world destinations
 const WORLD_CITY_COORDINATES: Record<string, [number, number]> = {
+    hongkong: [22.3193, 114.1694],
     tokyo: [35.6762, 139.6503],
     newyork: [40.7128, -74.0060],
     london: [51.5074, -0.1278],
@@ -186,8 +101,8 @@ function getCityCenter(destinationName: string): [number, number] {
             return coords;
         }
     }
-    // Default to Toronto distillery coordinates
-    return [43.6503, -79.3596];
+    // Default to Hong Kong Sha Tin coordinates
+    return [22.3812, 114.1888];
 }
 
 function calculateDateRange(startDateStr: string, endDateStr: string): string[] {
@@ -221,10 +136,10 @@ function generateFallbackItinerary(payload: GeneratePayload): { days: ItineraryD
     const planId = `plan_gen_${Date.now()}`;
 
     const destLower = destination.toLowerCase();
-    let matchedPresetKey: 'toronto' | 'kyoto' | 'paris' | null = null;
-    if (destLower.includes('toronto')) matchedPresetKey = 'toronto';
-    else if (destLower.includes('kyoto')) matchedPresetKey = 'kyoto';
-    else if (destLower.includes('paris')) matchedPresetKey = 'paris';
+    let matchedPresetKey: string | null = null;
+    if (destLower.includes('hong') || destLower.includes('sha tin') || destLower.includes('central') || destLower.includes('kowloon')) {
+        matchedPresetKey = 'hong_kong';
+    }
 
     const cityCenter = matchedPresetKey
         ? CITY_PRESETS[matchedPresetKey].center

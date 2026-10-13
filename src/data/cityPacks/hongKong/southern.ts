@@ -9,11 +9,7 @@ export const HONG_KONG_SOUTHERN_PACK: CityPack = {
     zoom: 15,
     userOrigin: [22.2405, 114.19],
     bounds: [[22.1983,114.1117],[22.2827,114.2683]],
-    facilities: [
-        { type: 'info', name: 'Southern (Stanley & Aberdeen) Visitor Information', coords: [22.2405, 114.19], emoji: 'ℹ️' },
-        { type: 'restroom', name: 'Public Restroom Facilities', coords: [22.2425, 114.192], emoji: '🚻' },
-        { type: 'photo', name: 'Scenic Photography Spot', coords: [22.2385, 114.188], emoji: '📷' },
-    ],
+    facilities: [],
     landmarks: [
         {
                 "id": "hk-southern-node-1658864663",

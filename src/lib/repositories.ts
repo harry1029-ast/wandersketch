@@ -134,9 +134,25 @@ export async function fetchAllCustomSpots(): Promise<Landmark[]> {
 }
 
 const VALID_DB_DEST_IDS = new Set([
-    'toronto_distillery',
-    'kyoto_higashiyama',
-    'paris_marais',
+    'hong_kong',
+    'sha_tin_district',
+    'hong_kong_central',
+    'hong_kong_tsim_sha_tsui',
+    'hong_kong_wan_chai',
+    'hong_kong_wts',
+    'hong_kong_southern',
+    'hong_kong_islands',
+    'hong_kong_sai_kung',
+    'hong_kong_ssp',
+    'hong_kong_kowloon_city',
+    'hong_kong_eastern',
+    'hong_kong_kwun_tong',
+    'hong_kong_tsuen_wan',
+    'hong_kong_tai_po',
+    'hong_kong_yuen_long',
+    'hong_kong_tuen_mun',
+    'hong_kong_north',
+    'hong_kong_kwai_tsing',
 ]);
 
 export async function saveCustomSpotToDb(spot: {

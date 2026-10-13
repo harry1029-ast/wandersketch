@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useItineraryStore } from '@/store/useItineraryStore';
 import { playChime } from '@/lib/audio';
 import { MASTER_ZONES } from '@/lib/mockData';
+import { getCityPack } from '@/data/cityPacks';
 import { ScenicZoneKey } from '@/types/itinerary';
 import {
     X,
@@ -39,7 +40,7 @@ export const TripCreationModal: React.FC<TripCreationModalProps> = ({ isOpen, on
     defaultEnd.setDate(defaultEnd.getDate() + 2);
     const defaultEndStr = defaultEnd.toISOString().split('T')[0];
 
-    const currentZoneName = MASTER_ZONES[plannerBuffer.zoneKey]?.name || 'Toronto Distillery District';
+    const currentZoneName = MASTER_ZONES[plannerBuffer.zoneKey]?.name || 'Hong Kong Sha Tin District';
 
     const [destination, setDestination] = useState(currentZoneName);
     const [startDate, setStartDate] = useState(todayStr);
@@ -105,7 +106,7 @@ export const TripCreationModal: React.FC<TripCreationModalProps> = ({ isOpen, on
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    destination: destination.trim() || 'Toronto',
+                    destination: destination.trim() || 'Hong Kong',
                     startDate,
                     endDate,
                     partySize,
@@ -126,14 +127,8 @@ export const TripCreationModal: React.FC<TripCreationModalProps> = ({ isOpen, on
 
             const data = await res.json();
             if (data.days && Array.isArray(data.days)) {
-                const destLower = destination.toLowerCase();
-                let matchedZoneKey: ScenicZoneKey = 'toronto_distillery';
-                if (destLower.includes('kyoto')) matchedZoneKey = 'kyoto_higashiyama';
-                else if (destLower.includes('paris')) matchedZoneKey = 'paris_marais';
-                else if (destLower.includes('york') || destLower.includes('nyc') || destLower.includes('manhattan')) matchedZoneKey = 'new_york_manhattan';
-                else if (destLower.includes('london') || destLower.includes('westminster')) matchedZoneKey = 'london_westminster';
-                else if (destLower.includes('tokyo') || destLower.includes('shinjuku')) matchedZoneKey = 'tokyo_shinjuku';
-                else if (destLower.includes('rome') || destLower.includes('roma')) matchedZoneKey = 'rome_centro';
+                const pack = getCityPack(destination);
+                const matchedZoneKey: ScenicZoneKey = pack ? pack.id : 'sha_tin_district';
 
                 await createTripWithDays(
                     {
@@ -211,13 +206,13 @@ export const TripCreationModal: React.FC<TripCreationModalProps> = ({ isOpen, on
                             type="text"
                             value={destination}
                             onChange={(e) => setDestination(e.target.value)}
-                            placeholder="e.g. Toronto Distillery District, Kyoto, Paris..."
+                            placeholder="e.g. Sha Tin, Central & Western, Tsim Sha Tsui, Sai Kung..."
                             required
                             className="w-full bg-paper-100 border-2 border-paper-300 focus:border-paper-900 rounded-xl px-3.5 py-2 text-sm font-bold text-paper-900 focus:outline-none placeholder:text-paper-700/50"
                         />
                         <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
                             <span className="text-[11px] font-bold text-paper-700">Quick Picks:</span>
-                            {['Toronto Distillery', 'Kyoto Higashiyama', 'Paris Le Marais', 'New York Manhattan', 'London Westminster', 'Tokyo Shinjuku', 'Rome Centro'].map((dest) => (
+                            {['Sha Tin & Ma On Shan', 'Central & Western', 'Tsim Sha Tsui & Mong Kok', 'Wan Chai & Causeway Bay', 'Sai Kung & Geopark', 'Islands (Lantau & Lamma)'].map((dest) => (
                                 <button
                                     key={dest}
                                     type="button"

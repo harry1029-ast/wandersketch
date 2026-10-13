@@ -9,11 +9,7 @@ export const HONG_KONG_TAI_PO_PACK: CityPack = {
     zoom: 15,
     userOrigin: [22.4774, 114.2791],
     bounds: [[22.3948,114.1091],[22.56,114.449]],
-    facilities: [
-        { type: 'info', name: 'Tai Po, Tai Mei Tuk & Tap Mun Visitor Information', coords: [22.4774, 114.2791], emoji: 'ℹ️' },
-        { type: 'restroom', name: 'Public Restroom Facilities', coords: [22.4794, 114.2811], emoji: '🚻' },
-        { type: 'photo', name: 'Scenic Photography Spot', coords: [22.4754, 114.2771], emoji: '📷' },
-    ],
+    facilities: [],
     landmarks: [
         {
                 "id": "hk-taiPo-node-1987034698",

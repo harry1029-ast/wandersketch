@@ -9,11 +9,7 @@ export const HONG_KONG_KOWLOON_CITY_PACK: CityPack = {
     zoom: 15,
     userOrigin: [22.3242, 114.195],
     bounds: [[22.2925,114.1655],[22.3559,114.2246]],
-    facilities: [
-        { type: 'info', name: 'Kowloon City & Kai Tak Visitor Information', coords: [22.3242, 114.195], emoji: 'ℹ️' },
-        { type: 'restroom', name: 'Public Restroom Facilities', coords: [22.3262, 114.197], emoji: '🚻' },
-        { type: 'photo', name: 'Scenic Photography Spot', coords: [22.3222, 114.193], emoji: '📷' },
-    ],
+    facilities: [],
     landmarks: [
         {
                 "id": "hk-kowloonCity-node-11455318325",
