@@ -11,6 +11,7 @@ import {
     getPixelCircle,
     getCirclePerimeterCoords,
     BoundingCircle,
+    haversineMeters,
 } from '@/lib/geoMask';
 import { isCommercialChain } from '@/lib/chainBrands';
 import { CITY_PACKS } from '@/data/cityPacks';
@@ -38,6 +39,9 @@ interface LeafletBaseMapProps {
     mapDiscoveryMode?: string;
     categoryFilter?: DiscoveryCategory;
     onCategoryCountChange?: (count: number) => void;
+    visibleCategoryLandmarks?: Landmark[];
+    categoryBatchStartIdx?: number;
+    hoveredLandmarkId?: string | null;
 }
 
 export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
@@ -61,6 +65,9 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
     mapDiscoveryMode,
     categoryFilter = 'all',
     onCategoryCountChange,
+    visibleCategoryLandmarks = [],
+    categoryBatchStartIdx = 0,
+    hoveredLandmarkId = null,
 }) => {
     const {
         currentItineraryDays,
@@ -195,6 +202,7 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
     const maskCircleRef = useRef<SVGCircleElement | null>(null);
 
     const boundingCircleRef = useRef<BoundingCircle | null>(null);
+    const categoryMarkersMapRef = useRef<Map<string, L.Marker>>(new Map());
     const trajectoryRef = useRef<[number, number][]>([]);
     const landmarksRef = useRef<Landmark[]>(activeItineraryLandmarks);
     landmarksRef.current = activeItineraryLandmarks;
@@ -218,14 +226,17 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         const map = mapInstanceRef.current;
         const inpaintedPane = inpaintedPaneRef.current;
         const bCircle = boundingCircleRef.current;
-        if (!map || !inpaintedPane || !bCircle) return;
+        if (!map || !inpaintedPane) return;
 
-        // For distant intercity journeys (>20km), disable localized circular clip-path to prevent GPU lag
-        if (bCircle.radiusMeters > 20000) {
+        // In Planning Mode (or if no circle or radius > 20km): disable circular inpainting clip path completely!
+        if (appMode === 'planning' || !bCircle || bCircle.radiusMeters > 20000) {
+            inpaintedPane.style.display = 'none';
             inpaintedPane.style.clipPath = 'none';
             (inpaintedPane.style as any).webkitClipPath = 'none';
             return;
         }
+
+        inpaintedPane.style.display = 'block';
 
         const { layerCenter, radiusPx } = getPixelCircle(
             map,
@@ -252,6 +263,15 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
     const updateItineraryCircle = () => {
         const map = mapInstanceRef.current;
         if (!map) return;
+
+        // In Planning Mode: No circle boundary!
+        if (appMode === 'planning') {
+            if (itineraryCircleRef.current) {
+                itineraryCircleRef.current.remove();
+                itineraryCircleRef.current = null;
+            }
+            return;
+        }
 
         if (boundingCircleRef.current && boundingCircleRef.current.radiusMeters <= 20000) {
             const { center, radiusMeters } = boundingCircleRef.current;
@@ -377,21 +397,18 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
     useEffect(() => {
         const stopCoords = activeItineraryLandmarks.map((l) => l.coords);
 
-        if (currentMode === 'ambient' && activeItineraryLandmarks.length < 2) {
-            // Ambient discovery horizon halo (~1.2km) centered at user location or zone center
-            const centerPoint = userCoords || zone.center;
+        if (appMode === 'on-trip') {
+            // In On-Trip Mode: Ambient discovery horizon halo (~1.2km) centered at user location or active waypoint
+            const centerPoint = userCoords || (stopCoords.length > 0 ? stopCoords[0] : zone.center);
             boundingCircleRef.current = {
                 center: centerPoint,
                 radiusMeters: 1200,
                 maxDistFromCenterMeters: 1200,
             };
-            trajectoryRef.current = [];
-            redrawSketchedPaths();
-            return;
+        } else {
+            // In Planning Mode: No restrictive circle
+            boundingCircleRef.current = null;
         }
-
-        const bCircle = calculateItineraryBoundingCircle(stopCoords, userCoords || zone.center);
-        boundingCircleRef.current = bCircle;
 
         if (activeItineraryLandmarks.length < 2) {
             trajectoryRef.current = stopCoords;
@@ -411,7 +428,7 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         return () => {
             isMounted = false;
         };
-    }, [activeItineraryLandmarks, userCoords, zone.center, currentMode]);
+    }, [activeItineraryLandmarks, userCoords, zone.center, currentMode, appMode]);
 
     // Smoothly re-center camera on day switch
     const prevDayRef = useRef<number>(activeDayNumber);
@@ -586,15 +603,44 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         }
     }, [isParchmentMode]);
 
+    // Fast 60FPS DOM sync for hovered landmark in container list
+    useEffect(() => {
+        document.querySelectorAll('.pin-hovered-active').forEach((el) => {
+            el.classList.remove('pin-hovered-active');
+        });
+
+        if (hoveredLandmarkId) {
+            const el = document.getElementById(`scenic-pin-${hoveredLandmarkId}`);
+            if (el) {
+                el.classList.add('pin-hovered-active');
+            }
+            const marker = categoryMarkersMapRef.current.get(hoveredLandmarkId);
+            if (marker) {
+                marker.setZIndexOffset(4000);
+            }
+        }
+
+        return () => {
+            if (hoveredLandmarkId) {
+                const marker = categoryMarkersMapRef.current.get(hoveredLandmarkId);
+                if (marker) {
+                    marker.setZIndexOffset(1000);
+                }
+            }
+        };
+    }, [hoveredLandmarkId]);
+
     useEffect(() => {
         const layer = landmarksLayerRef.current;
         const map = mapInstanceRef.current;
         if (!layer || !map) return;
         layer.clearLayers();
+        categoryMarkersMapRef.current.clear();
 
         const zoom = map.getZoom();
         const itineraryIndexMap = new Map(activeStopIds.map((id, index) => [id, index + 1]));
         const activeCat = categoryFilter || 'all';
+        const visibleCategoryIds = new Set((visibleCategoryLandmarks || []).map((l) => l.id));
 
         // 1. Filter landmarks by active category (always preserving route stops & personal spots)
         const candidateLandmarks = landmarks.filter((lm) => {
@@ -602,7 +648,7 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
             const isPersonal = Boolean(lm.isCustom || lm.tag === 'Personal Spot' || (typeof lm.id === 'string' && lm.id.startsWith('custom-')));
             if (isStop || isPersonal) return true;
             if (activeCat === 'all') return true;
-            return getLandmarkCategoryGroup(lm) === activeCat;
+            return visibleCategoryIds.has(lm.id);
         });
 
         // 2. Macro Territorial View (zoom <= 12): ZERO ambient icons! Render Illustrated District Badges instead.
@@ -624,24 +670,28 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
                     .replace(' (Lantau, Lamma & Cheung Chau)', ' (Lantau & Lamma)')
                     .replace(', Tai Mei Tuk & Tap Mun', ' & Tai Mei Tuk');
 
-                // Screen-space slight dynamic offset to avoid adjacent badge overlap in dense clusters (e.g. Kowloon)
+                // Screen-space slight dynamic offset to avoid adjacent coin overlap in dense clusters (e.g. Kowloon)
                 const pt = map.latLngToContainerPoint(L.latLng(pack.center[0], pack.center[1]));
                 let offsetY = 0;
                 for (const placed of placedBadgePoints) {
                     const dx = Math.abs(pt.x - placed.x);
                     const dy = Math.abs(pt.y - placed.y);
-                    if (dx < 130 && dy < 28) {
-                        offsetY = pt.y >= placed.y ? 14 : -14;
+                    if (dx < 36 && dy < 36) {
+                        offsetY = pt.y >= placed.y ? 10 : -10;
                     }
                 }
                 placedBadgePoints.push({ x: pt.x, y: pt.y + offsetY });
 
                 const badgeHtml = `
-                    <div class="relative pointer-events-auto" style="transform: translate(-50%, calc(-50% + ${offsetY}px));">
-                        <div class="cursor-pointer group inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-paper-50/95 border-2 border-paper-900 shadow-stamp transition-transform hover:scale-105 active:scale-95 select-none backdrop-blur-xs whitespace-nowrap">
-                            <span class="text-sm shrink-0">🏮</span>
-                            <span class="text-xs font-serif font-black text-paper-900 tracking-tight">${badgeLabel}</span>
-                            <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-amber-200 text-amber-950 border border-amber-300/80 shrink-0">${count} spots</span>
+                    <div class="relative pointer-events-auto group" style="transform: translate(-50%, calc(-50% + ${offsetY}px));">
+                        <div class="cursor-pointer inline-flex items-center p-1 rounded-full bg-paper-50/95 border-2 border-paper-900 shadow-stamp transition-all duration-300 ease-out select-none backdrop-blur-xs whitespace-nowrap hover:scale-105 active:scale-95 group-hover:px-3 group-hover:py-1" title="${badgeLabel} (${count} spots)">
+                            <div class="w-6 h-6 rounded-full bg-amber-200/90 border border-amber-400/80 flex items-center justify-center text-xs shrink-0 shadow-2xs">
+                                🏮
+                            </div>
+                            <div class="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[280px] group-hover:opacity-100 group-hover:ml-1.5 transition-all duration-300 ease-out flex items-center gap-1.5">
+                                <span class="text-xs font-serif font-black text-paper-900 tracking-tight">${badgeLabel}</span>
+                                <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-amber-200 text-amber-950 border border-amber-300/80 shrink-0">${count} spots</span>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -652,6 +702,12 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
                     iconAnchor: [0, 0],
                 });
                 const marker = L.marker(pack.center, { icon, zIndexOffset: 500 });
+                marker.on('mouseover', () => {
+                    marker.setZIndexOffset(2000);
+                });
+                marker.on('mouseout', () => {
+                    marker.setZIndexOffset(500);
+                });
                 marker.on('click', () => {
                     playChime('stamp');
                     map.flyTo(pack.center, 15, { duration: 1.2 });
@@ -712,13 +768,21 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
 
             // --- 1. Level of Detail (LOD) & Density Capping ---
             if (!isItineraryStop && !isPersonalSpot) {
-                // At macro zoom <= 12: hide ALL ambient spots completely!
-                if (zoom <= 12) {
+                // At macro zoom <= 12: hide ambient spots in default overview mode
+                if (zoom <= 12 && activeCat === 'all') {
                     return;
                 }
 
-                // Strict budget cap: don't overwhelm canvas
-                if (renderedAmbientCount >= maxAmbientAllowed) {
+                // In On-Trip Mode: Ambient discovery only within the live 1.2km walking radius!
+                if (appMode === 'on-trip' && userCoords) {
+                    const distMeters = haversineMeters(lm.coords, userCoords);
+                    if (distMeters > 1200) {
+                        return; // Outside discovery horizon!
+                    }
+                }
+
+                // Strict budget cap: don't overwhelm canvas in default overview mode
+                if (activeCat === 'all' && renderedAmbientCount >= maxAmbientAllowed) {
                     return;
                 }
 
@@ -877,17 +941,28 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
                 else if (activeCat === 'nature') pinColor = '#15803d';
                 else if (activeCat === 'attraction') pinColor = '#0284c7';
 
-                const labelHtml = showLabelAlways
-                    ? `<div class="mt-0.5 px-1.5 py-0.2 rounded-md bg-paper-50/95 border border-paper-900/80 shadow-2xs text-[10px] font-bold text-paper-900 whitespace-nowrap max-w-[110px] truncate font-serif text-center group-hover:bg-amber-100" title="${lm.name}">
+                const categoryItemIdx = visibleCategoryLandmarks.findIndex((l) => l.id === lm.id);
+                const batchNumber = categoryItemIdx !== -1 && activeCat !== 'all' ? (categoryBatchStartIdx ?? 0) + categoryItemIdx + 1 : null;
+                const isHovered = hoveredLandmarkId === lm.id;
+
+                const labelHtml = showLabelAlways || isHovered
+                    ? `<div class="pin-hover-tooltip mt-0.5 px-1.5 py-0.2 rounded-md bg-paper-50/95 border border-paper-900/80 shadow-2xs text-[10px] font-bold text-paper-900 whitespace-nowrap max-w-[120px] truncate font-serif text-center group-hover:bg-amber-100" title="${lm.name}">
                            ${formatPinLabel(lm.name)}
                        </div>`
-                    : `<div class="hidden group-hover:block absolute bottom-8 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md bg-paper-50/95 border border-paper-900 shadow-sm text-[10px] font-bold text-paper-900 whitespace-nowrap z-30 font-serif pointer-events-none">
+                    : `<div class="pin-hover-tooltip hidden group-hover:block absolute bottom-8 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md bg-paper-50/95 border border-paper-900 shadow-sm text-[10px] font-bold text-paper-900 whitespace-nowrap z-30 font-serif pointer-events-none">
                            ${formatPinLabel(lm.name)}
                        </div>`;
 
                 markerHtml = `
-                    <div class="relative flex flex-col items-center select-none cursor-pointer group transition-transform ${isSelected ? 'scale-120 -translate-y-1' : 'hover:scale-115 hover:-translate-y-1'}">
-                        <div class="w-8 h-8 rounded-full border-2 border-paper-900 shadow-stamp flex items-center justify-center text-sm transition-transform" style="background-color: ${pinColor}">
+                    <div id="scenic-pin-${lm.id}" class="scenic-pin-container relative flex flex-col items-center select-none cursor-pointer group transition-all duration-200 ${
+                        isHovered
+                            ? 'pin-hovered-active'
+                            : isSelected
+                            ? 'scale-120 -translate-y-1'
+                            : 'hover:scale-115 hover:-translate-y-1'
+                    }">
+                        <div class="pin-circle-bg w-8 h-8 rounded-full border-2 border-paper-900 shadow-stamp flex items-center justify-center text-sm transition-all duration-200 relative" style="background-color: ${pinColor}">
+                            ${batchNumber !== null ? `<span class="absolute -top-2 -right-2.5 w-5 h-5 bg-paper-900 text-amber-300 border border-white rounded-full font-mono text-[9px] font-black flex items-center justify-center shadow-xs z-20">${batchNumber}</span>` : ''}
                             <span class="drop-shadow-xs">${emoji}</span>
                         </div>
                         ${labelHtml}
@@ -902,10 +977,12 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
                 iconAnchor,
             });
 
+            const isHoveredSpot = hoveredLandmarkId === lm.id;
             const marker = L.marker(lm.coords, {
                 icon,
-                zIndexOffset: isItineraryStop ? 2000 : (isPersonalSpot ? 1500 : 1000),
+                zIndexOffset: isHoveredSpot ? 4000 : isItineraryStop ? 2000 : (isPersonalSpot ? 1500 : 1000),
             });
+            categoryMarkersMapRef.current.set(lm.id, marker);
 
             const targetItem =
                 activeDay?.items?.find((i) => i.id === lm.id) ||
@@ -1026,7 +1103,7 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         }
 
         redrawSketchedPaths();
-    }, [landmarks, activeLandmark, activeStopIds, activeItineraryLandmarks, appMode, activeDay, onRecordExpense, currentZoom, categoryFilter, onCategoryCountChange]);
+    }, [landmarks, activeLandmark, activeStopIds, activeItineraryLandmarks, appMode, activeDay, onRecordExpense, currentZoom, categoryFilter, onCategoryCountChange, userCoords, visibleCategoryLandmarks, categoryBatchStartIdx, hoveredLandmarkId]);
 
     useEffect(() => {
         const layer = facilitiesLayerRef.current;

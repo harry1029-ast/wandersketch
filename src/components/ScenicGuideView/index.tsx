@@ -14,7 +14,7 @@ import { GuideDrawer } from './GuideDrawer';
 import { LandmarkDetailModal } from '@/components/Modals/LandmarkDetailModal';
 import { QuickExpenseModal } from '@/components/Modals/QuickExpenseModal';
 import { CitySearchModal } from '@/components/Modals/CitySearchModal';
-import { Palette, ArrowsOut, NavigationArrow, Crosshair, Sparkle, CalendarBlank, Compass, AirplaneTakeoff } from '@phosphor-icons/react';
+import { Palette, ArrowsOut, NavigationArrow, Crosshair, Sparkle, CalendarBlank, Compass, AirplaneTakeoff, MagnifyingGlass } from '@phosphor-icons/react';
 import { DiscoveryCategory, DISCOVERY_CATEGORIES, getLandmarkCategoryGroup } from '@/lib/landmarkCategories';
 
 const DynamicIslandModal = dynamic(
@@ -151,6 +151,86 @@ export const ScenicGuideView: React.FC = () => {
     const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState<boolean>(false);
     const [activeCategoryFilter, setActiveCategoryFilter] = useState<DiscoveryCategory>('all');
     const [activeCategoryCount, setActiveCategoryCount] = useState<number>(0);
+    const [searchedBounds, setSearchedBounds] = useState<{
+        minLat: number;
+        minLng: number;
+        maxLat: number;
+        maxLng: number;
+    } | null>(null);
+    const [categoryBatchPage, setCategoryBatchPage] = useState<number>(0);
+    const [hoveredLandmarkId, setHoveredLandmarkId] = useState<string | null>(null);
+    const [hasMovedAway, setHasMovedAway] = useState<boolean>(false);
+
+    const searchedBoundsRef = useRef(searchedBounds);
+    searchedBoundsRef.current = searchedBounds;
+    const activeCategoryFilterRef = useRef(activeCategoryFilter);
+    activeCategoryFilterRef.current = activeCategoryFilter;
+
+    const handleSelectCategoryFilter = (cat: DiscoveryCategory) => {
+        playChime('tap');
+        if (cat === activeCategoryFilter || cat === 'all') {
+            setActiveCategoryFilter('all');
+            setHasMovedAway(false);
+            setSearchedBounds(null);
+            setCategoryBatchPage(0);
+            setHoveredLandmarkId(null);
+        } else {
+            setActiveCategoryFilter(cat);
+            setCategoryBatchPage(0);
+            setHoveredLandmarkId(null);
+            setHasMovedAway(false);
+            if (mapRef.current) {
+                const b = mapRef.current.getBounds();
+                setSearchedBounds({
+                    minLat: b.getSouth(),
+                    minLng: b.getWest(),
+                    maxLat: b.getNorth(),
+                    maxLng: b.getEast(),
+                });
+            } else if (zone.bounds) {
+                const [[minLat, minLng], [maxLat, maxLng]] = zone.bounds;
+                setSearchedBounds({ minLat, minLng, maxLat, maxLng });
+            }
+            setIsMobileDrawerOpen(true);
+        }
+    };
+
+    const handleClearCategoryFilter = () => {
+        playChime('tap');
+        setActiveCategoryFilter('all');
+        setHasMovedAway(false);
+        setSearchedBounds(null);
+        setCategoryBatchPage(0);
+        setHoveredLandmarkId(null);
+    };
+
+    const handleNextCategoryBatch = () => {
+        playChime('tap');
+        setCategoryBatchPage((prev) => prev + 1);
+        setHoveredLandmarkId(null);
+    };
+
+    const handlePrevCategoryBatch = () => {
+        playChime('tap');
+        setCategoryBatchPage((prev) => Math.max(0, prev - 1));
+        setHoveredLandmarkId(null);
+    };
+
+    const handleSearchThisArea = () => {
+        playChime('tap');
+        if (mapRef.current) {
+            const b = mapRef.current.getBounds();
+            setSearchedBounds({
+                minLat: b.getSouth(),
+                minLng: b.getWest(),
+                maxLat: b.getNorth(),
+                maxLng: b.getEast(),
+            });
+        }
+        setCategoryBatchPage(0);
+        setHoveredLandmarkId(null);
+        setHasMovedAway(false);
+    };
 
     const handleRecordExpense = (item: ItineraryItem) => {
         setExpenseModalItem(item);
@@ -251,6 +331,19 @@ export const ScenicGuideView: React.FC = () => {
             boundsTimerRef.current = setTimeout(async () => {
                 const centerLat = (b.minLat + b.maxLat) / 2;
                 const centerLng = (b.minLng + b.maxLng) / 2;
+
+                // Check if camera moved away from searched area during active category search
+                if (activeCategoryFilterRef.current !== 'all' && searchedBoundsRef.current) {
+                    const sb = searchedBoundsRef.current;
+                    const searchedCenterLat = (sb.minLat + sb.maxLat) / 2;
+                    const searchedCenterLng = (sb.minLng + sb.maxLng) / 2;
+                    const dLat = (centerLat - searchedCenterLat) * 111000;
+                    const dLng = (centerLng - searchedCenterLng) * 111000 * Math.cos((centerLat * Math.PI) / 180);
+                    const distFromSearch = Math.sqrt(dLat * dLat + dLng * dLng);
+                    if (distFromSearch > 350) {
+                        setHasMovedAway(true);
+                    }
+                }
 
                 // 1. City Pack In-Memory Pipeline:
                 // Check if current viewport overlaps ANY curated City Pack in memory (0ms latency).
@@ -399,12 +492,50 @@ export const ScenicGuideView: React.FC = () => {
         return [...allKnown, ...envelopeExtras];
     }, [orderedLandmarks, zone.landmarksPool, envelopeSpots]);
 
-    const categoryMatchedLandmarks = React.useMemo(() => {
+    const allKnownLandmarks = React.useMemo(() => {
+        const map = new Map<string, Landmark>();
+        for (const lm of displayedLandmarks) {
+            map.set(lm.id, lm);
+        }
+        for (const pack of Object.values(CITY_PACKS)) {
+            if (pack.landmarks) {
+                for (const lm of pack.landmarks) {
+                    if (!map.has(lm.id)) {
+                        map.set(lm.id, lm);
+                    }
+                }
+            }
+        }
+        return Array.from(map.values());
+    }, [displayedLandmarks]);
+
+    const matchingCategoryLandmarks = React.useMemo(() => {
         if (activeCategoryFilter === 'all') return [];
-        return displayedLandmarks.filter(
+        const matching = allKnownLandmarks.filter(
             (lm) => getLandmarkCategoryGroup(lm) === activeCategoryFilter
         );
-    }, [displayedLandmarks, activeCategoryFilter]);
+        if (searchedBounds) {
+            const inBounds = matching.filter(
+                (lm) =>
+                    lm.coords[0] >= searchedBounds.minLat &&
+                    lm.coords[0] <= searchedBounds.maxLat &&
+                    lm.coords[1] >= searchedBounds.minLng &&
+                    lm.coords[1] <= searchedBounds.maxLng
+            );
+            return inBounds.sort((a, b) => (b.importanceScore ?? 80) - (a.importanceScore ?? 80));
+        }
+        return matching.sort((a, b) => (b.importanceScore ?? 80) - (a.importanceScore ?? 80));
+    }, [allKnownLandmarks, activeCategoryFilter, searchedBounds]);
+
+    const CATEGORY_BATCH_SIZE = 12;
+    const totalCategoryPages = Math.max(1, Math.ceil(matchingCategoryLandmarks.length / CATEGORY_BATCH_SIZE));
+    const categoryBatchStartIdx = categoryBatchPage * CATEGORY_BATCH_SIZE;
+    const categoryBatchEndIdx = Math.min((categoryBatchPage + 1) * CATEGORY_BATCH_SIZE, matchingCategoryLandmarks.length);
+
+    const visibleBatchCategoryLandmarks = React.useMemo(() => {
+        if (activeCategoryFilter === 'all') return [];
+        return matchingCategoryLandmarks.slice(categoryBatchStartIdx, categoryBatchEndIdx);
+    }, [matchingCategoryLandmarks, categoryBatchStartIdx, categoryBatchEndIdx, activeCategoryFilter]);
 
     const { coords: liveGpsCoords, heading: liveHeading, accuracy: liveAccuracy } = useGeolocationTracker({
         landmarks: displayedLandmarks,
@@ -438,6 +569,14 @@ export const ScenicGuideView: React.FC = () => {
             }
         }
     }, [liveGpsCoords, isLiveGpsActive]);
+
+    useEffect(() => {
+        if (appMode === 'on-trip') {
+            setIsLiveGpsActive(true);
+        } else {
+            setIsLiveGpsActive(false);
+        }
+    }, [appMode]);
 
     const handleToggleCruise = () => {
         if (isLiveGpsActive) setIsLiveGpsActive(false);
@@ -675,8 +814,17 @@ export const ScenicGuideView: React.FC = () => {
                 isMobileOpen={isMobileDrawerOpen}
                 onCloseMobile={() => setIsMobileDrawerOpen(false)}
                 categoryFilter={activeCategoryFilter}
-                onSelectCategoryFilter={setActiveCategoryFilter}
-                categoryLandmarks={categoryMatchedLandmarks}
+                onSelectCategoryFilter={handleSelectCategoryFilter}
+                categoryLandmarks={visibleBatchCategoryLandmarks}
+                totalCategoryCount={matchingCategoryLandmarks.length}
+                currentBatchPage={categoryBatchPage}
+                totalPages={totalCategoryPages}
+                categoryBatchStartIdx={categoryBatchStartIdx}
+                onNextBatch={handleNextCategoryBatch}
+                onPrevBatch={handlePrevCategoryBatch}
+                onClearCategoryFilter={handleClearCategoryFilter}
+                hoveredLandmarkId={hoveredLandmarkId}
+                onHoverLandmark={setHoveredLandmarkId}
             />
 
             <div className="flex-1 h-full relative">
@@ -736,6 +884,9 @@ export const ScenicGuideView: React.FC = () => {
                     onMapClick={handleMapClick}
                     mapDiscoveryMode={mapDiscoveryMode}
                     categoryFilter={activeCategoryFilter}
+                    visibleCategoryLandmarks={visibleBatchCategoryLandmarks}
+                    categoryBatchStartIdx={categoryBatchStartIdx}
+                    hoveredLandmarkId={hoveredLandmarkId}
                     onCategoryCountChange={setActiveCategoryCount}
                     onMapReady={(map) => {
                         mapRef.current = map;
@@ -745,11 +896,13 @@ export const ScenicGuideView: React.FC = () => {
                 {/* Mode-Aware Top Bar: Ambient Horizon & District Jumpers, or Multi-Day Carousel */}
                 {mapDiscoveryMode === 'ambient' ? (
                     <div className="absolute top-4 left-4 z-20 max-w-[calc(100%-120px)] sm:max-w-[calc(100%-140px)] flex flex-wrap items-center gap-2">
-                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-paper-100/95 backdrop-blur-md border-2 border-paper-900 rounded-2xl shadow-stamp text-xs font-serif font-black text-paper-900">
-                            <Sparkle size={15} weight="fill" className="text-amber-500 animate-spin-slow" />
-                            <span className="hidden sm:inline">Around Me:</span>
-                            <span>~1.2km Horizon</span>
-                        </div>
+                        {appMode === 'on-trip' && (
+                            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-paper-100/95 backdrop-blur-md border-2 border-paper-900 rounded-2xl shadow-stamp text-xs font-serif font-black text-paper-900 animate-fade-in">
+                                <Sparkle size={15} weight="fill" className="text-amber-500 animate-spin-slow" />
+                                <span className="hidden sm:inline">Around Me:</span>
+                                <span>~1.2km Horizon</span>
+                            </div>
+                        )}
                         <div className="flex items-center gap-1 p-1 bg-paper-100/95 backdrop-blur-md border-2 border-paper-900 rounded-2xl shadow-stamp overflow-x-auto no-scrollbar max-w-full">
                             {/* Slot 1: My Location */}
                             <button
@@ -894,8 +1047,7 @@ export const ScenicGuideView: React.FC = () => {
                             <button
                                 key={cat.id}
                                 onClick={() => {
-                                    playChime('tap');
-                                    setActiveCategoryFilter((prev) => (prev === cat.id ? 'all' : cat.id));
+                                    handleSelectCategoryFilter(cat.id);
                                 }}
                                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl text-xs font-serif font-bold transition-all shadow-sm border shrink-0 cursor-pointer select-none active:scale-95 ${
                                     isActive
@@ -906,15 +1058,29 @@ export const ScenicGuideView: React.FC = () => {
                             >
                                 <span className="text-sm">{cat.emoji}</span>
                                 <span>{cat.label}</span>
-                                {isActive && activeCategoryCount > 0 && (
+                                {isActive && matchingCategoryLandmarks.length > 0 && (
                                     <span className="ml-1 text-[10px] font-mono font-black px-1.5 py-0.2 rounded-full bg-white/20 text-white">
-                                        {activeCategoryCount}
+                                        {matchingCategoryLandmarks.length}
                                     </span>
                                 )}
                             </button>
                         );
                     })}
                 </div>
+
+                {/* Floating "Search this area" Button (Google Maps style when user panned away) */}
+                {hasMovedAway && activeCategoryFilter !== 'all' && (
+                    <div className="absolute top-26 sm:top-28 left-1/2 -translate-x-1/2 z-30 animate-fade-in pointer-events-auto">
+                        <button
+                            type="button"
+                            onClick={handleSearchThisArea}
+                            className="flex items-center gap-2 px-4 py-2 bg-paper-50 hover:bg-white text-paper-900 border-2 border-paper-900 rounded-full shadow-float font-serif font-black text-xs transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                        >
+                            <MagnifyingGlass size={16} weight="bold" className="text-watercolor-brick" />
+                            <span>Search this area</span>
+                        </button>
+                    </div>
+                )}
 
                 {/* Floating Map Controls */}
                 <div className="absolute top-4 right-4 z-20 flex flex-col gap-2">

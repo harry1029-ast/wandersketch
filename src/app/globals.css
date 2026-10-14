@@ -84,3 +84,30 @@ html, body {
 .animate-slide-up {
   animation: slideUpSheet 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* Landmark Pin Hover & Highlight Indicator */
+.pin-hovered-active {
+  transform: scale(1.42) translateY(-10px) !important;
+  z-index: 9999 !important;
+  filter: drop-shadow(0 0 14px rgba(245, 158, 11, 0.95)) drop-shadow(0 8px 18px rgba(0, 0, 0, 0.45)) !important;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s ease !important;
+}
+
+.pin-hovered-active .pin-circle-bg {
+  box-shadow: 0 0 0 4px #fbbf24, 0 0 0 6.5px #ffffff, 0 8px 20px rgba(0, 0, 0, 0.4) !important;
+  border-color: #2b261b !important;
+  background-color: #f59e0b !important;
+}
+
+.pin-hovered-active .pin-hover-tooltip {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  background-color: #fef08a !important;
+  color: #451a03 !important;
+  border: 2px solid #2b261b !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
+  font-weight: 900 !important;
+  transform: scale(1.08) !important;
+  z-index: 10000 !important;
+}

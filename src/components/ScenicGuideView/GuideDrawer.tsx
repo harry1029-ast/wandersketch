@@ -52,6 +52,15 @@ interface GuideDrawerProps {
     categoryFilter?: DiscoveryCategory;
     onSelectCategoryFilter?: (cat: DiscoveryCategory) => void;
     categoryLandmarks?: Landmark[];
+    totalCategoryCount?: number;
+    currentBatchPage?: number;
+    totalPages?: number;
+    categoryBatchStartIdx?: number;
+    onNextBatch?: () => void;
+    onPrevBatch?: () => void;
+    onClearCategoryFilter?: () => void;
+    hoveredLandmarkId?: string | null;
+    onHoverLandmark?: (id: string | null) => void;
 }
 
 export const GuideDrawer: React.FC<GuideDrawerProps> = ({
@@ -70,7 +79,17 @@ export const GuideDrawer: React.FC<GuideDrawerProps> = ({
     categoryFilter = 'all',
     onSelectCategoryFilter,
     categoryLandmarks = [],
+    totalCategoryCount = 0,
+    currentBatchPage = 0,
+    totalPages = 1,
+    categoryBatchStartIdx = 0,
+    onNextBatch,
+    onPrevBatch,
+    onClearCategoryFilter,
+    hoveredLandmarkId = null,
+    onHoverLandmark,
 }) => {
+    const categoryListRef = React.useRef<HTMLDivElement>(null);
     const {
         appMode,
         activePlanId,
@@ -242,11 +261,18 @@ export const GuideDrawer: React.FC<GuideDrawerProps> = ({
             <div className="p-3.5 border-b-2 border-paper-200 bg-paper-50 space-y-2.5 shrink-0">
                 <div className="flex items-center justify-between">
                     <button
-                        onClick={() => setStage('plans')}
+                        onClick={() => {
+                            if (categoryFilter && categoryFilter !== 'all') {
+                                if (onClearCategoryFilter) onClearCategoryFilter();
+                                else onSelectCategoryFilter?.('all');
+                            } else {
+                                setStage('plans');
+                            }
+                        }}
                         className="text-xs font-bold text-paper-800 hover:text-paper-900 flex items-center gap-1 group cursor-pointer"
                     >
                         <ArrowLeft size={14} weight="bold" className="group-hover:-translate-x-0.5 transition-transform" />
-                        <span>Back to Trip Hub</span>
+                        <span>{categoryFilter && categoryFilter !== 'all' ? 'Back to Route' : 'Back to Trip Hub'}</span>
                     </button>
 
                     {/* Mode Chip: Ambient vs Itinerary */}
@@ -273,110 +299,278 @@ export const GuideDrawer: React.FC<GuideDrawerProps> = ({
                     )}
                 </div>
 
-                {/* Main Drawer Mode Toggle Pill: Live Guide vs Curate Route */}
-                <div className="flex items-center bg-paper-200 p-1 rounded-2xl border-2 border-paper-900 shadow-xs gap-1">
-                    <button
-                        type="button"
-                        onClick={() => {
-                            playChime('tap');
-                            setDrawerTab('guide');
-                        }}
-                        className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 cursor-pointer ${
-                            drawerTab === 'guide'
-                                ? 'bg-watercolor-brick text-white shadow-stamp ring-1 ring-paper-900'
-                                : 'text-paper-800 hover:text-paper-900 hover:bg-paper-300/60'
-                        }`}
-                    >
-                        <Headphones size={15} weight="bold" />
-                        <span>Live Guide</span>
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={() => {
-                            playChime('tap');
-                            setDrawerTab('curator');
-                        }}
-                        className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 cursor-pointer ${
-                            drawerTab === 'curator'
-                                ? 'bg-amber-400 text-paper-900 shadow-stamp border-2 border-paper-900'
-                                : 'text-paper-800 hover:text-paper-900 hover:bg-paper-300/60'
-                        }`}
-                    >
-                        <Footprints size={15} weight="bold" />
-                        <span>Curate Route</span>
-                        {plannerBuffer.spotIds.length > 0 && (
-                            <span className="bg-paper-900 text-white text-[10px] px-1.5 py-0.2 rounded-full font-mono">
-                                {plannerBuffer.spotIds.length}
-                            </span>
-                        )}
-                    </button>
-                </div>
-            </div>
-
-            {/* ======================================================== */}
-            {/* Quick Category Discovery Results (Google Maps style)     */}
-            {/* ======================================================== */}
-            {categoryFilter && categoryFilter !== 'all' && (
-                <div className="mx-4 mt-2 p-3 bg-amber-50/95 border-2 border-paper-900 rounded-2xl shadow-stamp space-y-2 shrink-0">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5 font-serif font-black text-xs text-paper-900">
-                            <span>{DISCOVERY_CATEGORIES.find((c) => c.id === categoryFilter)?.emoji}</span>
-                            <span>{DISCOVERY_CATEGORIES.find((c) => c.id === categoryFilter)?.label}</span>
-                            <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full bg-amber-200 text-amber-950">
-                                {categoryLandmarks.length} in view
-                            </span>
+                {/* Main Drawer Mode Toggle Pill or Category Search Header */}
+                {categoryFilter && categoryFilter !== 'all' ? (
+                    <div className="flex items-center justify-between bg-amber-100/90 px-3 py-2 rounded-2xl border-2 border-paper-900 shadow-xs">
+                        <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-base">{DISCOVERY_CATEGORIES.find((c) => c.id === categoryFilter)?.emoji}</span>
+                            <div className="min-w-0">
+                                <h4 className="font-serif font-black text-xs text-paper-900 leading-tight truncate">
+                                    {DISCOVERY_CATEGORIES.find((c) => c.id === categoryFilter)?.label} Search
+                                </h4>
+                                <p className="text-[10px] font-mono text-paper-700 truncate">
+                                    {categoryLandmarks.length} of {totalCategoryCount || categoryLandmarks.length} spots in view
+                                </p>
+                            </div>
                         </div>
                         <button
                             type="button"
-                            onClick={() => onSelectCategoryFilter?.('all')}
-                            className="text-[10px] font-bold text-paper-600 hover:text-paper-900 hover:underline cursor-pointer"
+                            onClick={() => {
+                                playChime('tap');
+                                if (onClearCategoryFilter) onClearCategoryFilter();
+                                else onSelectCategoryFilter?.('all');
+                            }}
+                            className="px-2 py-1 rounded-xl bg-paper-50 hover:bg-white text-paper-900 border border-paper-900 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer shadow-2xs active:scale-95 shrink-0"
                         >
-                            ✕ Clear Filter
+                            <span>✕ Clear</span>
                         </button>
                     </div>
+                ) : (
+                    <div className="flex items-center bg-paper-200 p-1 rounded-2xl border-2 border-paper-900 shadow-xs gap-1">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                playChime('tap');
+                                setDrawerTab('guide');
+                            }}
+                            className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                                drawerTab === 'guide'
+                                    ? 'bg-watercolor-brick text-white shadow-stamp ring-1 ring-paper-900'
+                                    : 'text-paper-800 hover:text-paper-900 hover:bg-paper-300/60'
+                            }`}
+                        >
+                            <Headphones size={15} weight="bold" />
+                            <span>Live Guide</span>
+                        </button>
 
-                    <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1 no-scrollbar">
-                        {categoryLandmarks.length === 0 ? (
-                            <p className="text-[11px] text-paper-600 py-2 text-center italic">
-                                No {DISCOVERY_CATEGORIES.find((c) => c.id === categoryFilter)?.label.toLowerCase()} found in current view. Pan or zoom map to discover more.
-                            </p>
-                        ) : (
-                            categoryLandmarks.slice(0, 25).map((lm) => (
-                                <div
-                                    key={lm.id}
-                                    onClick={() => onSelectLandmark(lm)}
-                                    className="flex items-center justify-between p-2 rounded-xl bg-paper-50 hover:bg-white border border-paper-300 hover:border-paper-900 transition cursor-pointer group shadow-2xs"
+                        <button
+                            type="button"
+                            onClick={() => {
+                                playChime('tap');
+                                setDrawerTab('curator');
+                            }}
+                            className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                                drawerTab === 'curator'
+                                    ? 'bg-amber-400 text-paper-900 shadow-stamp border-2 border-paper-900'
+                                    : 'text-paper-800 hover:text-paper-900 hover:bg-paper-300/60'
+                            }`}
+                        >
+                            <Footprints size={15} weight="bold" />
+                            <span>Curate Route</span>
+                            {plannerBuffer.spotIds.length > 0 && (
+                                <span className="bg-paper-900 text-white text-[10px] px-1.5 py-0.2 rounded-full font-mono">
+                                    {plannerBuffer.spotIds.length}
+                                </span>
+                            )}
+                        </button>
+                    </div>
+                )}
+            </div>
+
+            {/* ======================================================== */}
+            {/* Quick Category Discovery Results View (Google Maps style)*/}
+            {/* ======================================================== */}
+            {categoryFilter && categoryFilter !== 'all' ? (
+                <div
+                    ref={categoryListRef}
+                    className="flex-1 overflow-y-auto p-4 space-y-3 bg-rice-paper"
+                >
+                    {/* Quick Category Switcher Pills */}
+                    <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+                        {DISCOVERY_CATEGORIES.map((cat) => {
+                            const isCur = categoryFilter === cat.id;
+                            return (
+                                <button
+                                    key={cat.id}
+                                    type="button"
+                                    onClick={() => {
+                                        playChime('tap');
+                                        onSelectCategoryFilter?.(cat.id);
+                                    }}
+                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-serif font-bold transition-all border shrink-0 cursor-pointer ${
+                                        isCur
+                                            ? `${cat.activeBg} ${cat.activeText} ${cat.borderColor} border-2 shadow-xs font-black ring-1 ring-paper-900`
+                                            : 'bg-paper-50 hover:bg-paper-200 text-paper-800 border-paper-300'
+                                    }`}
                                 >
-                                    <div className="min-w-0 pr-2">
-                                        <h6 className="font-serif font-bold text-xs text-paper-900 truncate group-hover:text-watercolor-brick">
-                                            {lm.name}
-                                        </h6>
-                                        <p className="text-[10px] text-paper-600 truncate">{lm.desc || lm.tag}</p>
+                                    <span>{cat.emoji}</span>
+                                    <span>{cat.label}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    {/* Batch Pagination Header Bar */}
+                    <div className="flex items-center justify-between bg-paper-50 px-3 py-2 rounded-xl border-2 border-paper-900 shadow-2xs gap-2">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="font-serif font-black text-xs text-paper-900 truncate">
+                                Batch {currentBatchPage + 1} of {totalPages}
+                            </span>
+                            <span className="text-[10px] font-mono font-bold text-amber-950 bg-amber-200 px-2 py-0.5 rounded-full shrink-0">
+                                {totalCategoryCount > 0
+                                    ? `Spots ${(categoryBatchStartIdx ?? 0) + 1}–${(categoryBatchStartIdx ?? 0) + categoryLandmarks.length} of ${totalCategoryCount}`
+                                    : '0 spots'}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                            <button
+                                type="button"
+                                disabled={currentBatchPage <= 0}
+                                onClick={() => {
+                                    playChime('tap');
+                                    onPrevBatch?.();
+                                    categoryListRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                                className={`px-2 py-1 rounded-lg text-xs font-bold border transition ${
+                                    currentBatchPage <= 0
+                                        ? 'opacity-30 cursor-not-allowed bg-paper-100 border-paper-300 text-paper-400'
+                                        : 'bg-paper-100 hover:bg-paper-200 border-paper-900 text-paper-900 cursor-pointer shadow-2xs active:scale-95'
+                                }`}
+                                title="Previous Batch"
+                            >
+                                ← Prev
+                            </button>
+                            <button
+                                type="button"
+                                disabled={currentBatchPage >= totalPages - 1}
+                                onClick={() => {
+                                    playChime('tap');
+                                    onNextBatch?.();
+                                    categoryListRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                                className={`px-2.5 py-1 rounded-lg text-xs font-black border transition ${
+                                    currentBatchPage >= totalPages - 1
+                                        ? 'opacity-30 cursor-not-allowed bg-paper-100 border-paper-300 text-paper-400'
+                                        : 'bg-amber-300 hover:bg-amber-400 border-paper-900 text-paper-900 cursor-pointer shadow-2xs active:scale-95'
+                                }`}
+                                title="Next Batch"
+                            >
+                                Next →
+                            </button>
+                        </div>
+                    </div>
+
+                    {categoryLandmarks.length === 0 ? (
+                        <div className="p-6 rounded-2xl border-2 border-dashed border-paper-400 bg-paper-50/60 text-center space-y-2 mt-4">
+                            <div className="text-3xl">🔍</div>
+                            <h4 className="font-serif font-black text-sm text-paper-900">
+                                No {DISCOVERY_CATEGORIES.find((c) => c.id === categoryFilter)?.label || 'Places'} Found in this Area
+                            </h4>
+                            <p className="text-xs text-paper-700 leading-relaxed">
+                                No matching places found within the current visible screen area. Pan the map or tap &quot;Search this area&quot; to look nearby!
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="space-y-2.5">
+                            {categoryLandmarks.map((lm, idx) => {
+                                const isAlreadyInRoute = plannerBuffer.spotIds.includes(lm.id);
+                                const globalItemNum = (categoryBatchStartIdx ?? 0) + idx + 1;
+                                const isHovered = hoveredLandmarkId === lm.id;
+
+                                return (
+                                    <div
+                                        key={lm.id}
+                                        onMouseEnter={() => onHoverLandmark?.(lm.id)}
+                                        onMouseLeave={() => onHoverLandmark?.(null)}
+                                        onClick={() => onSelectLandmark(lm)}
+                                        className={`p-3 rounded-2xl border-2 transition-all duration-150 cursor-pointer flex flex-col gap-2 group ${
+                                            isHovered
+                                                ? 'bg-amber-100/90 border-paper-900 shadow-float scale-[1.02] ring-2 ring-amber-400'
+                                                : 'bg-paper-50 hover:bg-white border-paper-900 shadow-stamp hover:shadow-float'
+                                        }`}
+                                    >
+                                        <div className="flex items-start justify-between gap-2">
+                                            <div className="flex items-start gap-2.5 min-w-0">
+                                                <span className={`w-5.5 h-5.5 rounded-full border border-paper-900 font-mono font-black text-[10px] flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
+                                                    isHovered ? 'bg-amber-400 text-paper-950 ring-2 ring-paper-900' : 'bg-amber-200 text-paper-900'
+                                                }`}>
+                                                    {globalItemNum}
+                                                </span>
+                                                <div className="min-w-0">
+                                                    <h5 className="font-serif font-black text-xs text-paper-900 group-hover:text-watercolor-brick transition-colors line-clamp-1">
+                                                        {lm.name}
+                                                    </h5>
+                                                    <p className="text-[10px] text-paper-600 line-clamp-1">
+                                                        {lm.desc || lm.tag || 'Scenic Location'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (!isAlreadyInRoute) {
+                                                        addStopToRouteBuffer(lm.id);
+                                                        playChime('stamp');
+                                                    }
+                                                }}
+                                                disabled={isAlreadyInRoute}
+                                                className={`px-2.5 py-1 rounded-xl text-[10px] font-black shrink-0 transition cursor-pointer ${
+                                                    isAlreadyInRoute
+                                                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-400 cursor-default'
+                                                        : 'bg-watercolor-brick hover:bg-red-800 text-white shadow-2xs active:scale-95'
+                                                }`}
+                                            >
+                                                {isAlreadyInRoute ? '✓ In Route' : '+ Add'}
+                                            </button>
+                                        </div>
+
+                                        <div className="flex items-center justify-between text-[10px] text-paper-500 pt-1.5 border-t border-paper-200">
+                                            <span className="font-mono">{lm.tag || 'Hong Kong'}</span>
+                                            <span className="text-paper-700 group-hover:text-watercolor-brick font-bold flex items-center gap-1">
+                                                <span>View pin on map</span>
+                                                <span>→</span>
+                                            </span>
+                                        </div>
                                     </div>
+                                );
+                            })}
+
+                            {/* Batch Navigation Footer */}
+                            <div className="pt-2 pb-6 space-y-2">
+                                {currentBatchPage < totalPages - 1 && (
                                     <button
                                         type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            addStopToRouteBuffer(lm.id);
-                                            playChime('stamp');
+                                        onClick={() => {
+                                            playChime('tap');
+                                            onNextBatch?.();
+                                            categoryListRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
                                         }}
-                                        className="px-2 py-1 rounded-lg bg-watercolor-brick hover:bg-red-800 text-white font-extrabold text-[10px] shrink-0 shadow-2xs transition active:scale-95 cursor-pointer"
-                                        title="Add to route"
+                                        className="w-full py-3 px-4 bg-amber-400 hover:bg-amber-300 text-paper-900 border-2 border-paper-900 rounded-2xl font-serif font-black text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-stamp hover:scale-101 active:scale-95"
                                     >
-                                        + Add
+                                        <Sparkle size={15} weight="fill" className="text-amber-800" />
+                                        <span>
+                                            Next Batch: Spots {(currentBatchPage + 1) * 12 + 1}–{Math.min((currentBatchPage + 2) * 12, totalCategoryCount)} →
+                                        </span>
                                     </button>
-                                </div>
-                            ))
-                        )}
-                    </div>
-                </div>
-            )}
+                                )}
 
-            {/* ======================================================== */}
-            {/* TAB 1: CURATE ROUTE MODE (Embedded Map Curator)          */}
-            {/* ======================================================== */}
-            {drawerTab === 'curator' ? (
+                                {currentBatchPage > 0 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            playChime('tap');
+                                            onPrevBatch?.();
+                                            categoryListRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+                                        }}
+                                        className="w-full py-2 px-3 bg-paper-100 hover:bg-paper-200 text-paper-800 border border-paper-400 rounded-xl font-serif font-bold text-xs transition flex items-center justify-center gap-1 cursor-pointer"
+                                    >
+                                        <span>← Back to Previous Batch (Spots {Math.max(1, (currentBatchPage - 1) * 12 + 1)}–{currentBatchPage * 12})</span>
+                                    </button>
+                                )}
+
+                                {currentBatchPage >= totalPages - 1 && categoryLandmarks.length > 0 && (
+                                    <div className="py-2 text-center">
+                                        <p className="text-[11px] text-paper-600 italic font-serif">
+                                            Showing last batch of {totalCategoryCount} places in this area.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            ) : drawerTab === 'curator' ? (
                 <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-rice-paper">
                     {/* Stops List Header & Actions */}
                     <div className="flex items-center justify-between pt-1">
