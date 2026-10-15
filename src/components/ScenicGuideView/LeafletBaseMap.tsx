@@ -66,6 +66,9 @@ interface LeafletBaseMapProps {
     selectedDistrictKey?: string | null;
     onSelectDistrict?: (districtKey: string | null) => void;
     territoryMode?: 'explore' | 'select';
+    lastMapCenter?: [number, number] | null;
+    lastMapZoom?: number | null;
+    onViewportChange?: (center: [number, number], zoom: number) => void;
 }
 
 export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
@@ -96,6 +99,9 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
     selectedDistrictKey = null,
     onSelectDistrict,
     territoryMode = 'explore',
+    lastMapCenter = null,
+    lastMapZoom = null,
+    onViewportChange,
 }) => {
     const [internalSelectedDistrictKey, setInternalSelectedDistrictKey] = useState<string | null>(null);
     const activeDistrictKey = selectedDistrictKey !== undefined ? selectedDistrictKey : internalSelectedDistrictKey;
@@ -265,6 +271,9 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
 
     const onBoundsChangeRef = useRef(onBoundsChange);
     onBoundsChangeRef.current = onBoundsChange;
+
+    const onViewportChangeRef = useRef(onViewportChange);
+    onViewportChangeRef.current = onViewportChange;
 
     const onOpenIslandViewRef = useRef(onOpenIslandView);
     onOpenIslandViewRef.current = onOpenIslandView;
@@ -513,9 +522,12 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
     useEffect(() => {
         if (!mapContainerRef.current || mapInstanceRef.current) return;
 
+        const initialCenter = lastMapCenter || zone.center;
+        const initialZoom = lastMapZoom || zone.zoom || 14;
+
         const map = L.map(mapContainerRef.current, {
-            center: zone.center,
-            zoom: zone.zoom,
+            center: initialCenter,
+            zoom: initialZoom,
             zoomControl: false,
             attributionControl: false,
             boxZoom: false,
@@ -583,6 +595,19 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
             }
         };
 
+        const emitViewport = () => {
+            if (!onViewportChangeRef.current || !mapInstanceRef.current) return;
+            try {
+                const c = mapInstanceRef.current.getCenter();
+                const z = mapInstanceRef.current.getZoom();
+                if (c && typeof c.lat === 'number' && typeof c.lng === 'number' && !isNaN(c.lat) && !isNaN(c.lng)) {
+                    onViewportChangeRef.current([c.lat, c.lng], z);
+                }
+            } catch {
+                // Ignore transient frame checks during zoom transitions
+            }
+        };
+
         let rafId: number | null = null;
         const scheduleRedraw = () => {
             if (rafId !== null) return;
@@ -601,9 +626,15 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
 
         map.on('move', scheduleRedraw);
         map.on('zoom', handleZoomChange);
-        map.on('zoomend', handleZoomChange);
+        map.on('zoomend', () => {
+            handleZoomChange();
+            emitViewport();
+        });
         map.on('viewreset', handleZoomChange);
-        map.on('moveend', emitCurrentBounds);
+        map.on('moveend', () => {
+            emitCurrentBounds();
+            emitViewport();
+        });
         map.on('resize', scheduleRedraw);
         map.on('dragstart', () => setHoveredDistrict(null));
         map.on('movestart', () => setHoveredDistrict(null));
@@ -635,6 +666,7 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
                     setCurrentZoom(mapInstanceRef.current.getZoom());
                     scheduleRedraw();
                     emitCurrentBounds();
+                    emitViewport();
                     updateUserGpsMarkerRef.current?.();
                 }
             }, 300);
@@ -681,11 +713,17 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
     }, []);
 
     // Smoothly fly camera ONLY when switching to a completely different CITY (e.g. Kyoto -> Paris)
-    // NEVER fly on intra-city district changes, territory selections, or zone updates
+    // NEVER fly on intra-city district changes, territory selections, or initial mount
+    const isInitialMountRef = useRef(true);
     const prevCityRef = useRef(zone.city);
     useEffect(() => {
         const map = mapInstanceRef.current;
         if (!map) return;
+        if (isInitialMountRef.current) {
+            isInitialMountRef.current = false;
+            prevCityRef.current = zone.city;
+            return;
+        }
         if (prevCityRef.current !== zone.city) {
             prevCityRef.current = zone.city;
             map.flyTo(zone.center, zone.zoom || 14, { duration: 1.2 });

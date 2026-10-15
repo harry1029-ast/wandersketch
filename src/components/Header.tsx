@@ -40,11 +40,7 @@ export const Header: React.FC = () => {
 
     const handleStageChange = (stage: AppStage) => {
         playChime('tap');
-        if (stage === 'map') {
-            launchAmbientDiscoveryOnMap();
-        } else {
-            setStage(stage);
-        }
+        setStage(stage);
     };
 
     const handleQuickAction = () => {
@@ -57,7 +53,7 @@ export const Header: React.FC = () => {
         if (currentStage === 'planner') {
             savePlannerAsNewPlan();
         } else if (currentStage === 'plans') {
-            launchAmbientDiscoveryOnMap();
+            setStage('map');
         } else if (currentStage === 'map') {
             setStage('plans');
         }

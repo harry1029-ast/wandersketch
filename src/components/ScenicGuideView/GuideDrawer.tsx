@@ -119,6 +119,8 @@ export const GuideDrawer: React.FC<GuideDrawerProps> = ({
         deletePersonalSpot,
         turnPlannerRouteIntoExcursion,
         clearPlannerStops,
+        lastMapZoneKey,
+        setLastMapViewport,
     } = useItineraryStore();
 
     const [isPostcardOpen, setIsPostcardOpen] = useState(false);
@@ -129,9 +131,9 @@ export const GuideDrawer: React.FC<GuideDrawerProps> = ({
     const plan = savedPlans.find((p) => p.id === activePlanId) || savedPlans[0];
     const currentZoneKey =
         drawerTab === 'curator' || mapDiscoveryMode === 'ambient'
-            ? plannerBuffer.zoneKey
-            : (plan?.zoneKey || plannerBuffer.zoneKey);
-    const zone = allZones[currentZoneKey] || allZones.sha_tin_district || Object.values(allZones)[0];
+            ? (lastMapZoneKey || plannerBuffer.zoneKey)
+            : (plan?.zoneKey || lastMapZoneKey || plannerBuffer.zoneKey);
+    const zone = allZones[currentZoneKey] || allZones[plannerBuffer.zoneKey] || allZones.sha_tin_district || Object.values(allZones)[0];
 
     const personalSpots = React.useMemo(() => {
         const pool = zone?.landmarksPool || [];
@@ -179,6 +181,9 @@ export const GuideDrawer: React.FC<GuideDrawerProps> = ({
         }
         updatePlannerZone(val);
         const targetZone = allZones[val];
+        if (targetZone) {
+            setLastMapViewport(targetZone.center, targetZone.zoom || 15, val);
+        }
         if (targetZone && targetZone.landmarksPool.length > 0) {
             onSelectLandmark(targetZone.landmarksPool[0]);
         }
@@ -192,6 +197,7 @@ export const GuideDrawer: React.FC<GuideDrawerProps> = ({
     }) => {
         const slug = jumpToCity(cityData);
         updatePlannerZone(slug);
+        setLastMapViewport(cityData.coords, 15, slug);
         const newZone = zones[slug] || allZones[slug];
         if (newZone) {
             onSelectLandmark({

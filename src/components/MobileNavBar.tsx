@@ -36,11 +36,7 @@ export const MobileNavBar: React.FC<MobileNavBarProps> = ({ onQuickExpenseClick 
 
     const handleStageClick = (stage: AppStage) => {
         playChime('tap');
-        if (stage === 'map') {
-            launchAmbientDiscoveryOnMap();
-        } else {
-            setStage(stage);
-        }
+        setStage(stage);
     };
 
     const handleCreateTripClick = () => {

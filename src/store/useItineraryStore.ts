@@ -272,6 +272,12 @@ interface ItineraryState {
     drawerTab: DrawerTab;
     userRealCoords: [number, number] | null;
 
+    // Last viewed map viewport & zone persistence
+    lastMapCenter: [number, number] | null;
+    lastMapZoom: number | null;
+    lastMapZoneKey: string | null;
+    setLastMapViewport: (center: [number, number], zoom: number, zoneKey?: string) => void;
+
     // Multi-day itinerary & budget state
     selectedTripViewId: string | null;
     daysCacheByPlanId: Record<string, ItineraryDay[]>;
@@ -358,18 +364,36 @@ interface ItineraryState {
     recalculateBudget: () => void;
 }
 
+let initialMapCenter: [number, number] | null = null;
+let initialMapZoom: number | null = null;
+let initialMapZoneKey: string | null = null;
+let initialCustomZones: Record<string, ScenicZone> = {};
+
+if (typeof window !== 'undefined') {
+    try {
+        const rawCenter = localStorage.getItem('wandersketch_last_map_center');
+        if (rawCenter) initialMapCenter = JSON.parse(rawCenter);
+        const rawZoom = localStorage.getItem('wandersketch_last_map_zoom');
+        if (rawZoom) initialMapZoom = Number(rawZoom);
+        const rawZoneKey = localStorage.getItem('wandersketch_last_map_zone_key');
+        if (rawZoneKey) initialMapZoneKey = rawZoneKey;
+        const rawCustomZones = localStorage.getItem('wandersketch_custom_zones');
+        if (rawCustomZones) initialCustomZones = JSON.parse(rawCustomZones);
+    } catch {}
+}
+
 export const useItineraryStore = create<ItineraryState>()((set, get) => ({
     appMode: 'planning',
     currentStage: 'plans',
     activePlanId: INITIAL_PLANS[0].id,
     savedPlans: INITIAL_PLANS,
-    zones: MASTER_ZONES,
+    zones: { ...MASTER_ZONES, ...initialCustomZones },
     isLoadingDb: false,
     isTripModalOpen: false,
 
     plannerBuffer: {
         title: 'Custom Walking Route',
-        zoneKey: 'sha_tin_district',
+        zoneKey: (initialMapZoneKey as ScenicZoneKey) || 'sha_tin_district',
         spotIds: [],
     },
 
@@ -378,6 +402,28 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
     drawerTab: 'curator',
     userRealCoords: null,
     deletedPersonalSpotIds: [],
+
+    // Viewport persistence initial state
+    lastMapCenter: initialMapCenter,
+    lastMapZoom: initialMapZoom,
+    lastMapZoneKey: initialMapZoneKey,
+
+    setLastMapViewport: (center, zoom, zoneKey) => {
+        set((state) => ({
+            lastMapCenter: center,
+            lastMapZoom: zoom,
+            lastMapZoneKey: zoneKey || state.lastMapZoneKey,
+        }));
+        if (typeof window !== 'undefined') {
+            try {
+                localStorage.setItem('wandersketch_last_map_center', JSON.stringify(center));
+                localStorage.setItem('wandersketch_last_map_zoom', String(zoom));
+                if (zoneKey) {
+                    localStorage.setItem('wandersketch_last_map_zone_key', zoneKey);
+                }
+            } catch {}
+        }
+    },
 
     // Multi-day itinerary & budget initial state
     selectedTripViewId: null,
@@ -419,6 +465,13 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
                     if (rawSaved) savedSpotIds = JSON.parse(rawSaved);
                 } catch {}
             }
+            let savedCustomZones: Record<string, ScenicZone> = {};
+            if (typeof window !== 'undefined') {
+                try {
+                    const rawCustom = localStorage.getItem('wandersketch_custom_zones');
+                    if (rawCustom) savedCustomZones = JSON.parse(rawCustom);
+                } catch {}
+            }
             const deletedSet = new Set(deletedIds);
             const savedSpotSet = new Set(savedSpotIds);
             // Only hydrate custom spots that the user explicitly saved in their browser session!
@@ -427,7 +480,7 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
             );
 
             set((state) => {
-                const updatedZones = { ...state.zones };
+                const updatedZones = { ...state.zones, ...savedCustomZones };
                 // 1. Merge destinations from DB
                 dbDestinations.forEach((dest) => {
                     if (updatedZones[dest.id]) {
@@ -555,12 +608,25 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
     },
     launchItineraryOnMap: (planId) => {
         if (planId) {
+            const plan = get().savedPlans.find((p) => p.id === planId);
+            const targetZoneKey = plan?.zoneKey || 'sha_tin_district';
+            const targetZone = get().zones[targetZoneKey] || MASTER_ZONES[targetZoneKey];
             set({
                 activePlanId: planId,
                 currentStage: 'map',
                 mapDiscoveryMode: 'itinerary',
                 drawerTab: 'guide',
+                lastMapCenter: targetZone?.center || null,
+                lastMapZoom: targetZone?.zoom || 15,
+                lastMapZoneKey: targetZoneKey,
             });
+            if (targetZone?.center && typeof window !== 'undefined') {
+                try {
+                    localStorage.setItem('wandersketch_last_map_center', JSON.stringify(targetZone.center));
+                    localStorage.setItem('wandersketch_last_map_zoom', String(targetZone.zoom || 15));
+                    localStorage.setItem('wandersketch_last_map_zone_key', targetZoneKey);
+                } catch {}
+            }
         } else {
             set({
                 currentStage: 'map',
@@ -572,12 +638,29 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
     launchAmbientDiscoveryOnMap: (zoneKey) => {
         if (zoneKey) {
             get().updatePlannerZone(zoneKey);
+            const targetZone = get().zones[zoneKey] || MASTER_ZONES[zoneKey];
+            set({
+                currentStage: 'map',
+                mapDiscoveryMode: 'ambient',
+                drawerTab: 'curator',
+                lastMapCenter: targetZone?.center || null,
+                lastMapZoom: targetZone?.zoom || 15,
+                lastMapZoneKey: zoneKey,
+            });
+            if (targetZone?.center && typeof window !== 'undefined') {
+                try {
+                    localStorage.setItem('wandersketch_last_map_center', JSON.stringify(targetZone.center));
+                    localStorage.setItem('wandersketch_last_map_zoom', String(targetZone.zoom || 15));
+                    localStorage.setItem('wandersketch_last_map_zone_key', zoneKey);
+                } catch {}
+            }
+        } else {
+            set({
+                currentStage: 'map',
+                mapDiscoveryMode: 'ambient',
+                drawerTab: 'curator',
+            });
         }
-        set({
-            currentStage: 'map',
-            mapDiscoveryMode: 'ambient',
-            drawerTab: 'curator',
-        });
     },
 
     setSelectedTripViewId: (planId) => set({ selectedTripViewId: planId }),
@@ -914,6 +997,8 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
             } else if (landmarksPool.length === 0 && masterFallback?.landmarksPool) {
                 landmarksPool = masterFallback.landmarksPool;
             }
+            const targetCenter = (pack && pack.center) || existingZone.center;
+            const targetZoom = (pack && pack.zoom) || existingZone.zoom || 15;
             set((state) => ({
                 zones: {
                     ...state.zones,
@@ -929,7 +1014,17 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
                     zoneKey: existingKey,
                     spotIds: isAmbient ? [] : state.plannerBuffer.spotIds,
                 },
+                lastMapZoneKey: existingKey,
+                lastMapCenter: targetCenter,
+                lastMapZoom: targetZoom,
             }));
+            if (typeof window !== 'undefined') {
+                try {
+                    localStorage.setItem('wandersketch_last_map_center', JSON.stringify(targetCenter));
+                    localStorage.setItem('wandersketch_last_map_zoom', String(targetZoom));
+                    localStorage.setItem('wandersketch_last_map_zone_key', existingKey);
+                } catch {}
+            }
             return existingKey;
         }
 
@@ -958,17 +1053,33 @@ export const useItineraryStore = create<ItineraryState>()((set, get) => ({
             landmarksPool: pack ? pack.landmarks : [],
         };
 
-        set((state) => ({
-            zones: {
+        set((state) => {
+            const updatedZones = {
                 ...state.zones,
                 [baseSlug]: newZone,
-            },
-            plannerBuffer: {
-                title: `Explore ${newZone.name}`,
-                zoneKey: baseSlug,
-                spotIds: [],
-            },
-        }));
+            };
+            if (typeof window !== 'undefined') {
+                try {
+                    const customZones = JSON.parse(localStorage.getItem('wandersketch_custom_zones') || '{}');
+                    customZones[baseSlug] = newZone;
+                    localStorage.setItem('wandersketch_custom_zones', JSON.stringify(customZones));
+                    localStorage.setItem('wandersketch_last_map_center', JSON.stringify(newZone.center));
+                    localStorage.setItem('wandersketch_last_map_zoom', String(newZone.zoom || 15));
+                    localStorage.setItem('wandersketch_last_map_zone_key', baseSlug);
+                } catch {}
+            }
+            return {
+                zones: updatedZones,
+                plannerBuffer: {
+                    title: `Explore ${newZone.name}`,
+                    zoneKey: baseSlug,
+                    spotIds: [],
+                },
+                lastMapZoneKey: baseSlug,
+                lastMapCenter: newZone.center,
+                lastMapZoom: newZone.zoom || 15,
+            };
+        });
 
         return baseSlug;
     },

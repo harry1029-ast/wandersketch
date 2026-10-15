@@ -100,14 +100,22 @@ export const ScenicGuideView: React.FC = () => {
         launchItineraryOnMap,
         launchAmbientDiscoveryOnMap,
         deletePersonalSpot,
+        lastMapCenter,
+        lastMapZoom,
+        lastMapZoneKey,
+        setLastMapViewport,
     } = useItineraryStore();
 
     const allZones = zones || MASTER_ZONES;
     const plan = savedPlans.find((p) => p.id === activePlanId) || savedPlans[0];
-    const currentZoneKey = mapDiscoveryMode === 'ambient' ? plannerBuffer.zoneKey : (plan?.zoneKey || plannerBuffer.zoneKey);
-    const rawZone = allZones[currentZoneKey] || allZones.sha_tin_district || Object.values(allZones)[0];
+    const effectiveZoneKey =
+        mapDiscoveryMode === 'ambient'
+            ? (lastMapZoneKey || plannerBuffer.zoneKey)
+            : (plan?.zoneKey || lastMapZoneKey || plannerBuffer.zoneKey);
+    const currentZoneKey = effectiveZoneKey;
+    const rawZone = allZones[currentZoneKey] || allZones[plannerBuffer.zoneKey] || allZones.sha_tin_district || Object.values(allZones)[0];
     const zone: ScenicZone = React.useMemo(() => {
-        const pack = getCityPack(currentZoneKey) || (rawZone.city ? getCityPack(rawZone.city) : null);
+        const pack = getCityPack(effectiveZoneKey) || (rawZone.city ? getCityPack(rawZone.city) : null);
         let landmarksPool = rawZone.landmarksPool || [];
         if (pack && pack.landmarks && pack.landmarks.length > 0) {
             const poolMap = new Map(landmarksPool.map((l) => [l.id, l]));
@@ -124,7 +132,7 @@ export const ScenicGuideView: React.FC = () => {
                 bounds: rawZone.bounds || pack.bounds,
             };
         }
-        const masterFallback = MASTER_ZONES[currentZoneKey] || (rawZone.city?.toLowerCase().includes('sha tin') ? MASTER_ZONES.sha_tin_district : null);
+        const masterFallback = MASTER_ZONES[effectiveZoneKey] || (rawZone.city?.toLowerCase().includes('sha tin') ? MASTER_ZONES.sha_tin_district : null);
         if (masterFallback && masterFallback.landmarksPool && masterFallback.landmarksPool.length > 0) {
             return {
                 ...rawZone,
@@ -133,7 +141,7 @@ export const ScenicGuideView: React.FC = () => {
             };
         }
         return rawZone;
-    }, [rawZone, currentZoneKey]);
+    }, [rawZone, effectiveZoneKey]);
 
     const activeDay = currentItineraryDays.find((d) => d.dayNumber === activeDayNumber);
     const dayLandmarks = React.useMemo(() => getActiveDayLandmarks(activeDay, zone), [activeDay, zone]);
@@ -362,6 +370,13 @@ export const ScenicGuideView: React.FC = () => {
             }
         }
     }, [currentZoneKey, zone.bounds]);
+
+    const handleViewportChange = React.useCallback(
+        (center: [number, number], zoom: number) => {
+            setLastMapViewport(center, zoom, currentZoneKey);
+        },
+        [setLastMapViewport, currentZoneKey]
+    );
 
     const handleBoundsChange = React.useCallback(
         (b: { minLat: number; minLng: number; maxLat: number; maxLng: number }) => {
@@ -594,10 +609,40 @@ export const ScenicGuideView: React.FC = () => {
             setIsLiveGpsActive(false);
         }
         setActiveLandmark(lm);
+        setLastMapViewport(lm.coords, 17, currentZoneKey);
         if (mapRef.current) {
             mapRef.current.flyTo(lm.coords, 17, { duration: 0.8 });
         }
     };
+
+    const hasSyncedGpsDistrictRef = useRef(false);
+
+    // Reverse-geocode user GPS coordinates to automatically sync the active district
+    const syncCurrentLocationDistrict = React.useCallback(
+        async (coords: [number, number], force: boolean = false) => {
+            if (hasSyncedGpsDistrictRef.current && !force) return;
+            try {
+                const geoInfo = await reverseGeocodeCoords(coords[0], coords[1]);
+                if (geoInfo) {
+                    hasSyncedGpsDistrictRef.current = true;
+                    const currentCity = (zone.city || '').toLowerCase();
+                    const targetDistrict = (geoInfo.district || geoInfo.city || '').toLowerCase();
+                    if (!currentCity.includes(targetDistrict) && !targetDistrict.includes(currentCity)) {
+                        const slug = jumpToCity({
+                            name: `${geoInfo.district} Exploration`,
+                            city: geoInfo.district || geoInfo.city,
+                            coords: coords,
+                            bounds: geoInfo.bounds,
+                        });
+                        updatePlannerZone(slug);
+                    }
+                }
+            } catch (err) {
+                console.warn('Could not reverse geocode user district:', err);
+            }
+        },
+        [zone.city, jumpToCity, updatePlannerZone]
+    );
 
     useEffect(() => {
         if (isLiveGpsActive) {
@@ -605,8 +650,9 @@ export const ScenicGuideView: React.FC = () => {
             if (mapRef.current) {
                 mapRef.current.panTo(liveGpsCoords, { animate: true, duration: 0.6 });
             }
+            syncCurrentLocationDistrict(liveGpsCoords, false);
         }
-    }, [liveGpsCoords, isLiveGpsActive]);
+    }, [liveGpsCoords, isLiveGpsActive, syncCurrentLocationDistrict]);
 
     useEffect(() => {
         if (appMode === 'on-trip') {
@@ -681,6 +727,7 @@ export const ScenicGuideView: React.FC = () => {
         if (pack) {
             updatePlannerZone(pack.id);
             setUserCoords(pack.userOrigin);
+            setLastMapViewport(pack.center, pack.zoom || 13, pack.id);
         }
 
         if (mapRef.current) {
@@ -699,67 +746,11 @@ export const ScenicGuideView: React.FC = () => {
         setIsUserLocationPinned(false);
         const originCoords = orderedLandmarks.length > 0 ? orderedLandmarks[0].coords : zone.userOrigin;
         setUserCoords(originCoords);
+        setLastMapViewport(originCoords, 16, currentZoneKey);
         if (mapRef.current) {
             mapRef.current.flyTo(originCoords, 16);
         }
     };
-
-    const hasSyncedGpsDistrictRef = useRef(false);
-
-    // Reverse-geocode user GPS coordinates to automatically sync the active district
-    const syncCurrentLocationDistrict = React.useCallback(
-        async (coords: [number, number], force: boolean = false) => {
-            if (hasSyncedGpsDistrictRef.current && !force) return;
-            try {
-                const geoInfo = await reverseGeocodeCoords(coords[0], coords[1]);
-                if (geoInfo) {
-                    hasSyncedGpsDistrictRef.current = true;
-                    const currentCity = (zone.city || '').toLowerCase();
-                    const targetDistrict = (geoInfo.district || geoInfo.city || '').toLowerCase();
-                    if (!currentCity.includes(targetDistrict) && !targetDistrict.includes(currentCity)) {
-                        const slug = jumpToCity({
-                            name: `${geoInfo.district} Exploration`,
-                            city: geoInfo.district || geoInfo.city,
-                            coords: coords,
-                            bounds: geoInfo.bounds,
-                        });
-                        updatePlannerZone(slug);
-                    }
-                }
-            } catch (err) {
-                console.warn('Could not reverse geocode user district:', err);
-            }
-        },
-        [zone.city, jumpToCity, updatePlannerZone]
-    );
-
-    const hasAutoDetectedOnMountRef = useRef(false);
-
-    // Auto-detect user GPS once on initial mount in ambient mode
-    useEffect(() => {
-        if (hasAutoDetectedOnMountRef.current) return;
-        hasAutoDetectedOnMountRef.current = true;
-
-        if (typeof window !== 'undefined' && 'geolocation' in navigator) {
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    const coords: [number, number] = [pos.coords.latitude, pos.coords.longitude];
-                    setUserRealCoords(coords);
-                    if (mapDiscoveryMode === 'ambient') {
-                        setUserCoords(coords);
-                        if (mapRef.current) {
-                            mapRef.current.flyTo(coords, 16, { duration: 1.2 });
-                        }
-                        syncCurrentLocationDistrict(coords, false);
-                    }
-                },
-                (err) => {
-                    console.info('Geolocation access not granted, using zone origin:', err.message);
-                },
-                { enableHighAccuracy: true, timeout: 6000 }
-            );
-        }
-    }, [mapDiscoveryMode, setUserRealCoords, syncCurrentLocationDistrict]);
 
     // "My Location" tracks and places user at their position JUST ONCE
     const handleJumpToMyLocation = () => {
@@ -774,6 +765,7 @@ export const ScenicGuideView: React.FC = () => {
                     setUserRealCoords(coords);
                     setUserCoords(coords);
                     setIsUserLocationPinned(true);
+                    setLastMapViewport(coords, 16, currentZoneKey);
                     if (mapRef.current) {
                         mapRef.current.flyTo(coords, 16, { duration: 1.2 });
                     }
@@ -783,6 +775,7 @@ export const ScenicGuideView: React.FC = () => {
                     if (userRealCoords) {
                         setUserCoords(userRealCoords);
                         setIsUserLocationPinned(true);
+                        setLastMapViewport(userRealCoords, 16, currentZoneKey);
                         if (mapRef.current) {
                             mapRef.current.flyTo(userRealCoords, 16, { duration: 1.2 });
                         }
@@ -795,6 +788,7 @@ export const ScenicGuideView: React.FC = () => {
         } else if (userRealCoords) {
             setUserCoords(userRealCoords);
             setIsUserLocationPinned(true);
+            setLastMapViewport(userRealCoords, 16, currentZoneKey);
             if (mapRef.current) {
                 mapRef.current.flyTo(userRealCoords, 16, { duration: 1.2 });
             }
@@ -821,6 +815,7 @@ export const ScenicGuideView: React.FC = () => {
         const targetZone = allZones[zKey];
         if (targetZone) {
             setUserCoords(targetZone.userOrigin);
+            setLastMapViewport(targetZone.center, targetZone.zoom || 15, zKey);
             if (mapRef.current) {
                 mapRef.current.flyTo(targetZone.center, targetZone.zoom || 15, { duration: 1.2 });
             }
@@ -836,6 +831,7 @@ export const ScenicGuideView: React.FC = () => {
         const slug = jumpToCity(cityData);
         updatePlannerZone(slug);
         setUserCoords(cityData.coords);
+        setLastMapViewport(cityData.coords, 15, slug);
         if (mapRef.current) {
             mapRef.current.flyTo(cityData.coords, 15, { duration: 1.5 });
         }
@@ -979,6 +975,9 @@ export const ScenicGuideView: React.FC = () => {
                     onSelectDistrict={handleDistrictSelected}
                     territoryMode={territoryMode}
                     onCategoryCountChange={setActiveCategoryCount}
+                    lastMapCenter={lastMapCenter}
+                    lastMapZoom={lastMapZoom}
+                    onViewportChange={handleViewportChange}
                     onMapReady={(map) => {
                         mapRef.current = map;
                     }}
@@ -1419,7 +1418,7 @@ export const ScenicGuideView: React.FC = () => {
                             setIsLiveGpsActive(nextState);
                             if (nextState) {
                                 if (isCruiseActive) setIsCruiseActive(false);
-                                const targetCoords = liveGpsCoords || userRealCoords || userCoords;
+                                const targetCoords = liveGpsCoords || userRealCoords;
                                 if (targetCoords && mapRef.current) {
                                     mapRef.current.panTo(targetCoords, { animate: true, duration: 0.6 });
                                 }
