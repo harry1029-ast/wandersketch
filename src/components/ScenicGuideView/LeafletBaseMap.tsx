@@ -21,6 +21,7 @@ import {
     HONG_KONG_DISTRICT_BOUNDARIES,
     getDistrictBoundary,
     getDistrictBoundaryKey,
+    getDistrictLatLngBounds,
     DistrictBoundary,
 } from '@/data/districtBoundaries';
 
@@ -667,16 +668,17 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         };
     }, []);
 
-    // Smoothly fly camera when destination zone changes without tearing down map canvas
-    const prevZoneIdRef = useRef(zone.id);
+    // Smoothly fly camera ONLY when switching to a completely different CITY (e.g. Kyoto -> Paris)
+    // NEVER fly on intra-city district changes, territory selections, or zone updates
+    const prevCityRef = useRef(zone.city);
     useEffect(() => {
         const map = mapInstanceRef.current;
         if (!map) return;
-        if (prevZoneIdRef.current !== zone.id) {
-            prevZoneIdRef.current = zone.id;
-            map.flyTo(zone.center, zone.zoom || 15, { duration: 1.2 });
+        if (prevCityRef.current !== zone.city) {
+            prevCityRef.current = zone.city;
+            map.flyTo(zone.center, zone.zoom || 14, { duration: 1.2 });
         }
-    }, [zone.id, zone.center, zone.zoom]);
+    }, [zone.city, zone.center, zone.zoom]);
 
     // Fast 60FPS DOM sync for hovered landmark in container list
     useEffect(() => {
@@ -896,20 +898,12 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
                     playChime('stamp');
                     const nextKey = isDistrictActive ? null : bKey;
                     handleSelectDistrict(nextKey || null);
-                    if (nextKey) {
-                        const boundary = getDistrictBoundary(bKey || '');
-                        if (boundary && boundary.rings && boundary.rings.length > 0) {
-                            const lats = boundary.rings.flatMap((r) => r.map((pt) => pt[0]));
-                            const lngs = boundary.rings.flatMap((r) => r.map((pt) => pt[1]));
-                            const b = L.latLngBounds(
-                                [Math.min(...lats), Math.min(...lngs)],
-                                [Math.max(...lats), Math.max(...lngs)]
-                            );
-                            if (mapInstanceRef.current) {
-                                mapInstanceRef.current.fitBounds(b, { padding: [40, 40], maxZoom: 14 });
-                            }
-                        } else if (mapInstanceRef.current) {
-                            mapInstanceRef.current.flyTo(pack.center, 14, { duration: 1.2 });
+                    if (nextKey && mapInstanceRef.current) {
+                        const bounds = getDistrictLatLngBounds(bKey || '');
+                        if (bounds) {
+                            mapInstanceRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+                        } else {
+                            mapInstanceRef.current.flyTo(pack.center, 13, { duration: 1.2 });
                         }
                     }
                 });

@@ -14,9 +14,9 @@ import { GuideDrawer } from './GuideDrawer';
 import { LandmarkDetailModal } from '@/components/Modals/LandmarkDetailModal';
 import { QuickExpenseModal } from '@/components/Modals/QuickExpenseModal';
 import { CitySearchModal } from '@/components/Modals/CitySearchModal';
-import { ArrowsOut, NavigationArrow, Crosshair, Sparkle, CalendarBlank, Compass, AirplaneTakeoff, MagnifyingGlass } from '@phosphor-icons/react';
+import { ArrowsOut, NavigationArrow, Crosshair, Sparkle, CalendarBlank, Compass, AirplaneTakeoff, MagnifyingGlass, CaretDown } from '@phosphor-icons/react';
 import { DiscoveryCategory, DISCOVERY_CATEGORIES, getLandmarkCategoryGroup } from '@/lib/landmarkCategories';
-import { getDistrictBoundary, getDistrictBoundaryKey } from '@/data/districtBoundaries';
+import { getDistrictBoundary, getDistrictBoundaryKey, getDistrictLatLngBounds, HK_DISTRICT_LIST } from '@/data/districtBoundaries';
 
 const DynamicIslandModal = dynamic(
     () => import('@/components/Modals/ContainedIslandModal').then((mod) => mod.ContainedIslandModal),
@@ -162,6 +162,22 @@ export const ScenicGuideView: React.FC = () => {
     const [hasMovedAway, setHasMovedAway] = useState<boolean>(false);
     const [selectedDistrictKey, setSelectedDistrictKey] = useState<string | null>(null);
     const [territoryMode, setTerritoryMode] = useState<'explore' | 'select'>('explore');
+    const [isDistrictDropdownOpen, setIsDistrictDropdownOpen] = useState<boolean>(false);
+    const districtDropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (districtDropdownRef.current && !districtDropdownRef.current.contains(e.target as Node)) {
+                setIsDistrictDropdownOpen(false);
+            }
+        };
+        if (isDistrictDropdownOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isDistrictDropdownOpen]);
 
     const searchedBoundsRef = useRef(searchedBounds);
     searchedBoundsRef.current = searchedBounds;
@@ -612,8 +628,48 @@ export const ScenicGuideView: React.FC = () => {
 
     const handleFitBounds = () => {
         playChime('tap');
-        if (mapRef.current && zone.bounds) {
+        if (!mapRef.current) return;
+        if (selectedDistrictKey) {
+            const bounds = getDistrictLatLngBounds(selectedDistrictKey);
+            if (bounds) {
+                mapRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+                return;
+            }
+        }
+        if (zone.bounds) {
             mapRef.current.fitBounds(zone.bounds, { padding: [40, 40] });
+        }
+    };
+
+    const handleDistrictSelected = (key: string | null) => {
+        setSelectedDistrictKey(key);
+        if (key) {
+            const matchingPack = Object.values(CITY_PACKS).find((p) => getDistrictBoundaryKey(p.id) === key);
+            if (matchingPack) {
+                updatePlannerZone(matchingPack.id);
+                setUserCoords(matchingPack.userOrigin);
+            }
+        }
+    };
+
+    const handleSelectDistrictFromDropdown = (distKey: string, packId: string) => {
+        playChime('stamp');
+        setIsDistrictDropdownOpen(false);
+        setSelectedDistrictKey(distKey);
+
+        const pack = CITY_PACKS[packId] || Object.values(CITY_PACKS).find((p) => getDistrictBoundaryKey(p.id) === distKey);
+        if (pack) {
+            updatePlannerZone(pack.id);
+            setUserCoords(pack.userOrigin);
+        }
+
+        if (mapRef.current) {
+            const bounds = getDistrictLatLngBounds(distKey);
+            if (bounds) {
+                mapRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+            } else if (pack) {
+                mapRef.current.flyTo(pack.center, 13, { duration: 1.2 });
+            }
         }
     };
 
@@ -893,7 +949,7 @@ export const ScenicGuideView: React.FC = () => {
                     categoryBatchStartIdx={categoryBatchStartIdx}
                     hoveredLandmarkId={hoveredLandmarkId}
                     selectedDistrictKey={selectedDistrictKey}
-                    onSelectDistrict={setSelectedDistrictKey}
+                    onSelectDistrict={handleDistrictSelected}
                     territoryMode={territoryMode}
                     onCategoryCountChange={setActiveCategoryCount}
                     onMapReady={(map) => {
@@ -955,7 +1011,7 @@ export const ScenicGuideView: React.FC = () => {
 
                 {/* Mode-Aware Top Bar: Ambient Horizon & District Jumpers, or Multi-Day Carousel */}
                 {mapDiscoveryMode === 'ambient' ? (
-                    <div className="absolute top-4 left-4 z-20 max-w-[calc(100%-120px)] sm:max-w-[calc(100%-140px)] flex flex-wrap items-center gap-2">
+                    <div className={`absolute top-4 left-4 ${isDistrictDropdownOpen ? 'z-40' : 'z-20'} max-w-[calc(100%-120px)] sm:max-w-[calc(100%-140px)] flex flex-wrap items-center gap-2`}>
                         {appMode === 'on-trip' && (
                             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-paper-100/95 backdrop-blur-md border-2 border-paper-900 rounded-2xl shadow-stamp text-xs font-serif font-black text-paper-900 animate-fade-in">
                                 <Sparkle size={15} weight="fill" className="text-amber-500 animate-spin-slow" />
@@ -963,7 +1019,7 @@ export const ScenicGuideView: React.FC = () => {
                                 <span>~1.2km Horizon</span>
                             </div>
                         )}
-                        <div className="flex items-center gap-1 p-1 bg-paper-100/95 backdrop-blur-md border-2 border-paper-900 rounded-2xl shadow-stamp overflow-x-auto no-scrollbar max-w-full">
+                        <div className="flex items-center gap-1 p-1 bg-paper-100/95 backdrop-blur-md border-2 border-paper-900 rounded-2xl shadow-stamp max-w-full">
                             {/* Slot 1: My Location */}
                             <button
                                 onClick={handleJumpToMyLocation}
@@ -974,30 +1030,135 @@ export const ScenicGuideView: React.FC = () => {
                                 <span>My Location</span>
                             </button>
 
-                            {/* Slot 2: Current Active City */}
+                            {/* Slot 2: Current Active City Overview */}
                             <button
-                                onClick={() => handleJumpToZone(zone.id)}
-                                className="px-2.5 py-1 rounded-xl text-xs font-black transition flex items-center gap-1 shrink-0 bg-watercolor-brick text-white shadow-xs cursor-pointer"
-                                title={`Currently exploring ${zone.city || zone.name}`}
+                                onClick={() => {
+                                    playChime('tap');
+                                    setSelectedDistrictKey(null);
+                                    if (mapRef.current) {
+                                        if ((zone.city || '').toLowerCase().includes('hong kong')) {
+                                            const hkBounds: [[number, number], [number, number]] = [
+                                                [22.18, 113.82],
+                                                [22.56, 114.44],
+                                            ];
+                                            mapRef.current.fitBounds(hkBounds, { padding: [20, 20], maxZoom: 12 });
+                                        } else if (zone.bounds) {
+                                            mapRef.current.fitBounds(zone.bounds, { padding: [30, 30] });
+                                        }
+                                    }
+                                }}
+                                className="px-2.5 py-1 rounded-xl text-xs font-black transition flex items-center gap-1 shrink-0 bg-watercolor-brick text-white shadow-xs cursor-pointer active:scale-95"
+                                title={`Currently exploring ${zone.city || zone.name}. Tap to view city overview.`}
                             >
                                 <span>{getCityEmoji(zone.city)} {zone.city || zone.name}</span>
                             </button>
 
-                            {/* Slot 3: Quick Alternate District */}
+                            {/* Slot 3: All Districts Dropdown Menu */}
                             {(() => {
-                                const fallbackKey = zone.id === 'hong_kong_central' ? 'sha_tin_district' : 'hong_kong_central';
-                                const altZone = allZones[fallbackKey] || Object.values(allZones).find((z) => z.id !== zone.id);
-                                if (!altZone) return null;
-                                const altLabel = altZone.name.split('•')[1]?.trim() || altZone.name;
+                                const selectedDistrictBoundary = selectedDistrictKey ? getDistrictBoundary(selectedDistrictKey) : null;
+                                const activeDistrictLabel =
+                                    selectedDistrictBoundary?.name ||
+                                    (zone.name.includes('•') ? zone.name.split('•')[1]?.trim() : zone.name) ||
+                                    'Districts';
+
+                                const isHongKong =
+                                    (zone.city || '').toLowerCase().includes('hong kong') ||
+                                    zone.id.startsWith('hong_kong') ||
+                                    zone.id.includes('sha_tin') ||
+                                    zone.id === 'central';
+
+                                const districtOptions = isHongKong
+                                    ? HK_DISTRICT_LIST
+                                    : Object.values(allZones)
+                                          .filter((z) => z.city === zone.city || z.id === zone.id)
+                                          .map((z) => ({ key: z.id, label: z.name, packId: z.id }));
+
                                 return (
-                                    <button
-                                        key={altZone.id}
-                                        onClick={() => handleJumpToZone(altZone.id)}
-                                        className="px-2.5 py-1 rounded-xl text-xs font-bold bg-paper-50 hover:bg-paper-200 text-paper-900 border border-paper-300 transition flex items-center gap-1 shrink-0 cursor-pointer"
-                                        title={`Quick switch to ${altLabel}`}
-                                    >
-                                        <span>🏙️ {altLabel}</span>
-                                    </button>
+                                    <div className="relative shrink-0" ref={districtDropdownRef}>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                playChime('tap');
+                                                setIsDistrictDropdownOpen((prev) => !prev);
+                                            }}
+                                            className={`px-2.5 py-1 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 cursor-pointer select-none active:scale-95 ${
+                                                selectedDistrictKey
+                                                    ? 'bg-amber-300 hover:bg-amber-400 text-paper-950 border-2 border-paper-900 shadow-2xs font-black'
+                                                    : 'bg-paper-50 hover:bg-paper-200 text-paper-900 border border-paper-300'
+                                            }`}
+                                            title="Select any district from the list to focus and explore"
+                                        >
+                                            <span>🏮</span>
+                                            <span className="max-w-[150px] truncate">{activeDistrictLabel}</span>
+                                            <CaretDown size={11} weight="bold" className={`transition-transform duration-200 ${isDistrictDropdownOpen ? 'rotate-180' : ''}`} />
+                                        </button>
+
+                                        {isDistrictDropdownOpen && (
+                                            <div
+                                                className="absolute top-full mt-2 left-0 z-50 w-72 max-w-[calc(100vw-2rem)] max-h-84 bg-[#fdfbf7] border-2 border-paper-900 rounded-2xl shadow-float p-1.5 flex flex-col gap-1 animate-slide-up"
+                                                style={{ backgroundColor: '#fdfbf7' }}
+                                            >
+                                                <div
+                                                    className="px-2.5 py-1.5 border-b border-paper-300 flex items-center justify-between shrink-0"
+                                                    style={{ backgroundColor: '#fdfbf7' }}
+                                                >
+                                                    <span className="text-[11px] font-serif font-black text-paper-900 uppercase tracking-wider">
+                                                        {isHongKong ? 'Hong Kong Districts (18)' : 'Explore Districts'}
+                                                    </span>
+                                                    {selectedDistrictKey && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                playChime('tap');
+                                                                setSelectedDistrictKey(null);
+                                                                setIsDistrictDropdownOpen(false);
+                                                            }}
+                                                            className="text-[10px] font-mono font-bold text-watercolor-brick hover:underline cursor-pointer"
+                                                        >
+                                                            Clear
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                <div
+                                                    className="flex flex-col gap-0.5 max-h-64 overflow-y-auto no-scrollbar custom-parchment-scrollbar"
+                                                    style={{ backgroundColor: '#fdfbf7' }}
+                                                >
+                                                    {districtOptions.map((dist) => {
+                                                        const isSelected = selectedDistrictKey === dist.key;
+                                                        const count = CITY_PACKS[dist.packId]?.landmarks?.length || 0;
+                                                        return (
+                                                            <button
+                                                                key={dist.key}
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    handleSelectDistrictFromDropdown(dist.key, dist.packId);
+                                                                }}
+                                                                className={`w-full px-2.5 py-1.5 rounded-xl text-xs font-serif transition flex items-center justify-between cursor-pointer text-left ${
+                                                                    isSelected
+                                                                        ? 'bg-watercolor-brick text-white shadow-xs font-black'
+                                                                        : 'text-paper-900 hover:bg-amber-100 font-bold'
+                                                                }`}
+                                                            >
+                                                                <div className="flex items-center gap-2 truncate">
+                                                                    <span className="text-sm shrink-0">🏮</span>
+                                                                    <span className="truncate">{dist.label}</span>
+                                                                </div>
+                                                                <span
+                                                                    className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full shrink-0 font-bold ${
+                                                                        isSelected
+                                                                            ? 'bg-red-950/40 text-amber-100'
+                                                                            : 'bg-paper-200 text-paper-800'
+                                                                    }`}
+                                                                >
+                                                                    {count} spots
+                                                                </span>
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
                                 );
                             })()}
 

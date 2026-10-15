@@ -133,3 +133,41 @@ export function getDistrictBoundary(idOrName: string): DistrictBoundary | undefi
     if (!key) return undefined;
     return HONG_KONG_DISTRICT_BOUNDARIES[key];
 }
+
+export interface DistrictOption {
+    key: string;
+    label: string;
+    packId: string;
+}
+
+export const HK_DISTRICT_LIST: DistrictOption[] = [
+    { key: 'central', label: 'Central & Western', packId: 'hong_kong_central' },
+    { key: 'wanChai', label: 'Wan Chai', packId: 'hong_kong_wan_chai' },
+    { key: 'eastern', label: 'Eastern District', packId: 'hong_kong_eastern' },
+    { key: 'southern', label: 'Southern District', packId: 'hong_kong_southern' },
+    { key: 'tsimShaTsui', label: 'Yau Tsim Mong (TST)', packId: 'hong_kong_tsim_sha_tsui' },
+    { key: 'shamShuiPo', label: 'Sham Shui Po', packId: 'hong_kong_sham_shui_po' },
+    { key: 'kowloonCity', label: 'Kowloon City', packId: 'hong_kong_kowloon_city' },
+    { key: 'wongTaiSin', label: 'Wong Tai Sin', packId: 'hong_kong_wong_tai_sin' },
+    { key: 'kwunTong', label: 'Kwun Tong', packId: 'hong_kong_kwun_tong' },
+    { key: 'tsuenWan', label: 'Tsuen Wan', packId: 'hong_kong_tsuen_wan' },
+    { key: 'tuenMun', label: 'Tuen Mun', packId: 'hong_kong_tuen_mun' },
+    { key: 'yuenLong', label: 'Yuen Long', packId: 'hong_kong_yuen_long' },
+    { key: 'north', label: 'North District', packId: 'hong_kong_north' },
+    { key: 'taiPo', label: 'Tai Po', packId: 'hong_kong_tai_po' },
+    { key: 'saiKung', label: 'Sai Kung', packId: 'hong_kong_sai_kung' },
+    { key: 'shaTin', label: 'Sha Tin', packId: 'sha_tin_district' },
+    { key: 'kwaiTsing', label: 'Kwai Tsing', packId: 'hong_kong_kwai_tsing' },
+    { key: 'islands', label: 'Islands District', packId: 'hong_kong_islands' },
+];
+
+export function getDistrictLatLngBounds(districtKey: string): [[number, number], [number, number]] | null {
+    const boundary = getDistrictBoundary(districtKey);
+    if (!boundary || !boundary.rings || boundary.rings.length === 0) return null;
+    const lats = boundary.rings.flatMap((r) => r.map((pt) => pt[0]));
+    const lngs = boundary.rings.flatMap((r) => r.map((pt) => pt[1]));
+    return [
+        [Math.min(...lats), Math.min(...lngs)],
+        [Math.max(...lats), Math.max(...lngs)],
+    ];
+}
