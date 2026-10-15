@@ -31,6 +31,33 @@
   animation: spinSlow 9s linear infinite;
 }
 
+/* Google Maps-Style Live GPS Blue Dot Beacon Pulse */
+@keyframes gpsBeaconPulse {
+  0% {
+    transform: scale(0.65);
+    opacity: 0.85;
+  }
+  70% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+.gps-pulse-beacon {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  background-color: rgba(66, 133, 244, 0.4);
+  border: 1px solid rgba(26, 115, 232, 0.6);
+  animation: gpsBeaconPulse 2s cubic-bezier(0.2, 0, 0.2, 1) infinite;
+  pointer-events: none;
+}
+
 .custom-island-landmark-bubble,
 .custom-island-facility-pin,
 .custom-scenic-building-pin,

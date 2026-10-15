@@ -14,7 +14,7 @@ import { GuideDrawer } from './GuideDrawer';
 import { LandmarkDetailModal } from '@/components/Modals/LandmarkDetailModal';
 import { QuickExpenseModal } from '@/components/Modals/QuickExpenseModal';
 import { CitySearchModal } from '@/components/Modals/CitySearchModal';
-import { ArrowsOut, NavigationArrow, Crosshair, Sparkle, CalendarBlank, Compass, AirplaneTakeoff, MagnifyingGlass, CaretDown } from '@phosphor-icons/react';
+import { ArrowsOut, NavigationArrow, Crosshair, Sparkle, CalendarBlank, Compass, AirplaneTakeoff, MagnifyingGlass, CaretDown, CaretRight, CaretLeft } from '@phosphor-icons/react';
 import { DiscoveryCategory, DISCOVERY_CATEGORIES, getLandmarkCategoryGroup } from '@/lib/landmarkCategories';
 import { getDistrictBoundary, getDistrictBoundaryKey, getDistrictLatLngBounds, HK_DISTRICT_LIST } from '@/data/districtBoundaries';
 
@@ -141,6 +141,7 @@ export const ScenicGuideView: React.FC = () => {
     const [activeLandmark, setActiveLandmark] = useState<Landmark | null>(null);
     const [userCoords, setUserCoords] = useState<[number, number]>(zone.userOrigin);
     const [isLiveGpsActive, setIsLiveGpsActive] = useState<boolean>(false);
+    const [isUserLocationPinned, setIsUserLocationPinned] = useState<boolean>(false);
     const [isCruiseActive, setIsCruiseActive] = useState<boolean>(false);
     const [isCitySearchOpen, setIsCitySearchOpen] = useState<boolean>(false);
     const [filterRestrooms, setFilterRestrooms] = useState<boolean>(true);
@@ -164,6 +165,25 @@ export const ScenicGuideView: React.FC = () => {
     const [territoryMode, setTerritoryMode] = useState<'explore' | 'select'>('explore');
     const [isDistrictDropdownOpen, setIsDistrictDropdownOpen] = useState<boolean>(false);
     const districtDropdownRef = useRef<HTMLDivElement>(null);
+    const [isDesktopCollapsed, setIsDesktopCollapsed] = useState<boolean>(false);
+
+    // Invalidate map size when desktop sidebar collapses/expands so tiles fill 100% width
+    useEffect(() => {
+        const timer1 = setTimeout(() => {
+            if (mapRef.current) {
+                mapRef.current.invalidateSize();
+            }
+        }, 150);
+        const timer2 = setTimeout(() => {
+            if (mapRef.current) {
+                mapRef.current.invalidateSize();
+            }
+        }, 350);
+        return () => {
+            clearTimeout(timer1);
+            clearTimeout(timer2);
+        };
+    }, [isDesktopCollapsed]);
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
@@ -676,6 +696,7 @@ export const ScenicGuideView: React.FC = () => {
     const handleResetLocation = () => {
         playChime('tap');
         if (isLiveGpsActive) setIsLiveGpsActive(false);
+        setIsUserLocationPinned(false);
         const originCoords = orderedLandmarks.length > 0 ? orderedLandmarks[0].coords : zone.userOrigin;
         setUserCoords(originCoords);
         if (mapRef.current) {
@@ -752,6 +773,7 @@ export const ScenicGuideView: React.FC = () => {
                     const coords: [number, number] = [pos.coords.latitude, pos.coords.longitude];
                     setUserRealCoords(coords);
                     setUserCoords(coords);
+                    setIsUserLocationPinned(true);
                     if (mapRef.current) {
                         mapRef.current.flyTo(coords, 16, { duration: 1.2 });
                     }
@@ -760,6 +782,7 @@ export const ScenicGuideView: React.FC = () => {
                 (err) => {
                     if (userRealCoords) {
                         setUserCoords(userRealCoords);
+                        setIsUserLocationPinned(true);
                         if (mapRef.current) {
                             mapRef.current.flyTo(userRealCoords, 16, { duration: 1.2 });
                         }
@@ -771,6 +794,7 @@ export const ScenicGuideView: React.FC = () => {
             );
         } else if (userRealCoords) {
             setUserCoords(userRealCoords);
+            setIsUserLocationPinned(true);
             if (mapRef.current) {
                 mapRef.current.flyTo(userRealCoords, 16, { duration: 1.2 });
             }
@@ -875,6 +899,8 @@ export const ScenicGuideView: React.FC = () => {
                 onDeletePersonalSpot={handleDeletePersonalSpot}
                 isMobileOpen={isMobileDrawerOpen}
                 onCloseMobile={() => setIsMobileDrawerOpen(false)}
+                isDesktopCollapsed={isDesktopCollapsed}
+                onToggleDesktopCollapse={() => setIsDesktopCollapsed((prev) => !prev)}
                 categoryFilter={activeCategoryFilter}
                 onSelectCategoryFilter={handleSelectCategoryFilter}
                 categoryLandmarks={visibleBatchCategoryLandmarks}
@@ -934,6 +960,7 @@ export const ScenicGuideView: React.FC = () => {
                     userCoords={userCoords}
                     userHeading={isLiveGpsActive ? liveHeading : null}
                     userAccuracy={isLiveGpsActive ? liveAccuracy : null}
+                    showUserLocation={isLiveGpsActive || isUserLocationPinned}
                     onOpenIslandView={() => {
                         playChime('stamp');
                         setIsIslandModalOpen(true);
@@ -957,13 +984,37 @@ export const ScenicGuideView: React.FC = () => {
                     }}
                 />
 
+                {/* Google Maps-Style Collapse/Expand Side Panel Edge Tab (Centered on Border) */}
+                <div className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-30 group pointer-events-auto">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            playChime('tap');
+                            setIsDesktopCollapsed((prev) => !prev);
+                        }}
+                        className="flex items-center justify-center w-5.5 h-12 bg-[#fdfbf7] hover:bg-white text-paper-900 border-y-2 border-r-2 border-paper-900 rounded-r-lg shadow-stamp cursor-pointer transition-all hover:w-6.5 active:scale-95 select-none"
+                        style={{ backgroundColor: '#fdfbf7' }}
+                        title={isDesktopCollapsed ? 'Expand side panel' : 'Collapse side panel'}
+                        aria-label={isDesktopCollapsed ? 'Expand side panel' : 'Collapse side panel'}
+                    >
+                        {isDesktopCollapsed ? (
+                            <CaretRight size={14} weight="bold" className="text-paper-900 group-hover:text-watercolor-brick transition-colors" />
+                        ) : (
+                            <CaretLeft size={14} weight="bold" className="text-paper-900 group-hover:text-watercolor-brick transition-colors" />
+                        )}
+                    </button>
+                    <div className="absolute left-full ml-1.5 top-1/2 -translate-y-1/2 px-2.5 py-1 bg-paper-900 text-paper-50 text-[11px] font-serif font-black rounded-lg shadow-float whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150 z-50">
+                        {isDesktopCollapsed ? 'Expand side panel' : 'Collapse side panel'}
+                    </div>
+                </div>
+
                 {/* Active Glowing District Boundary Banner */}
                 {selectedDistrictKey && (() => {
                     const boundary = getDistrictBoundary(selectedDistrictKey);
                     const matchingPack = Object.values(CITY_PACKS).find((p) => getDistrictBoundaryKey(p.id) === selectedDistrictKey);
                     const spotCount = matchingPack?.landmarks?.length || 0;
                     return (
-                        <div className="absolute top-28 left-4 z-20 flex items-center gap-2 px-3 py-1.5 bg-paper-50/95 backdrop-blur-md border-2 border-paper-900 rounded-2xl shadow-stamp animate-slide-up">
+                        <div className="absolute top-28 left-4 z-20 flex items-center gap-2 px-3 py-1.5 bg-paper-50/95 backdrop-blur-md border-2 border-paper-900 rounded-2xl shadow-stamp animate-slide-up transition-all duration-300">
                             <div className="w-5 h-5 rounded-full bg-amber-300 border border-amber-500 flex items-center justify-center text-xs shrink-0 shadow-2xs">
                                 🏮
                             </div>
@@ -1011,7 +1062,7 @@ export const ScenicGuideView: React.FC = () => {
 
                 {/* Mode-Aware Top Bar: Ambient Horizon & District Jumpers, or Multi-Day Carousel */}
                 {mapDiscoveryMode === 'ambient' ? (
-                    <div className={`absolute top-4 left-4 ${isDistrictDropdownOpen ? 'z-40' : 'z-20'} max-w-[calc(100%-120px)] sm:max-w-[calc(100%-140px)] flex flex-wrap items-center gap-2`}>
+                    <div className={`absolute top-4 left-4 ${isDistrictDropdownOpen ? 'z-40' : 'z-20'} max-w-[calc(100%-120px)] sm:max-w-[calc(100%-140px)] flex flex-wrap items-center gap-2 transition-all duration-300`}>
                         {appMode === 'on-trip' && (
                             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-paper-100/95 backdrop-blur-md border-2 border-paper-900 rounded-2xl shadow-stamp text-xs font-serif font-black text-paper-900 animate-fade-in">
                                 <Sparkle size={15} weight="fill" className="text-amber-500 animate-spin-slow" />
@@ -1190,7 +1241,7 @@ export const ScenicGuideView: React.FC = () => {
                 ) : (
                     /* Sticky Day-Picker Carousel in Itinerary Mode */
                     currentItineraryDays.length > 0 && (
-                        <div className="absolute top-4 left-4 z-20 max-w-[calc(100%-120px)] sm:max-w-[calc(100%-140px)] flex flex-wrap items-center gap-2">
+                        <div className="absolute top-4 left-4 z-20 max-w-[calc(100%-120px)] sm:max-w-[calc(100%-140px)] flex flex-wrap items-center gap-2 transition-all duration-300">
                             <div className="flex items-center gap-1.5 p-1.5 bg-paper-100/95 backdrop-blur-md border-2 border-paper-900 rounded-2xl shadow-stamp overflow-x-auto no-scrollbar">
                                 <span className="text-[10px] font-black uppercase text-paper-700 px-2 font-mono shrink-0 hidden sm:inline">
                                     Day:
@@ -1261,7 +1312,7 @@ export const ScenicGuideView: React.FC = () => {
                 )}
 
                 {/* Google Maps-Style Quick Category Discovery Pills Bar */}
-                <div className="absolute top-16 left-4 z-20 max-w-[calc(100%-120px)] sm:max-w-[calc(100%-140px)] flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 select-none">
+                <div className="absolute top-16 left-4 z-20 max-w-[calc(100%-120px)] sm:max-w-[calc(100%-140px)] flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 select-none transition-all duration-300">
                     {DISCOVERY_CATEGORIES.map((cat) => {
                         const isActive = activeCategoryFilter === cat.id;
                         return (
@@ -1273,8 +1324,13 @@ export const ScenicGuideView: React.FC = () => {
                                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl text-xs font-serif font-bold transition-all shadow-sm border shrink-0 cursor-pointer select-none active:scale-95 ${
                                     isActive
                                         ? `${cat.activeBg} ${cat.activeText} ${cat.borderColor} border-2 shadow-stamp font-black scale-102 ring-1 ring-white/50`
-                                        : 'bg-paper-50/95 hover:bg-paper-100 text-paper-900 border-paper-400/80 hover:border-paper-900'
+                                        : 'bg-paper-50 hover:bg-paper-100 text-paper-900 border-paper-400/80 hover:border-paper-900'
                                 }`}
+                                style={
+                                    isActive
+                                        ? { backgroundColor: cat.solidBg, borderColor: cat.solidBorder, color: '#ffffff' }
+                                        : { backgroundColor: '#fdfbf7', color: '#2b261b' }
+                                }
                                 title={`Filter canvas to show ${cat.label}`}
                             >
                                 <span className="text-sm">{cat.emoji}</span>
@@ -1367,6 +1423,8 @@ export const ScenicGuideView: React.FC = () => {
                                 if (targetCoords && mapRef.current) {
                                     mapRef.current.panTo(targetCoords, { animate: true, duration: 0.6 });
                                 }
+                            } else {
+                                setIsUserLocationPinned(false);
                             }
                         }}
                         title={isLiveGpsActive ? 'Disable Live GPS Tracking' : 'Enable Live GPS Tracking'}

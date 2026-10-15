@@ -17,17 +17,19 @@ export interface DiscoveryCategoryConfig {
     activeBg: string;
     activeText: string;
     borderColor: string;
+    solidBg: string;
+    solidBorder: string;
 }
 
 export const DISCOVERY_CATEGORIES: DiscoveryCategoryConfig[] = [
-    { id: 'all', label: 'Highlights', emoji: '✨', activeBg: 'bg-paper-900', activeText: 'text-amber-100', borderColor: 'border-paper-900' },
-    { id: 'restaurant', label: 'Restaurants', emoji: '🍽️', activeBg: 'bg-red-700', activeText: 'text-white', borderColor: 'border-red-900' },
-    { id: 'cafe', label: 'Cafes', emoji: '☕', activeBg: 'bg-amber-700', activeText: 'text-white', borderColor: 'border-amber-900' },
-    { id: 'hotel', label: 'Hotels', emoji: '🏨', activeBg: 'bg-indigo-700', activeText: 'text-white', borderColor: 'border-indigo-900' },
-    { id: 'attraction', label: 'Things to Do', emoji: '🎡', activeBg: 'bg-sky-700', activeText: 'text-white', borderColor: 'border-sky-900' },
-    { id: 'shopping', label: 'Shopping', emoji: '🛍️', activeBg: 'bg-purple-700', activeText: 'text-white', borderColor: 'border-purple-900' },
-    { id: 'culture', label: 'Culture & Heritage', emoji: '🏛️', activeBg: 'bg-amber-900', activeText: 'text-white', borderColor: 'border-amber-950' },
-    { id: 'nature', label: 'Parks & Nature', emoji: '🌿', activeBg: 'bg-emerald-700', activeText: 'text-white', borderColor: 'border-emerald-900' },
+    { id: 'all', label: 'Highlights', emoji: '✨', activeBg: 'bg-paper-900', activeText: 'text-amber-100', borderColor: 'border-paper-900', solidBg: '#2b261b', solidBorder: '#2b261b' },
+    { id: 'restaurant', label: 'Restaurants', emoji: '🍽️', activeBg: 'bg-red-700', activeText: 'text-white', borderColor: 'border-red-900', solidBg: '#c14937', solidBorder: '#8f2f20' },
+    { id: 'cafe', label: 'Cafes', emoji: '☕', activeBg: 'bg-amber-700', activeText: 'text-white', borderColor: 'border-amber-900', solidBg: '#b45309', solidBorder: '#78350f' },
+    { id: 'hotel', label: 'Hotels', emoji: '🏨', activeBg: 'bg-indigo-700', activeText: 'text-white', borderColor: 'border-indigo-900', solidBg: '#4338ca', solidBorder: '#312e81' },
+    { id: 'attraction', label: 'Things to Do', emoji: '🎡', activeBg: 'bg-sky-700', activeText: 'text-white', borderColor: 'border-sky-900', solidBg: '#0284c7', solidBorder: '#0369a1' },
+    { id: 'shopping', label: 'Shopping', emoji: '🛍️', activeBg: 'bg-purple-700', activeText: 'text-white', borderColor: 'border-purple-900', solidBg: '#7e22ce', solidBorder: '#581c87' },
+    { id: 'culture', label: 'Culture & Heritage', emoji: '🏛️', activeBg: 'bg-amber-900', activeText: 'text-white', borderColor: 'border-amber-950', solidBg: '#78350f', solidBorder: '#451a03' },
+    { id: 'nature', label: 'Parks & Nature', emoji: '🌿', activeBg: 'bg-emerald-700', activeText: 'text-white', borderColor: 'border-emerald-900', solidBg: '#15803d', solidBorder: '#14532d' },
 ];
 
 /**

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import L from 'leaflet';
 import rough from 'roughjs';
 import { Landmark, ScenicFacility, ScenicZone, ItineraryItem } from '@/types/itinerary';
@@ -48,6 +48,7 @@ interface LeafletBaseMapProps {
     userCoords: [number, number];
     userHeading?: number | null;
     userAccuracy?: number | null;
+    showUserLocation?: boolean;
     isParchmentMode?: boolean;
     onOpenIslandView?: () => void;
     onMapReady?: (map: L.Map) => void;
@@ -77,6 +78,7 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
     userCoords,
     userHeading,
     userAccuracy,
+    showUserLocation = false,
     isParchmentMode = false,
     onOpenIslandView,
     onMapReady,
@@ -253,6 +255,7 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
     const inpaintedPaneRef = useRef<HTMLElement | null>(null);
     const badgeMarkerRef = useRef<L.Marker | null>(null);
     const maskCircleRef = useRef<SVGCircleElement | null>(null);
+    const updateUserGpsMarkerRef = useRef<(() => void) | null>(null);
 
     const boundingCircleRef = useRef<BoundingCircle | null>(null);
     const categoryMarkersMapRef = useRef<Map<string, L.Marker>>(new Map());
@@ -632,6 +635,7 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
                     setCurrentZoom(mapInstanceRef.current.getZoom());
                     scheduleRedraw();
                     emitCurrentBounds();
+                    updateUserGpsMarkerRef.current?.();
                 }
             }, 300);
         });
@@ -655,6 +659,14 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
             if (districtBoundariesLayerRef.current) {
                 districtBoundariesLayerRef.current.clearLayers();
                 districtBoundariesLayerRef.current = null;
+            }
+            if (userMarkerRef.current) {
+                userMarkerRef.current.remove();
+                userMarkerRef.current = null;
+            }
+            if (accuracyCircleRef.current) {
+                accuracyCircleRef.current.remove();
+                accuracyCircleRef.current = null;
             }
             try {
                 map.stop();
@@ -1355,19 +1367,44 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         });
     }, [facilities]);
 
-    useEffect(() => {
+    const updateUserGpsMarker = useCallback(() => {
         const map = mapInstanceRef.current;
         if (!map) return;
 
-        const rotateTransform = userHeading != null ? `transform: rotate(${userHeading}deg);` : '';
+        if (!showUserLocation) {
+            if (userMarkerRef.current) {
+                userMarkerRef.current.remove();
+                userMarkerRef.current = null;
+            }
+            if (accuracyCircleRef.current) {
+                accuracyCircleRef.current.remove();
+                accuracyCircleRef.current = null;
+            }
+            return;
+        }
+
+        const headingConeHtml = userHeading != null ? `
+          <div class="absolute inset-0 flex items-center justify-center pointer-events-none" style="transform: rotate(${userHeading}deg); transform-origin: center center;">
+            <svg viewBox="0 0 100 100" class="w-20 h-20 overflow-visible shrink-0 pointer-events-none -translate-y-2">
+              <defs>
+                <radialGradient id="googleHeadingCone" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#4285f4" stop-opacity="0.45" />
+                  <stop offset="70%" stop-color="#4285f4" stop-opacity="0.15" />
+                  <stop offset="100%" stop-color="#4285f4" stop-opacity="0" />
+                </radialGradient>
+              </defs>
+              <path d="M 50 50 L 26 8 A 48 48 0 0 1 74 8 Z" fill="url(#googleHeadingCone)" />
+            </svg>
+          </div>
+        ` : '';
+
         const userHtml = `
-      <div class="relative w-10 h-10 flex items-center justify-center select-none">
-        <div class="gps-pulse-beacon"></div>
-        <div class="w-7 h-7 bg-watercolor-brick border-2 border-white rounded-full shadow-stamp z-10 flex items-center justify-center text-[10px] text-white font-black" style="${rotateTransform}">
-          ${userHeading != null ? '▲' : 'Me'}
-        </div>
-      </div>
-    `;
+          <div class="relative w-10 h-10 flex items-center justify-center select-none pointer-events-none">
+            ${headingConeHtml}
+            <div class="gps-pulse-beacon"></div>
+            <div class="relative z-10 w-[18px] h-[18px] rounded-full bg-[#1a73e8] border-[2.5px] border-white shadow-[0_0_5px_rgba(0,0,0,0.4),0_2px_4px_rgba(0,0,0,0.25)]"></div>
+          </div>
+        `;
 
         const icon = L.divIcon({
             className: 'custom-user-gps-marker',
@@ -1376,31 +1413,64 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
             iconAnchor: [20, 20],
         });
 
-        if (userMarkerRef.current) {
+        if (userMarkerRef.current && map.hasLayer(userMarkerRef.current)) {
             userMarkerRef.current.setLatLng(userCoords);
             userMarkerRef.current.setIcon(icon);
         } else {
-            userMarkerRef.current = L.marker(userCoords, { icon, zIndexOffset: 3000 }).addTo(map);
+            if (userMarkerRef.current) {
+                try {
+                    userMarkerRef.current.remove();
+                } catch {
+                    // Ignore stale remove error
+                }
+            }
+            userMarkerRef.current = L.marker(userCoords, {
+                icon,
+                zIndexOffset: 3000,
+                interactive: false,
+            }).addTo(map);
         }
 
         if (userAccuracy && userAccuracy > 0) {
-            if (accuracyCircleRef.current) {
+            if (accuracyCircleRef.current && map.hasLayer(accuracyCircleRef.current)) {
                 accuracyCircleRef.current.setLatLng(userCoords);
                 accuracyCircleRef.current.setRadius(userAccuracy);
+                accuracyCircleRef.current.setStyle({
+                    color: '#1a73e8',
+                    weight: 1.5,
+                    opacity: 0.45,
+                    fillColor: '#4285f4',
+                    fillOpacity: 0.12,
+                });
             } else {
+                if (accuracyCircleRef.current) {
+                    try {
+                        accuracyCircleRef.current.remove();
+                    } catch {
+                        // Ignore stale remove error
+                    }
+                }
                 accuracyCircleRef.current = L.circle(userCoords, {
                     radius: userAccuracy,
-                    color: '#c14937',
-                    weight: 1,
-                    fillColor: '#c14937',
-                    fillOpacity: 0.1,
+                    color: '#1a73e8',
+                    weight: 1.5,
+                    opacity: 0.45,
+                    fillColor: '#4285f4',
+                    fillOpacity: 0.12,
+                    interactive: false,
                 }).addTo(map);
             }
         } else if (accuracyCircleRef.current) {
             accuracyCircleRef.current.remove();
             accuracyCircleRef.current = null;
         }
-    }, [userCoords, userHeading, userAccuracy]);
+    }, [showUserLocation, userCoords, userHeading, userAccuracy]);
+
+    updateUserGpsMarkerRef.current = updateUserGpsMarker;
+
+    useEffect(() => {
+        updateUserGpsMarker();
+    }, [updateUserGpsMarker]);
 
     return (
         <div className="relative w-full h-full overflow-hidden bg-[#e8dcba]">

@@ -10,6 +10,7 @@ import { SpotSearchAutocomplete } from '@/components/SpotSearchAutocomplete';
 import { CitySearchModal } from '@/components/Modals/CitySearchModal';
 import {
     ArrowLeft,
+    CaretLeft,
     Play,
     Stop,
     SpeakerHigh,
@@ -49,6 +50,8 @@ interface GuideDrawerProps {
     onDeletePersonalSpot?: (spotId: string) => void;
     isMobileOpen?: boolean;
     onCloseMobile?: () => void;
+    isDesktopCollapsed?: boolean;
+    onToggleDesktopCollapse?: () => void;
     categoryFilter?: DiscoveryCategory;
     onSelectCategoryFilter?: (cat: DiscoveryCategory) => void;
     categoryLandmarks?: Landmark[];
@@ -76,6 +79,8 @@ export const GuideDrawer: React.FC<GuideDrawerProps> = ({
     onDeletePersonalSpot,
     isMobileOpen = false,
     onCloseMobile,
+    isDesktopCollapsed = false,
+    onToggleDesktopCollapse,
     categoryFilter = 'all',
     onSelectCategoryFilter,
     categoryLandmarks = [],
@@ -238,7 +243,11 @@ export const GuideDrawer: React.FC<GuideDrawerProps> = ({
                 isMobileOpen
                     ? 'flex fixed inset-x-0 bottom-0 z-50 max-h-[82vh] rounded-t-3xl border-t-3 border-paper-900 shadow-float animate-slide-up pb-safe'
                     : 'hidden md:flex'
-            } md:relative md:inset-auto md:max-h-full md:rounded-none md:border-t-0 md:border-r-2 md:w-[420px] lg:w-[460px] md:z-20 bg-paper-100 flex-col shrink-0 h-full overflow-hidden`}
+            } md:relative md:inset-auto md:max-h-full md:rounded-none md:border-t-0 ${
+                isDesktopCollapsed
+                    ? 'md:w-0 md:min-w-0 md:max-w-0 md:border-r-0 md:opacity-0 md:pointer-events-none'
+                    : 'md:w-[420px] lg:w-[460px] md:border-r-2 md:opacity-100'
+            } md:z-20 bg-paper-100 flex-col shrink-0 h-full overflow-hidden transition-all duration-300 ease-in-out`}
         >
             {/* Mobile Sheet Drag Handle & Close Bar */}
             <div className="md:hidden flex items-center justify-between px-4 py-2 bg-paper-200/90 border-b border-paper-300 shrink-0">
@@ -259,7 +268,7 @@ export const GuideDrawer: React.FC<GuideDrawerProps> = ({
 
             {/* Top Bar: Back to Trip Hub & Mode Switcher */}
             <div className="p-3.5 border-b-2 border-paper-200 bg-paper-50 space-y-2.5 shrink-0">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-2">
                     <button
                         onClick={() => {
                             if (categoryFilter && categoryFilter !== 'all') {
@@ -269,34 +278,36 @@ export const GuideDrawer: React.FC<GuideDrawerProps> = ({
                                 setStage('plans');
                             }
                         }}
-                        className="text-xs font-bold text-paper-800 hover:text-paper-900 flex items-center gap-1 group cursor-pointer"
+                        className="text-xs font-bold text-paper-800 hover:text-paper-900 flex items-center gap-1 group cursor-pointer truncate"
                     >
-                        <ArrowLeft size={14} weight="bold" className="group-hover:-translate-x-0.5 transition-transform" />
-                        <span>{categoryFilter && categoryFilter !== 'all' ? 'Back to Route' : 'Back to Trip Hub'}</span>
+                        <ArrowLeft size={14} weight="bold" className="group-hover:-translate-x-0.5 transition-transform shrink-0" />
+                        <span className="truncate">{categoryFilter && categoryFilter !== 'all' ? 'Back to Route' : 'Back to Trip Hub'}</span>
                     </button>
 
-                    {/* Mode Chip: Ambient vs Itinerary */}
-                    {mapDiscoveryMode === 'ambient' ? (
-                        <div className="flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                            <span className="text-[10px] font-mono font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300">
-                                🧭 Ambient Discovery
-                            </span>
-                        </div>
-                    ) : (
-                        <button
-                            type="button"
-                            onClick={() => {
-                                playChime('tap');
-                                setMapDiscoveryMode('ambient');
-                            }}
-                            className="text-[10px] font-mono font-bold text-paper-700 hover:text-paper-900 bg-paper-200 hover:bg-paper-300 px-2 py-0.5 rounded-full border border-paper-400 flex items-center gap-1 transition"
-                            title="Switch to Ambient Free Discovery Mode"
-                        >
-                            <Compass size={12} weight="bold" />
-                            <span>Free Around Me</span>
-                        </button>
-                    )}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                        {/* Mode Chip: Ambient vs Itinerary */}
+                        {mapDiscoveryMode === 'ambient' ? (
+                            <div className="flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                                <span className="text-[10px] font-mono font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300">
+                                    🧭 Ambient
+                                </span>
+                            </div>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    playChime('tap');
+                                    setMapDiscoveryMode('ambient');
+                                }}
+                                className="text-[10px] font-mono font-bold text-paper-700 hover:text-paper-900 bg-paper-200 hover:bg-paper-300 px-2 py-0.5 rounded-full border border-paper-400 flex items-center gap-1 transition cursor-pointer"
+                                title="Switch to Ambient Free Discovery Mode"
+                            >
+                                <Compass size={12} weight="bold" />
+                                <span>Free Around Me</span>
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 {/* Main Drawer Mode Toggle Pill or Category Search Header */}
@@ -392,6 +403,11 @@ export const GuideDrawer: React.FC<GuideDrawerProps> = ({
                                             ? `${cat.activeBg} ${cat.activeText} ${cat.borderColor} border-2 shadow-xs font-black ring-1 ring-paper-900`
                                             : 'bg-paper-50 hover:bg-paper-200 text-paper-800 border-paper-300'
                                     }`}
+                                    style={
+                                        isCur
+                                            ? { backgroundColor: cat.solidBg, borderColor: cat.solidBorder, color: '#ffffff' }
+                                            : { backgroundColor: '#fdfbf7', color: '#2b261b' }
+                                    }
                                 >
                                     <span>{cat.emoji}</span>
                                     <span>{cat.label}</span>
