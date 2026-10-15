@@ -47,7 +47,7 @@ interface LeafletBaseMapProps {
     userCoords: [number, number];
     userHeading?: number | null;
     userAccuracy?: number | null;
-    isParchmentMode: boolean;
+    isParchmentMode?: boolean;
     onOpenIslandView?: () => void;
     onMapReady?: (map: L.Map) => void;
     onBoundsChange?: (bounds: { minLat: number; minLng: number; maxLat: number; maxLng: number }) => void;
@@ -76,7 +76,7 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
     userCoords,
     userHeading,
     userAccuracy,
-    isParchmentMode,
+    isParchmentMode = false,
     onOpenIslandView,
     onMapReady,
     onBoundsChange,
@@ -519,7 +519,7 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
 
         L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-        // 1. Base tile layer in standard tilePane (z-index: 200) - muted sepia parchment
+        // 1. Base tile layer in standard tilePane (z-index: 200) - default natural topo coloring
         L.tileLayer(
             'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
             {
@@ -527,12 +527,6 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
                 crossOrigin: true,
             }
         ).addTo(map);
-
-        // Apply parchment shader to base tilePane
-        const baseTilePane = map.getPane('tilePane');
-        if (baseTilePane && isParchmentMode) {
-            baseTilePane.classList.add('hand-drawn-tile-filter');
-        }
 
         // 2. Inpainted tile layer in custom pane (z-index: 220) - vibrant illustrated watercolor
         const inpaintedPane = map.createPane('inpaintedTilePane');
@@ -683,19 +677,6 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
             map.flyTo(zone.center, zone.zoom || 15, { duration: 1.2 });
         }
     }, [zone.id, zone.center, zone.zoom]);
-
-    useEffect(() => {
-        const map = mapInstanceRef.current;
-        if (!map) return;
-        const tilePane = map.getPane('tilePane');
-        if (!tilePane) return;
-
-        if (isParchmentMode) {
-            tilePane.classList.add('hand-drawn-tile-filter');
-        } else {
-            tilePane.classList.remove('hand-drawn-tile-filter');
-        }
-    }, [isParchmentMode]);
 
     // Fast 60FPS DOM sync for hovered landmark in container list
     useEffect(() => {

@@ -14,7 +14,7 @@ import { GuideDrawer } from './GuideDrawer';
 import { LandmarkDetailModal } from '@/components/Modals/LandmarkDetailModal';
 import { QuickExpenseModal } from '@/components/Modals/QuickExpenseModal';
 import { CitySearchModal } from '@/components/Modals/CitySearchModal';
-import { Palette, ArrowsOut, NavigationArrow, Crosshair, Sparkle, CalendarBlank, Compass, AirplaneTakeoff, MagnifyingGlass } from '@phosphor-icons/react';
+import { ArrowsOut, NavigationArrow, Crosshair, Sparkle, CalendarBlank, Compass, AirplaneTakeoff, MagnifyingGlass } from '@phosphor-icons/react';
 import { DiscoveryCategory, DISCOVERY_CATEGORIES, getLandmarkCategoryGroup } from '@/lib/landmarkCategories';
 import { getDistrictBoundary, getDistrictBoundaryKey } from '@/data/districtBoundaries';
 
@@ -141,7 +141,6 @@ export const ScenicGuideView: React.FC = () => {
     const [activeLandmark, setActiveLandmark] = useState<Landmark | null>(null);
     const [userCoords, setUserCoords] = useState<[number, number]>(zone.userOrigin);
     const [isLiveGpsActive, setIsLiveGpsActive] = useState<boolean>(false);
-    const [isParchmentMode, setIsParchmentMode] = useState<boolean>(true);
     const [isCruiseActive, setIsCruiseActive] = useState<boolean>(false);
     const [isCitySearchOpen, setIsCitySearchOpen] = useState<boolean>(false);
     const [filterRestrooms, setFilterRestrooms] = useState<boolean>(true);
@@ -879,7 +878,6 @@ export const ScenicGuideView: React.FC = () => {
                     userCoords={userCoords}
                     userHeading={isLiveGpsActive ? liveHeading : null}
                     userAccuracy={isLiveGpsActive ? liveAccuracy : null}
-                    isParchmentMode={isParchmentMode}
                     onOpenIslandView={() => {
                         playChime('stamp');
                         setIsIslandModalOpen(true);
@@ -1195,32 +1193,8 @@ export const ScenicGuideView: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Floating Map Controls */}
+                {/* Floating Map Controls (Option A: Streamlined Navigation Controls) */}
                 <div className="absolute top-4 right-4 z-20 flex flex-col gap-2">
-                    <button
-                        onClick={() => {
-                            playChime('stamp');
-                            setIsIslandModalOpen(true);
-                        }}
-                        title="Open Illustrated Island View"
-                        className="p-2.5 rounded-2xl bg-paper-50 hover:bg-amber-100 border-2 border-paper-900 text-paper-900 shadow-card transition active:scale-95"
-                    >
-                        <Sparkle size={20} weight="fill" className="text-amber-500" />
-                    </button>
-                    <button
-                        onClick={() => setIsParchmentMode(!isParchmentMode)}
-                        title="Toggle Sepia Watercolor Parchment"
-                        className="p-2.5 rounded-2xl bg-paper-50 hover:bg-paper-100 border-2 border-paper-900 text-paper-900 shadow-card transition active:scale-95"
-                    >
-                        <Palette size={20} weight="bold" className="text-watercolor-brick" />
-                    </button>
-                    <button
-                        onClick={handleFitBounds}
-                        title="Fit Current District View"
-                        className="p-2.5 rounded-2xl bg-paper-50 hover:bg-paper-100 border-2 border-paper-900 text-paper-900 shadow-card transition active:scale-95"
-                    >
-                        <ArrowsOut size={20} weight="bold" />
-                    </button>
                     <button
                         onClick={() => {
                             playChime('tap');
@@ -1235,8 +1209,11 @@ export const ScenicGuideView: React.FC = () => {
                             }
                         }}
                         title={isLiveGpsActive ? 'Disable Live GPS Tracking' : 'Enable Live GPS Tracking'}
-                        className={`p-2.5 rounded-2xl border-2 border-paper-900 shadow-card transition active:scale-95 ${isLiveGpsActive ? 'bg-watercolor-brick text-white animate-pulse' : 'bg-paper-50 hover:bg-paper-100 text-paper-900'
-                            }`}
+                        className={`p-2.5 rounded-2xl border-2 border-paper-900 shadow-card transition active:scale-95 cursor-pointer ${
+                            isLiveGpsActive
+                                ? 'bg-watercolor-brick text-white animate-pulse'
+                                : 'bg-paper-50 hover:bg-paper-100 text-paper-900'
+                        }`}
                     >
                         <NavigationArrow
                             size={20}
@@ -1245,11 +1222,11 @@ export const ScenicGuideView: React.FC = () => {
                         />
                     </button>
                     <button
-                        onClick={handleResetLocation}
-                        title="Reset to District Entrance"
-                        className="p-2.5 rounded-2xl bg-paper-50 hover:bg-paper-100 border-2 border-paper-900 text-paper-900 shadow-card transition active:scale-95"
+                        onClick={handleFitBounds}
+                        title="Fit Current District View"
+                        className="p-2.5 rounded-2xl bg-paper-50 hover:bg-paper-100 border-2 border-paper-900 text-paper-900 shadow-card transition active:scale-95 cursor-pointer"
                     >
-                        <Crosshair size={20} weight="bold" />
+                        <ArrowsOut size={20} weight="bold" />
                     </button>
                 </div>
 
