@@ -17,6 +17,25 @@ import { isCommercialChain } from '@/lib/chainBrands';
 import { CITY_PACKS } from '@/data/cityPacks';
 import { DiscoveryCategory, getLandmarkCategoryGroup } from '@/lib/landmarkCategories';
 import { playChime } from '@/lib/audio';
+import {
+    HONG_KONG_DISTRICT_BOUNDARIES,
+    getDistrictBoundary,
+    getDistrictBoundaryKey,
+    DistrictBoundary,
+} from '@/data/districtBoundaries';
+
+// Guard Leaflet DomUtil.getPosition against undefined elements during unmounting transitions
+if (typeof window !== 'undefined' && L && L.DomUtil) {
+    const origGetPos = L.DomUtil.getPosition;
+    L.DomUtil.getPosition = function (el: HTMLElement) {
+        if (!el) return new L.Point(0, 0);
+        try {
+            return origGetPos.call(L.DomUtil, el) || new L.Point(0, 0);
+        } catch {
+            return new L.Point(0, 0);
+        }
+    };
+}
 
 interface LeafletBaseMapProps {
     zone: ScenicZone;
@@ -42,6 +61,9 @@ interface LeafletBaseMapProps {
     visibleCategoryLandmarks?: Landmark[];
     categoryBatchStartIdx?: number;
     hoveredLandmarkId?: string | null;
+    selectedDistrictKey?: string | null;
+    onSelectDistrict?: (districtKey: string | null) => void;
+    territoryMode?: 'explore' | 'select';
 }
 
 export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
@@ -68,7 +90,36 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
     visibleCategoryLandmarks = [],
     categoryBatchStartIdx = 0,
     hoveredLandmarkId = null,
+    selectedDistrictKey = null,
+    onSelectDistrict,
+    territoryMode = 'explore',
 }) => {
+    const [internalSelectedDistrictKey, setInternalSelectedDistrictKey] = useState<string | null>(null);
+    const activeDistrictKey = selectedDistrictKey !== undefined ? selectedDistrictKey : internalSelectedDistrictKey;
+
+    const territoryModeRef = useRef(territoryMode);
+    territoryModeRef.current = territoryMode;
+
+    const hoveredDistrictRef = useRef<string | null>(null);
+    const setHoveredDistrict = (key: string | null) => {
+        if (hoveredDistrictRef.current === key) return;
+        hoveredDistrictRef.current = key;
+        const activeHovered = document.querySelectorAll('.district-boundary-hovered');
+        activeHovered.forEach((el) => el.classList.remove('district-boundary-hovered'));
+        if (key) {
+            const targets = document.querySelectorAll(`.district-boundary-${key}`);
+            targets.forEach((el) => el.classList.add('district-boundary-hovered'));
+        }
+    };
+
+    const handleSelectDistrict = (key: string | null) => {
+        setHoveredDistrict(null);
+        setInternalSelectedDistrictKey(key);
+        if (onSelectDistrict) {
+            onSelectDistrict(key);
+        }
+    };
+
     const {
         currentItineraryDays,
         activeDayNumber,
@@ -191,6 +242,7 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
 
     const mapContainerRef = useRef<HTMLDivElement | null>(null);
     const mapInstanceRef = useRef<L.Map | null>(null);
+    const districtBoundariesLayerRef = useRef<L.LayerGroup | null>(null);
     const landmarksLayerRef = useRef<L.LayerGroup | null>(null);
     const facilitiesLayerRef = useRef<L.LayerGroup | null>(null);
     const userMarkerRef = useRef<L.Marker | null>(null);
@@ -462,6 +514,7 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
             zoom: zone.zoom,
             zoomControl: false,
             attributionControl: false,
+            boxZoom: false,
         });
 
         L.control.zoom({ position: 'bottomright' }).addTo(map);
@@ -511,6 +564,7 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         customPane.appendChild(svg);
         svgOverlayRef.current = svg;
 
+        districtBoundariesLayerRef.current = L.layerGroup().addTo(map);
         landmarksLayerRef.current = L.layerGroup().addTo(map);
         facilitiesLayerRef.current = L.layerGroup().addTo(map);
         mapInstanceRef.current = map;
@@ -553,11 +607,26 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         map.on('viewreset', handleZoomChange);
         map.on('moveend', emitCurrentBounds);
         map.on('resize', scheduleRedraw);
+        map.on('dragstart', () => setHoveredDistrict(null));
+        map.on('movestart', () => setHoveredDistrict(null));
+        map.on('zoomstart', () => setHoveredDistrict(null));
+        map.on('mouseout', () => setHoveredDistrict(null));
         map.on('click', (e: L.LeafletMouseEvent) => {
+            if (territoryModeRef.current === 'select') {
+                handleSelectDistrict(null);
+            }
             if (onMapClickRef.current) {
                 onMapClickRef.current([e.latlng.lat, e.latlng.lng]);
             }
         });
+
+        const container = mapContainerRef.current;
+        const handleContainerMouseLeave = () => setHoveredDistrict(null);
+        if (container) {
+            container.addEventListener('mouseleave', handleContainerMouseLeave);
+            container.addEventListener('pointerleave', handleContainerMouseLeave);
+        }
+        window.addEventListener('blur', handleContainerMouseLeave);
 
         if (onMapReady) onMapReady(map);
 
@@ -573,22 +642,47 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         });
 
         return () => {
+            if (container) {
+                container.removeEventListener('mouseleave', handleContainerMouseLeave);
+                container.removeEventListener('pointerleave', handleContainerMouseLeave);
+            }
+            window.removeEventListener('blur', handleContainerMouseLeave);
             if (rafId !== null) {
                 cancelAnimationFrame(rafId);
             }
             if (itineraryCircleRef.current) {
                 itineraryCircleRef.current.remove();
-                itineraryCircleRef.current = null;
             }
             if (badgeMarkerRef.current) {
                 badgeMarkerRef.current.remove();
                 badgeMarkerRef.current = null;
             }
-            map.off();
-            map.remove();
+            if (districtBoundariesLayerRef.current) {
+                districtBoundariesLayerRef.current.clearLayers();
+                districtBoundariesLayerRef.current = null;
+            }
+            try {
+                map.stop();
+                (map as any)._onZoomTransitionEnd = () => {};
+                map.off();
+                map.remove();
+            } catch {
+                // Ignore transient unmount errors
+            }
             mapInstanceRef.current = null;
         };
-    }, [zone]);
+    }, []);
+
+    // Smoothly fly camera when destination zone changes without tearing down map canvas
+    const prevZoneIdRef = useRef(zone.id);
+    useEffect(() => {
+        const map = mapInstanceRef.current;
+        if (!map) return;
+        if (prevZoneIdRef.current !== zone.id) {
+            prevZoneIdRef.current = zone.id;
+            map.flyTo(zone.center, zone.zoom || 15, { duration: 1.2 });
+        }
+    }, [zone.id, zone.center, zone.zoom]);
 
     useEffect(() => {
         const map = mapInstanceRef.current;
@@ -629,6 +723,94 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
             }
         };
     }, [hoveredLandmarkId]);
+
+    // Render and manage Hong Kong 18 District Boundaries (Mode A: Purely visual, Mode B: Interactive)
+    useEffect(() => {
+        const map = mapInstanceRef.current;
+        const layer = districtBoundariesLayerRef.current;
+        if (!map || !layer) return;
+
+        layer.clearLayers();
+        setHoveredDistrict(null);
+
+        const isSelectMode = territoryMode === 'select';
+        const allBoundaries = Object.values(HONG_KONG_DISTRICT_BOUNDARIES);
+        const zoom = map.getZoom();
+        // In Select Mode: always show all district boundaries so user can hover and select any district
+        // In Explore Mode: show subtle ambient boundaries if zoom <= 13, and always show active lit boundary
+        const showAmbient = isSelectMode ? true : zoom <= 13;
+
+        for (const dist of allBoundaries) {
+            const isActive = activeDistrictKey === dist.key;
+            if (!isActive && !showAmbient) continue;
+
+            const polyGroup = L.featureGroup();
+
+            dist.rings.forEach((ring) => {
+                const polygon = L.polygon(ring, {
+                    className: `district-boundary-ring district-boundary-${dist.key} ${
+                        isActive ? 'district-boundary-lit' : 'district-boundary-ambient'
+                    }`,
+                    color: isActive ? '#d97706' : (isSelectMode ? '#b45309' : '#92400e'),
+                    weight: isActive ? 3.5 : (isSelectMode ? 2 : 1.2),
+                    opacity: isActive ? 1 : (isSelectMode ? 0.6 : 0.35),
+                    dashArray: isActive ? undefined : (isSelectMode ? '6, 4' : '5, 5'),
+                    fill: isSelectMode,
+                    fillColor: isSelectMode ? '#f59e0b' : 'transparent',
+                    fillOpacity: isSelectMode ? 0.0001 : 0,
+                    interactive: isSelectMode,
+                    bubblingMouseEvents: true,
+                });
+
+                if (isSelectMode) {
+                    const matchingPack = Object.values(CITY_PACKS).find((p) => getDistrictBoundaryKey(p.id) === dist.key);
+                    const spotCount = matchingPack?.landmarks?.length || 0;
+                    const label = dist.name;
+
+                    polygon.bindTooltip(`
+                        <div class="px-2.5 py-1 text-xs font-serif font-black text-paper-900 flex items-center gap-1.5 bg-paper-50/95 border-2 border-paper-900 rounded-xl shadow-stamp backdrop-blur-xs select-none pointer-events-none">
+                            <span class="w-5 h-5 rounded-full bg-amber-200 border border-amber-400 flex items-center justify-center text-[11px] shrink-0">🏮</span>
+                            <span class="font-bold">${label}</span>
+                            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-200 text-amber-950 font-mono font-bold">${spotCount} spots</span>
+                        </div>
+                    `, {
+                        sticky: true,
+                        direction: 'top',
+                        offset: [0, -10],
+                        className: 'custom-district-polygon-tooltip',
+                    });
+
+                    polygon.on('click', (e) => {
+                        L.DomEvent.stopPropagation(e);
+                        playChime('stamp');
+                        const nextKey = isActive ? null : dist.key;
+                        handleSelectDistrict(nextKey);
+                    });
+                }
+
+                polyGroup.addLayer(polygon);
+            });
+
+            if (isSelectMode) {
+                polyGroup.on('mouseover', () => {
+                    if (!isActive) {
+                        setHoveredDistrict(dist.key);
+                    }
+                });
+
+                polyGroup.on('mouseout', () => {
+                    if (!isActive) {
+                        setHoveredDistrict(null);
+                    }
+                });
+            }
+
+            if (isActive) {
+                polyGroup.bringToFront();
+            }
+            layer.addLayer(polyGroup);
+        }
+    }, [activeDistrictKey, currentZoom, territoryMode]);
 
     useEffect(() => {
         const layer = landmarksLayerRef.current;
@@ -682,13 +864,28 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
                 }
                 placedBadgePoints.push({ x: pt.x, y: pt.y + offsetY });
 
+                const bKey = getDistrictBoundaryKey(pack.id);
+                const isDistrictActive = Boolean(bKey && activeDistrictKey === bKey);
+
                 const badgeHtml = `
                     <div class="relative pointer-events-auto group" style="transform: translate(-50%, calc(-50% + ${offsetY}px));">
-                        <div class="cursor-pointer inline-flex items-center p-1 rounded-full bg-paper-50/95 border-2 border-paper-900 shadow-stamp transition-all duration-300 ease-out select-none backdrop-blur-xs whitespace-nowrap hover:scale-105 active:scale-95 group-hover:px-3 group-hover:py-1" title="${badgeLabel} (${count} spots)">
-                            <div class="w-6 h-6 rounded-full bg-amber-200/90 border border-amber-400/80 flex items-center justify-center text-xs shrink-0 shadow-2xs">
+                        <div class="cursor-pointer inline-flex items-center p-1 rounded-full ${
+                            isDistrictActive
+                                ? 'bg-amber-100 border-2 border-amber-600 shadow-[0_0_22px_rgba(245,158,11,0.95)] scale-110 px-2.5 py-1'
+                                : 'bg-paper-50/95 border-2 border-paper-900 shadow-stamp'
+                        } transition-all duration-300 ease-out select-none backdrop-blur-xs whitespace-nowrap hover:scale-105 active:scale-95 group-hover:px-3 group-hover:py-1" title="${badgeLabel} (${count} spots)">
+                            <div class="w-6 h-6 rounded-full ${
+                                isDistrictActive
+                                    ? 'bg-amber-400 text-amber-950 border border-amber-500 shadow-xs'
+                                    : 'bg-amber-200/90 border border-amber-400/80'
+                            } flex items-center justify-center text-xs shrink-0 shadow-2xs">
                                 🏮
                             </div>
-                            <div class="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[280px] group-hover:opacity-100 group-hover:ml-1.5 transition-all duration-300 ease-out flex items-center gap-1.5">
+                            <div class="${
+                                isDistrictActive
+                                    ? 'max-w-[280px] opacity-100 ml-1.5'
+                                    : 'max-w-0 overflow-hidden opacity-0 group-hover:max-w-[280px] group-hover:opacity-100 group-hover:ml-1.5'
+                            } transition-all duration-300 ease-out flex items-center gap-1.5">
                                 <span class="text-xs font-serif font-black text-paper-900 tracking-tight">${badgeLabel}</span>
                                 <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-amber-200 text-amber-950 border border-amber-300/80 shrink-0">${count} spots</span>
                             </div>
@@ -701,16 +898,39 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
                     iconSize: [0, 0],
                     iconAnchor: [0, 0],
                 });
-                const marker = L.marker(pack.center, { icon, zIndexOffset: 500 });
+                const marker = L.marker(pack.center, { icon, zIndexOffset: isDistrictActive ? 1500 : 500 });
                 marker.on('mouseover', () => {
                     marker.setZIndexOffset(2000);
+                    if (bKey && !isDistrictActive) {
+                        setHoveredDistrict(bKey);
+                    }
                 });
                 marker.on('mouseout', () => {
-                    marker.setZIndexOffset(500);
+                    marker.setZIndexOffset(isDistrictActive ? 1500 : 500);
+                    if (!isDistrictActive) {
+                        setHoveredDistrict(null);
+                    }
                 });
                 marker.on('click', () => {
                     playChime('stamp');
-                    map.flyTo(pack.center, 15, { duration: 1.2 });
+                    const nextKey = isDistrictActive ? null : bKey;
+                    handleSelectDistrict(nextKey || null);
+                    if (nextKey) {
+                        const boundary = getDistrictBoundary(bKey || '');
+                        if (boundary && boundary.rings && boundary.rings.length > 0) {
+                            const lats = boundary.rings.flatMap((r) => r.map((pt) => pt[0]));
+                            const lngs = boundary.rings.flatMap((r) => r.map((pt) => pt[1]));
+                            const b = L.latLngBounds(
+                                [Math.min(...lats), Math.min(...lngs)],
+                                [Math.max(...lats), Math.max(...lngs)]
+                            );
+                            if (mapInstanceRef.current) {
+                                mapInstanceRef.current.fitBounds(b, { padding: [40, 40], maxZoom: 14 });
+                            }
+                        } else if (mapInstanceRef.current) {
+                            mapInstanceRef.current.flyTo(pack.center, 14, { duration: 1.2 });
+                        }
+                    }
                 });
                 layer.addLayer(marker);
             }
@@ -1103,7 +1323,7 @@ export const LeafletBaseMap: React.FC<LeafletBaseMapProps> = ({
         }
 
         redrawSketchedPaths();
-    }, [landmarks, activeLandmark, activeStopIds, activeItineraryLandmarks, appMode, activeDay, onRecordExpense, currentZoom, categoryFilter, onCategoryCountChange, userCoords, visibleCategoryLandmarks, categoryBatchStartIdx, hoveredLandmarkId]);
+    }, [landmarks, activeLandmark, activeStopIds, activeItineraryLandmarks, appMode, activeDay, onRecordExpense, currentZoom, categoryFilter, onCategoryCountChange, userCoords, visibleCategoryLandmarks, categoryBatchStartIdx, hoveredLandmarkId, activeDistrictKey]);
 
     useEffect(() => {
         const layer = facilitiesLayerRef.current;

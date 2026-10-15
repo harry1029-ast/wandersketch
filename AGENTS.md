@@ -8,6 +8,20 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
+## Agent skills
+
+### Issue tracker
+
+Issues and specs live in GitHub Issues (`gh`). See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Canonical 5-role triage vocabulary. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context (`GLOSSARY.md` + `docs/adr/`). See `docs/agents/domain.md`.
+
 # WanderSketch — Architectural Context & System Status
 
 ## 1. Project Overview & Aesthetic Intent

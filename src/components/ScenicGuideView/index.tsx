@@ -16,6 +16,7 @@ import { QuickExpenseModal } from '@/components/Modals/QuickExpenseModal';
 import { CitySearchModal } from '@/components/Modals/CitySearchModal';
 import { Palette, ArrowsOut, NavigationArrow, Crosshair, Sparkle, CalendarBlank, Compass, AirplaneTakeoff, MagnifyingGlass } from '@phosphor-icons/react';
 import { DiscoveryCategory, DISCOVERY_CATEGORIES, getLandmarkCategoryGroup } from '@/lib/landmarkCategories';
+import { getDistrictBoundary, getDistrictBoundaryKey } from '@/data/districtBoundaries';
 
 const DynamicIslandModal = dynamic(
     () => import('@/components/Modals/ContainedIslandModal').then((mod) => mod.ContainedIslandModal),
@@ -160,6 +161,8 @@ export const ScenicGuideView: React.FC = () => {
     const [categoryBatchPage, setCategoryBatchPage] = useState<number>(0);
     const [hoveredLandmarkId, setHoveredLandmarkId] = useState<string | null>(null);
     const [hasMovedAway, setHasMovedAway] = useState<boolean>(false);
+    const [selectedDistrictKey, setSelectedDistrictKey] = useState<string | null>(null);
+    const [territoryMode, setTerritoryMode] = useState<'explore' | 'select'>('explore');
 
     const searchedBoundsRef = useRef(searchedBounds);
     searchedBoundsRef.current = searchedBounds;
@@ -732,6 +735,10 @@ export const ScenicGuideView: React.FC = () => {
     const handleJumpToZone = (zKey: string) => {
         playChime('tap');
         updatePlannerZone(zKey);
+        const bKey = getDistrictBoundaryKey(zKey);
+        if (bKey) {
+            setSelectedDistrictKey(bKey);
+        }
         const targetZone = allZones[zKey];
         if (targetZone) {
             setUserCoords(targetZone.userOrigin);
@@ -887,11 +894,66 @@ export const ScenicGuideView: React.FC = () => {
                     visibleCategoryLandmarks={visibleBatchCategoryLandmarks}
                     categoryBatchStartIdx={categoryBatchStartIdx}
                     hoveredLandmarkId={hoveredLandmarkId}
+                    selectedDistrictKey={selectedDistrictKey}
+                    onSelectDistrict={setSelectedDistrictKey}
+                    territoryMode={territoryMode}
                     onCategoryCountChange={setActiveCategoryCount}
                     onMapReady={(map) => {
                         mapRef.current = map;
                     }}
                 />
+
+                {/* Active Glowing District Boundary Banner */}
+                {selectedDistrictKey && (() => {
+                    const boundary = getDistrictBoundary(selectedDistrictKey);
+                    const matchingPack = Object.values(CITY_PACKS).find((p) => getDistrictBoundaryKey(p.id) === selectedDistrictKey);
+                    const spotCount = matchingPack?.landmarks?.length || 0;
+                    return (
+                        <div className="absolute top-28 left-4 z-20 flex items-center gap-2 px-3 py-1.5 bg-paper-50/95 backdrop-blur-md border-2 border-paper-900 rounded-2xl shadow-stamp animate-slide-up">
+                            <div className="w-5 h-5 rounded-full bg-amber-300 border border-amber-500 flex items-center justify-center text-xs shrink-0 shadow-2xs">
+                                🏮
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-xs font-serif font-black text-paper-900 leading-tight">
+                                    {boundary?.name || selectedDistrictKey}
+                                </span>
+                                <span className="text-[10px] text-amber-900 font-mono font-bold leading-tight">
+                                    ✨ Glowing District Border • {spotCount} spots
+                                </span>
+                            </div>
+                            {territoryMode === 'select' ? (
+                                <button
+                                    onClick={() => {
+                                        playChime('tap');
+                                        setTerritoryMode('explore');
+                                    }}
+                                    className="ml-1 px-2.5 py-1 rounded-xl bg-paper-900 hover:bg-paper-800 text-paper-50 text-[11px] font-bold transition cursor-pointer flex items-center gap-1 shadow-xs"
+                                    title="Switch to Pan & Explore mode to browse places inside this district"
+                                >
+                                    <span>🖐️ Explore District</span>
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => {
+                                        playChime('tap');
+                                        setTerritoryMode('select');
+                                    }}
+                                    className="ml-1 px-2 py-0.5 rounded-full bg-amber-200 hover:bg-amber-300 text-amber-950 text-[11px] font-bold transition cursor-pointer flex items-center gap-1"
+                                    title="Switch to Select mode to pick another district"
+                                >
+                                    <span>🏮 Select Mode</span>
+                                </button>
+                            )}
+                            <button
+                                onClick={() => setSelectedDistrictKey(null)}
+                                className="ml-1 px-2 py-0.5 rounded-full bg-paper-200 hover:bg-paper-300 text-[11px] font-bold text-paper-800 transition cursor-pointer"
+                                title="Clear Boundary Highlight"
+                            >
+                                ✕ Clear
+                            </button>
+                        </div>
+                    );
+                })()}
 
                 {/* Mode-Aware Top Bar: Ambient Horizon & District Jumpers, or Multi-Day Carousel */}
                 {mapDiscoveryMode === 'ambient' ? (
@@ -1081,6 +1143,57 @@ export const ScenicGuideView: React.FC = () => {
                         </button>
                     </div>
                 )}
+
+                {/* Territory Interaction Mode Toggle Dock (Mode A: Free Pan & Explore vs Mode B: Territory Select) */}
+                <div className="absolute bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1.5 pointer-events-auto select-none">
+                    {/* Floating Hint when in Select Mode */}
+                    {territoryMode === 'select' && (
+                        <div className="px-3 py-1 rounded-full bg-amber-400 text-paper-950 font-serif font-black text-[11px] border-2 border-paper-900 shadow-stamp flex items-center gap-1.5 animate-bounce-subtle">
+                            <span>🏮</span>
+                            <span>Hover to preview, click to select district boundary</span>
+                        </div>
+                    )}
+
+                    {/* Segmented Mode Toggle Pill */}
+                    <div className="p-1 bg-paper-50/95 backdrop-blur-md border-2 border-paper-900 rounded-full shadow-float flex items-center gap-1">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                playChime('tap');
+                                setTerritoryMode('explore');
+                            }}
+                            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-serif font-black transition-all cursor-pointer ${
+                                territoryMode === 'explore'
+                                    ? 'bg-paper-900 text-paper-50 shadow-stamp scale-102 ring-1 ring-paper-900'
+                                    : 'text-paper-700 hover:text-paper-900 hover:bg-paper-200/70'
+                            }`}
+                            title="Free Pan & Explore Mode (Default): Freely drag, pan, zoom, and inspect landmarks without boundary clicks"
+                        >
+                            <span className="text-sm">🖐️</span>
+                            <span>Pan & Explore</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => {
+                                playChime('tap');
+                                setTerritoryMode('select');
+                            }}
+                            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-serif font-black transition-all cursor-pointer ${
+                                territoryMode === 'select'
+                                    ? 'bg-amber-400 text-stone-950 shadow-stamp scale-102 ring-1 ring-amber-600 font-black'
+                                    : 'text-paper-700 hover:text-paper-900 hover:bg-paper-200/70'
+                            }`}
+                            title="Territory Select Mode: Hover and click districts to highlight borders and filter areas"
+                        >
+                            <span className="text-sm">🏮</span>
+                            <span>Select Territories</span>
+                            {selectedDistrictKey && (
+                                <span className="w-2 h-2 rounded-full bg-amber-600 animate-pulse"></span>
+                            )}
+                        </button>
+                    </div>
+                </div>
 
                 {/* Floating Map Controls */}
                 <div className="absolute top-4 right-4 z-20 flex flex-col gap-2">

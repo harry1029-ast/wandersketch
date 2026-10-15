@@ -111,3 +111,102 @@ html, body {
   transform: scale(1.08) !important;
   z-index: 10000 !important;
 }
+
+/* Glowing District Administrative Boundary - Stroke-Only Neon Glow (Zero Interior Wash) */
+@keyframes districtGlowPulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 3px rgba(245, 158, 11, 0.95)) drop-shadow(0 0 8px rgba(245, 158, 11, 0.7));
+    stroke: #d97706;
+  }
+  50% {
+    filter: drop-shadow(0 0 5px rgba(251, 191, 36, 1)) drop-shadow(0 0 14px rgba(245, 158, 11, 0.85));
+    stroke: #f59e0b;
+  }
+}
+
+.district-boundary-lit {
+  animation: districtGlowPulse 2.4s ease-in-out infinite !important;
+  stroke: #d97706 !important;
+  stroke-width: 3.5px !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+  stroke-dasharray: none !important;
+  fill: transparent !important;
+  fill-opacity: 0 !important;
+  outline: none !important;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.district-boundary-ambient {
+  fill: transparent !important;
+  fill-opacity: 0 !important;
+  outline: none !important;
+  transition: stroke 0.2s ease, stroke-width 0.2s ease, filter 0.2s ease, fill 0.2s ease, fill-opacity 0.2s ease !important;
+}
+
+/* Hover glow controlled strictly via JS-applied class (prevents stuck :hover pseudo-class) */
+.district-boundary-hovered {
+  filter: drop-shadow(0 0 5px #f59e0b) drop-shadow(0 0 14px rgba(251, 191, 36, 0.95)) !important;
+  stroke: #f59e0b !important;
+  stroke-width: 3.5px !important;
+  stroke-opacity: 1 !important;
+  stroke-dasharray: none !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+  fill: #f59e0b !important;
+  fill-opacity: 0.05 !important;
+}
+
+/* Non-interactive district paths (Mode A: Free Pan & Explore) pass through all pointer events */
+path.district-boundary-ring:not(.leaflet-interactive) {
+  pointer-events: none !important;
+  cursor: inherit !important;
+}
+
+/* Interactive district paths (Mode B: Select Mode) get pointer cursor */
+path.district-boundary-ring.leaflet-interactive {
+  cursor: pointer !important;
+}
+
+/* Prevent black focus outline box on SVG paths, polygons, and Leaflet map elements */
+.leaflet-container :focus,
+.leaflet-container :focus-visible,
+.leaflet-interactive:focus,
+.leaflet-interactive:focus-visible,
+path.leaflet-interactive:focus,
+path.leaflet-interactive:focus-visible,
+svg.leaflet-zoom-animated path:focus,
+svg.leaflet-zoom-animated path:focus-visible,
+.district-boundary-lit:focus,
+.district-boundary-lit:focus-visible,
+.district-boundary-ambient:focus,
+.district-boundary-ambient:focus-visible,
+.district-boundary-hovered:focus,
+.district-boundary-hovered:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+.leaflet-zoom-box {
+  border: none !important;
+  background: transparent !important;
+  display: none !important;
+}
+
+.district-badge-lit {
+  transform: scale(1.15) !important;
+  box-shadow: 0 0 0 3px #fbbf24, 0 0 22px rgba(245, 158, 11, 0.85) !important;
+  background-color: #fef08a !important;
+}
+
+.custom-district-polygon-tooltip {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.custom-district-polygon-tooltip::before {
+  display: none !important;
+}
